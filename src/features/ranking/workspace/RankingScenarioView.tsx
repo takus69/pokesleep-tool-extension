@@ -8,7 +8,6 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
   type IngredientName,
@@ -22,7 +21,6 @@ import RankingScenarioOptions, {
 } from "../../../../../pokesleep-tool/src/fork/RankingScenarioOptions";
 import RankingScenarioResults from "../../../../../pokesleep-tool/src/fork/RankingScenarioResults";
 import { rankingScenarioPurposes } from "../../../../../pokesleep-tool/src/fork/RankingScenarioState";
-import useRankingScenario from "../../../../../pokesleep-tool/src/fork/useRankingScenario";
 import IngredientIcon from "../../../../../pokesleep-tool/src/ui/IvCalc/IngredientIcon";
 import type IvState from "../../../../../pokesleep-tool/src/ui/IvCalc/IvState";
 import {
@@ -41,6 +39,7 @@ import {
   rankingScenarioMetrics,
   validateRankingScenario,
 } from "../../../../../pokesleep-tool/src/util/RankingScenario";
+import useRankingScenario from "./useRankingScenario";
 
 const key = (value: string) => `fork.scenario.${value}`;
 const metricKeys: Record<RankingScenarioMetric, string> = {
@@ -131,23 +130,6 @@ export default function RankingScenarioView({
   const update = (patch: Partial<RankingScenarioConfig>) =>
     ranking.setConfig({ ...config, ...patch });
   const validation = validateRankingScenario(config, state.parameter);
-  useEffect(() => {
-    if (
-      ranking.snapshot === null ||
-      !ranking.stale ||
-      validation !== null ||
-      ranking.status === "running"
-    )
-      return;
-    const timeout = window.setTimeout(() => void ranking.calculate(), 300);
-    return () => window.clearTimeout(timeout);
-  }, [
-    ranking.snapshot,
-    ranking.stale,
-    ranking.status,
-    ranking.calculate,
-    validation,
-  ]);
   const metricLabel = (value: RankingScenarioConfig) =>
     `${t(`fork.ingredientRanking.${metricKeys[value.target]}`)}${value.target === "specificIngredientCount" && value.ingredient ? ` (${t(`ingredients.${value.ingredient}`)})` : ""}`;
   return (

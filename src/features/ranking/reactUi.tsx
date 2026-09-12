@@ -55,6 +55,21 @@ export function mountRankingWorkspace({
   rankingTab.setAttribute("aria-selected", "false");
   rankingTab.setAttribute("tabindex", "-1");
   rankingTab.textContent = "ランキング";
+  rankingTab.style.position = "relative";
+  const rankingIndicator = document.createElement("span");
+  rankingIndicator.dataset.pokesleepExtensionRankingIndicator = "true";
+  Object.assign(rankingIndicator.style, {
+    position: "absolute",
+    right: "0",
+    bottom: "0",
+    left: "0",
+    height: "2px",
+    backgroundColor: "currentColor",
+    transform: "scaleX(0)",
+    transition: "transform 300ms cubic-bezier(0.4, 0, 0.2, 1)",
+    pointerEvents: "none",
+  });
+  rankingTab.append(rankingIndicator);
   rankingTab.dataset.pokesleepExtensionRanking = "true";
   slot.tabList.append(rankingTab);
 
@@ -106,6 +121,7 @@ export function mountRankingWorkspace({
     rankingTab.setAttribute("aria-selected", "false");
     rankingTab.setAttribute("tabindex", "-1");
     rankingTab.classList.remove("Mui-selected");
+    rankingIndicator.style.transform = "scaleX(0)";
     for (const [tab, state] of nativeTabState) {
       if (state.ariaSelected === null) tab.removeAttribute("aria-selected");
       else tab.setAttribute("aria-selected", state.ariaSelected);
@@ -139,6 +155,7 @@ export function mountRankingWorkspace({
       tab.setAttribute("tabindex", tab === rankingTab ? "0" : "-1");
     }
     rankingTab.classList.add("Mui-selected");
+    rankingIndicator.style.transform = "scaleX(1)";
     indicator =
       slot.tabList.parentElement?.querySelector<HTMLElement>(
         ".MuiTabs-indicator",
