@@ -4,7 +4,7 @@ import { findUpstreamRankingSlot } from "./upstreamRankingSlot";
 import { createUpstreamViewVisibility } from "./upstreamViewVisibility";
 
 describe("createUpstreamViewVisibility", () => {
-  it("hides newly rendered upstream content and restores it", () => {
+  it("hides newly rendered upstream content and restores it", async () => {
     document.body.innerHTML = `
       <main><div id="workspace">
         <div id="sticky" style="position: sticky">
@@ -28,10 +28,12 @@ describe("createUpstreamViewVisibility", () => {
     visibility.restore();
     expect(document.getElementById("editor")?.style.display).toBe("grid");
 
+    visibility.hideForRanking();
     document.getElementById("energy-chart")?.remove();
     const replacement = document.createElement("div");
     slot.workspaceHeader.append(replacement);
-    visibility.hideForRanking();
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(replacement.style.display).toBe("none");
+    visibility.dispose();
   });
 });

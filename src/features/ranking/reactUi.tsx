@@ -89,7 +89,11 @@ export function mountRankingWorkspace({
     if (event.target instanceof Node && !rankingTab.contains(event.target))
       deactivate();
   };
-  rankingTab.addEventListener("click", activate);
+  const onRankingTabClick = (event: MouseEvent) => {
+    event.stopPropagation();
+    activate();
+  };
+  rankingTab.addEventListener("click", onRankingTabClick);
   slot.tabList.addEventListener("click", onNativeTabClick, true);
 
   const observer = new MutationObserver(() => {
@@ -121,6 +125,8 @@ export function mountRankingWorkspace({
     disposed = true;
     observer.disconnect();
     deactivate();
+    visibility.dispose();
+    rankingTab.removeEventListener("click", onRankingTabClick);
     slot.tabList.removeEventListener("click", onNativeTabClick, true);
     rankingTab.remove();
     reactRoot?.unmount();
