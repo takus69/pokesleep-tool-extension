@@ -33,14 +33,15 @@ export function mountRankingWorkspace({
   hostElement,
 }: FeatureContext): () => void {
   const upstreamRoot = document.getElementById("root");
-  const slot =
+  const initialSlot =
     upstreamRoot === null ? null : findUpstreamRankingSlot(upstreamRoot);
-  if (slot === null) {
+  if (upstreamRoot === null || initialSlot === null) {
     console.warn(
       "[Pokémon Sleep Tool Extension] ランキングタブの挿入位置を確認できないため停止しました。",
     );
     return () => undefined;
   }
+  let slot = initialSlot;
 
   const firstTab = slot.tabList.querySelector<HTMLElement>(
     ":scope > [role='tab']",
@@ -61,9 +62,11 @@ export function mountRankingWorkspace({
   workspace?.insertBefore(hostElement, slot.workspaceHeader.nextElementSibling);
   hostElement.style.display = "none";
   hostElement.style.width = "100%";
-  const visibility = createUpstreamViewVisibility(slot, hostElement);
+  let visibility = createUpstreamViewVisibility(slot, hostElement);
+  let rankingActive = false;
 
   const deactivate = () => {
+    rankingActive = false;
     visibility.restore();
     hostElement.style.display = "none";
     rankingTab.setAttribute("aria-selected", "false");
@@ -73,6 +76,7 @@ export function mountRankingWorkspace({
   };
 
   const activate = () => {
+    rankingActive = true;
     visibility.hideForRanking();
     for (const tab of slot.tabList.querySelectorAll<HTMLElement>(
       "[role='tab']",
@@ -97,9 +101,22 @@ export function mountRankingWorkspace({
   slot.tabList.addEventListener("click", onNativeTabClick, true);
 
   const observer = new MutationObserver(() => {
-    if (!rankingTab.isConnected) slot.tabList.append(rankingTab);
+    if (rankingTab.isConnected) return;
+    const nextSlot = findUpstreamRankingSlot(upstreamRoot);
+    if (nextSlot === null) return;
+    slot.tabList.removeEventListener("click", onNativeTabClick, true);
+    visibility.dispose();
+    slot = nextSlot;
+    visibility = createUpstreamViewVisibility(slot, hostElement);
+    slot.workspaceHeader.parentElement?.insertBefore(
+      hostElement,
+      slot.workspaceHeader.nextElementSibling,
+    );
+    slot.tabList.append(rankingTab);
+    slot.tabList.addEventListener("click", onNativeTabClick, true);
+    if (rankingActive) activate();
   });
-  observer.observe(slot.tabList, { childList: true });
+  observer.observe(upstreamRoot, { childList: true, subtree: true });
 
   let reactRoot: Root | undefined;
   let disposed = false;

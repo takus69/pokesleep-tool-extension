@@ -7,6 +7,8 @@ describe("createUpstreamViewVisibility", () => {
   it("hides newly rendered upstream content and restores it", async () => {
     document.body.innerHTML = `
       <main><div id="workspace">
+        <header id="site-header">個体値計算機 for ポケモンスリープ</header>
+        <aside id="site-notice">お知らせ</aside>
         <div id="sticky" style="position: sticky">
           <div><div role="tablist"><button role="tab">RP</button><button role="tab">Energy</button><button role="tab">Rating</button></div><div id="selected-sp">SP</div></div>
           <svg id="sp-chart" style="position: absolute"></svg>
@@ -22,6 +24,12 @@ describe("createUpstreamViewVisibility", () => {
     const visibility = createUpstreamViewVisibility(slot, host);
 
     visibility.hideForRanking();
+    expect(document.getElementById("site-header")?.style.display).not.toBe(
+      "none",
+    );
+    expect(document.getElementById("site-notice")?.style.display).not.toBe(
+      "none",
+    );
     expect(document.getElementById("selected-sp")?.style.display).toBe("none");
     expect(document.getElementById("sp-chart")?.style.display).toBe("none");
     expect(document.getElementById("energy-chart")?.style.display).toBe("none");

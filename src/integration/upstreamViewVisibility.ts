@@ -47,9 +47,11 @@ export function createUpstreamViewVisibility(
     }
     const workspace = slot.workspaceHeader.parentElement;
     if (workspace !== null) {
-      for (const child of workspace.children) {
-        if (child !== slot.workspaceHeader && child !== rankingHost)
-          hide(child);
+      let child = slot.workspaceHeader.nextElementSibling;
+      while (child !== null) {
+        const next = child.nextElementSibling;
+        if (child !== rankingHost) hide(child);
+        child = next;
       }
     }
   };
