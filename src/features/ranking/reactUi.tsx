@@ -2,7 +2,6 @@ import { createTheme, ThemeProvider } from "@mui/material";
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { registerForkTranslations } from "../../../../pokesleep-tool/src/fork/i18n";
-import RankingWorkspace from "../../../../pokesleep-tool/src/fork/RankingWorkspace";
 import i18n, { loadLanguage } from "../../../../pokesleep-tool/src/i18n";
 import {
   AppConfigContext,
@@ -11,6 +10,7 @@ import {
 import { findUpstreamRankingSlot } from "../../integration/upstreamRankingSlot";
 import { createUpstreamViewVisibility } from "../../integration/upstreamViewVisibility";
 import type { FeatureContext } from "../types";
+import RankingWorkspace from "./workspace/RankingWorkspace";
 
 const theme = createTheme({
   typography: {
@@ -64,6 +64,21 @@ export function mountRankingWorkspace({
   hostElement.style.width = "100%";
   let visibility = createUpstreamViewVisibility(slot, hostElement);
   let rankingActive = false;
+  let refreshRevision = 0;
+  let workspaceReady = false;
+  let reactRoot: Root | undefined;
+  const renderWorkspace = () => {
+    if (!workspaceReady || reactRoot === undefined) return;
+    reactRoot.render(
+      <React.StrictMode>
+        <ThemeProvider theme={theme}>
+          <AppConfigContext.Provider value={loadConfig(browserLanguage())}>
+            <RankingWorkspace refreshRevision={refreshRevision} />
+          </AppConfigContext.Provider>
+        </ThemeProvider>
+      </React.StrictMode>,
+    );
+  };
 
   const deactivate = () => {
     rankingActive = false;
@@ -77,6 +92,8 @@ export function mountRankingWorkspace({
 
   const activate = () => {
     rankingActive = true;
+    refreshRevision += 1;
+    renderWorkspace();
     visibility.hideForRanking();
     for (const tab of slot.tabList.querySelectorAll<HTMLElement>(
       "[role='tab']",
@@ -118,24 +135,15 @@ export function mountRankingWorkspace({
   });
   observer.observe(upstreamRoot, { childList: true, subtree: true });
 
-  let reactRoot: Root | undefined;
   let disposed = false;
   const language = browserLanguage();
   void loadLanguage(language).then(() => {
     if (disposed) return;
     registerForkTranslations(language);
     void i18n.changeLanguage(language);
-    const config = loadConfig(language);
     reactRoot = createRoot(hostElement);
-    reactRoot.render(
-      <React.StrictMode>
-        <ThemeProvider theme={theme}>
-          <AppConfigContext.Provider value={config}>
-            <RankingWorkspace />
-          </AppConfigContext.Provider>
-        </ThemeProvider>
-      </React.StrictMode>,
-    );
+    workspaceReady = true;
+    renderWorkspace();
   });
 
   return () => {
