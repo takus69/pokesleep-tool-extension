@@ -10,7 +10,7 @@ describe("createUpstreamViewVisibility", () => {
         <header id="site-header">個体値計算機 for ポケモンスリープ</header>
         <aside id="site-notice">お知らせ</aside>
         <div id="sticky" style="position: sticky">
-          <div><div role="tablist"><button role="tab">RP</button><button role="tab">Energy</button><button role="tab">Rating</button></div><div id="selected-sp">SP</div></div>
+          <div><div><div role="tablist"><button role="tab">RP</button><button role="tab">Energy</button><button role="tab">Rating</button><button role="tab">Team</button></div></div></div><div id="selected-sp">SP</div>
           <svg id="sp-chart" style="position: absolute"></svg>
           <div id="energy-chart">chart</div>
         </div>
