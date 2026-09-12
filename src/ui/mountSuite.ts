@@ -6,7 +6,7 @@ export function mountSuite(features: readonly FeatureModule[]): () => void {
   const shadow = host.attachShadow({ mode: "closed" });
   document.body.append(host);
   const cleanups = features.map((feature) =>
-    feature.mount({ mountPoint: shadow }),
+    feature.mount({ hostElement: host, mountPoint: shadow }),
   );
   return () => {
     for (const cleanup of cleanups) cleanup();

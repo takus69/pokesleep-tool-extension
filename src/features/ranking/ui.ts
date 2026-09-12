@@ -1,3 +1,4 @@
+import { findUpstreamRankingSlot } from "../../integration/upstreamRankingSlot";
 import type { FeatureContext } from "../types";
 import { metricLabels, purposeLabels, reasonLabels } from "./labels";
 import {
@@ -103,18 +104,27 @@ function renderResults(
   }
 }
 
-export function mountRankingPanel({ mountPoint }: FeatureContext): () => void {
+export function mountRankingPanel({
+  hostElement,
+  mountPoint,
+}: FeatureContext): () => void {
+  const root = document.getElementById("root");
+  const slot = root === null ? null : findUpstreamRankingSlot(root);
+  if (slot === null) {
+    console.warn(
+      "[Pokémon Sleep Tool Extension] ランキングタブの挿入位置を確認できないため停止しました。",
+    );
+    return () => undefined;
+  }
+
   const style = element("style");
   style.textContent = `
     :host { color-scheme: light; }
     * { box-sizing: border-box; }
     button, select, input { font: inherit; }
-    .launcher { position:fixed; right:16px; bottom:16px; z-index:2147483647; border:0; border-radius:999px; padding:12px 18px; color:white; background:#245c45; box-shadow:0 3px 12px #0005; cursor:pointer; font:600 14px system-ui,sans-serif; }
-    .panel { position:fixed; inset:12px 12px 12px auto; z-index:2147483647; width:min(540px,calc(100vw - 24px)); display:none; grid-template-rows:auto 1fr; background:#f8fbf9; border:1px solid #b6c9bf; border-radius:14px; box-shadow:0 8px 32px #0005; overflow:hidden; font:14px system-ui,sans-serif; color:#17221d; }
-    .panel.open { display:grid; }
-    header { display:flex; justify-content:space-between; align-items:center; padding:14px 16px; background:#245c45; color:white; }
-    h2 { font-size:17px; margin:0; } .close { border:0; background:transparent; color:white; font-size:24px; cursor:pointer; }
-    .content { overflow:auto; padding:16px; } .preview { margin:0 0 14px; padding:9px; border-radius:8px; background:#fff4cf; color:#614c00; }
+    .panel { display:none; width:100%; max-width:760px; margin:0 auto 10rem; padding:8px; background:#f9f9f9; font:14px system-ui,sans-serif; color:#17221d; }
+    .panel.open { display:block; }
+    .content { padding:8px 0; } .preview { margin:0 0 14px; padding:9px; border-radius:8px; background:#fff4cf; color:#614c00; }
     .form { display:grid; gap:12px; } .field { display:grid; gap:5px; font-weight:600; } select,input { width:100%; min-height:38px; border:1px solid #98aaa1; border-radius:7px; padding:7px 9px; background:white; }
     .actions { display:flex; gap:8px; } .primary,.secondary { border:0; border-radius:8px; padding:10px 14px; cursor:pointer; }
     .primary { background:#245c45; color:white; font-weight:600; } .secondary { background:#dfe9e4; color:#18372a; }
@@ -122,19 +132,8 @@ export function mountRankingPanel({ mountPoint }: FeatureContext): () => void {
     table { width:100%; border-collapse:collapse; background:white; } th,td { padding:7px; border-bottom:1px solid #dbe4df; text-align:left; vertical-align:top; } th { position:sticky; top:0; background:#e8f0ec; } td:first-child { width:48px; } td:last-child { white-space:nowrap; }
   `;
 
-  const launcher = element("button", "launcher");
-  launcher.textContent = "ランキング";
-  launcher.type = "button";
   const panel = element("section", "panel");
   panel.setAttribute("aria-label", "ポケモン性能ランキング");
-  const header = element("header");
-  const title = element("h2");
-  title.textContent = "ポケモン性能ランキング";
-  const close = element("button", "close");
-  close.type = "button";
-  close.textContent = "×";
-  close.setAttribute("aria-label", "閉じる");
-  header.append(title, close);
   const content = element("div", "content");
   const preview = element("p", "preview");
   preview.textContent =
@@ -171,8 +170,72 @@ export function mountRankingPanel({ mountPoint }: FeatureContext): () => void {
   status.setAttribute("role", "status");
   const results = element("div");
   content.append(preview, form, status, results);
-  panel.append(header, content);
-  mountPoint.append(style, launcher, panel);
+  panel.append(content);
+  mountPoint.append(style, panel);
+
+  const firstTab = slot.tabList.querySelector<HTMLElement>(
+    ":scope > [role='tab']",
+  );
+  if (firstTab === null) return () => undefined;
+  const rankingTab = firstTab.cloneNode(false) as HTMLButtonElement;
+  rankingTab.removeAttribute("id");
+  rankingTab.removeAttribute("aria-controls");
+  rankingTab.setAttribute("aria-selected", "false");
+  rankingTab.setAttribute("tabindex", "-1");
+  rankingTab.textContent = "ランキング";
+  rankingTab.dataset.pokesleepExtensionRanking = "true";
+  slot.tabList.append(rankingTab);
+
+  const originalHostParent = hostElement.parentElement;
+  const originalHostNextSibling = hostElement.nextSibling;
+  const originalHostDisplay = hostElement.style.display;
+  const originalHostWidth = hostElement.style.width;
+  const workspace = slot.workspaceHeader.parentElement;
+  const originalContent = slot.workspaceHeader.nextElementSibling;
+  workspace?.insertBefore(hostElement, originalContent);
+  hostElement.style.display = "none";
+  hostElement.style.width = "100%";
+
+  const headerChildren = [...slot.workspaceHeader.children].filter(
+    (child): child is HTMLElement =>
+      child instanceof HTMLElement && !child.contains(slot.tabList),
+  );
+  const savedHeaderDisplays = new Map(
+    headerChildren.map((child) => [child, child.style.display]),
+  );
+  const originalContentDisplay =
+    originalContent instanceof HTMLElement
+      ? originalContent.style.display
+      : undefined;
+
+  const deactivate = () => {
+    hostElement.style.display = "none";
+    panel.classList.remove("open");
+    rankingTab.setAttribute("aria-selected", "false");
+    rankingTab.setAttribute("tabindex", "-1");
+    rankingTab.style.removeProperty("color");
+    rankingTab.style.removeProperty("border-bottom");
+    for (const child of headerChildren)
+      child.style.display = savedHeaderDisplays.get(child) ?? "";
+    if (originalContent instanceof HTMLElement)
+      originalContent.style.display = originalContentDisplay ?? "";
+  };
+
+  const activate = () => {
+    for (const tab of slot.tabList.querySelectorAll<HTMLElement>(
+      "[role='tab']",
+    )) {
+      tab.setAttribute("aria-selected", String(tab === rankingTab));
+      tab.setAttribute("tabindex", tab === rankingTab ? "0" : "-1");
+    }
+    rankingTab.style.color = "#1976d2";
+    rankingTab.style.borderBottom = "2px solid #1976d2";
+    for (const child of headerChildren) child.style.display = "none";
+    if (originalContent instanceof HTMLElement)
+      originalContent.style.display = "none";
+    hostElement.style.display = "block";
+    panel.classList.add("open");
+  };
 
   let config: RankingScenarioConfig = createRankingScenarioConfig("traits");
   let environment = loadEnvironment();
@@ -284,16 +347,26 @@ export function mountRankingPanel({ mountPoint }: FeatureContext): () => void {
   };
 
   purpose.addEventListener("change", rebuild);
-  launcher.addEventListener("click", () => panel.classList.add("open"));
-  close.addEventListener("click", () => panel.classList.remove("open"));
+  rankingTab.addEventListener("click", activate);
+  const onNativeTabClick = (event: Event) => {
+    if (event.target instanceof Node && !rankingTab.contains(event.target))
+      deactivate();
+  };
+  slot.tabList.addEventListener("click", onNativeTabClick, true);
   calculate.addEventListener("click", onCalculate);
   cancel.addEventListener("click", () => controller?.abort());
   rebuild();
 
   return () => {
     controller?.abort();
+    deactivate();
+    slot.tabList.removeEventListener("click", onNativeTabClick, true);
+    rankingTab.remove();
     style.remove();
-    launcher.remove();
     panel.remove();
+    hostElement.style.display = originalHostDisplay;
+    hostElement.style.width = originalHostWidth;
+    if (originalHostParent !== null)
+      originalHostParent.insertBefore(hostElement, originalHostNextSibling);
   };
 }
