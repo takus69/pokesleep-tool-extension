@@ -9,6 +9,7 @@ describe("createUpstreamViewVisibility", () => {
       <main><div id="workspace">
         <div id="sticky" style="position: sticky">
           <div><div role="tablist"><button role="tab">RP</button><button role="tab">Energy</button><button role="tab">Rating</button></div><div id="selected-sp">SP</div></div>
+          <svg id="sp-chart" style="position: absolute"></svg>
           <div id="energy-chart">chart</div>
         </div>
         <div id="extension-host"></div><div id="editor" style="display: grid">editor</div>
@@ -22,6 +23,7 @@ describe("createUpstreamViewVisibility", () => {
 
     visibility.hideForRanking();
     expect(document.getElementById("selected-sp")?.style.display).toBe("none");
+    expect(document.getElementById("sp-chart")?.style.display).toBe("none");
     expect(document.getElementById("energy-chart")?.style.display).toBe("none");
     expect(document.getElementById("editor")?.style.display).toBe("none");
     expect(slot.tabList.style.display).not.toBe("none");

@@ -11,11 +11,13 @@ export function createUpstreamViewVisibility(
   slot: UpstreamRankingSlot,
   rankingHost: HTMLElement,
 ): UpstreamViewVisibility {
-  const originalDisplays = new Map<HTMLElement, string>();
+  const originalDisplays = new Map<HTMLElement | SVGElement, string>();
   let rankingActive = false;
   let refreshQueued = false;
   const hide = (element: Element): void => {
-    if (!(element instanceof HTMLElement) || element === rankingHost) return;
+    if (!(element instanceof HTMLElement) && !(element instanceof SVGElement))
+      return;
+    if (element === rankingHost) return;
     if (!originalDisplays.has(element)) {
       originalDisplays.set(element, element.style.display);
     }
