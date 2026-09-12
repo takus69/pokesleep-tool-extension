@@ -1,4 +1,4 @@
-import { connectivityFeature } from "../../features/connectivity";
+import { rankingFeature } from "../../features/ranking";
 import { readToolSnapshot } from "../../integration/upstreamAdapter";
 import { ChromeSettingsStore } from "../../settings/chromeSettingsStore";
 import { mountSuite } from "../../ui/mountSuite";
@@ -15,7 +15,7 @@ async function start(): Promise<void> {
   }
 
   const settings = await new ChromeSettingsStore().load();
-  const features = [connectivityFeature].filter(
+  const features = [rankingFeature].filter(
     (feature) => settings.enabledFeatures[feature.id] ?? feature.defaultEnabled,
   );
   mountSuite(features);
