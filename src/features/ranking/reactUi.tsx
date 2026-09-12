@@ -7,6 +7,7 @@ import {
   AppConfigContext,
   loadConfig,
 } from "../../../../pokesleep-tool/src/ui/AppConfig";
+import { openUpstreamCalculationSettings } from "../../integration/upstreamCalculationSettings";
 import { findUpstreamRankingSlot } from "../../integration/upstreamRankingSlot";
 import { createUpstreamViewVisibility } from "../../integration/upstreamViewVisibility";
 import type { FeatureContext } from "../types";
@@ -48,6 +49,7 @@ export function mountRankingWorkspace({
   );
   if (firstTab === null) return () => undefined;
   const rankingTab = firstTab.cloneNode(false) as HTMLButtonElement;
+  rankingTab.classList.remove("Mui-selected");
   rankingTab.removeAttribute("id");
   rankingTab.removeAttribute("aria-controls");
   rankingTab.setAttribute("aria-selected", "false");
@@ -67,13 +69,30 @@ export function mountRankingWorkspace({
   let refreshRevision = 0;
   let workspaceReady = false;
   let reactRoot: Root | undefined;
+  const nativeTabState = new Map<
+    HTMLElement,
+    { ariaSelected: string | null; tabIndex: string | null; selected: boolean }
+  >();
+  let indicator: HTMLElement | null = null;
+  let indicatorVisibility = "";
+  const editEnvironment = () => {
+    void openUpstreamCalculationSettings(slot).then((opened) => {
+      if (!opened)
+        console.warn(
+          "[Pokémon Sleep Tool Extension] 元ツールの計算設定タブを確認できませんでした。",
+        );
+    });
+  };
   const renderWorkspace = () => {
     if (!workspaceReady || reactRoot === undefined) return;
     reactRoot.render(
       <React.StrictMode>
         <ThemeProvider theme={theme}>
           <AppConfigContext.Provider value={loadConfig(browserLanguage())}>
-            <RankingWorkspace refreshRevision={refreshRevision} />
+            <RankingWorkspace
+              refreshRevision={refreshRevision}
+              onEditEnvironment={editEnvironment}
+            />
           </AppConfigContext.Provider>
         </ThemeProvider>
       </React.StrictMode>,
@@ -86,8 +105,17 @@ export function mountRankingWorkspace({
     hostElement.style.display = "none";
     rankingTab.setAttribute("aria-selected", "false");
     rankingTab.setAttribute("tabindex", "-1");
-    rankingTab.style.removeProperty("color");
-    rankingTab.style.removeProperty("border-bottom");
+    rankingTab.classList.remove("Mui-selected");
+    for (const [tab, state] of nativeTabState) {
+      if (state.ariaSelected === null) tab.removeAttribute("aria-selected");
+      else tab.setAttribute("aria-selected", state.ariaSelected);
+      if (state.tabIndex === null) tab.removeAttribute("tabindex");
+      else tab.setAttribute("tabindex", state.tabIndex);
+      tab.classList.toggle("Mui-selected", state.selected);
+    }
+    nativeTabState.clear();
+    if (indicator !== null) indicator.style.visibility = indicatorVisibility;
+    indicator = null;
   };
 
   const activate = () => {
@@ -95,14 +123,30 @@ export function mountRankingWorkspace({
     refreshRevision += 1;
     renderWorkspace();
     visibility.hideForRanking();
+    nativeTabState.clear();
     for (const tab of slot.tabList.querySelectorAll<HTMLElement>(
       "[role='tab']",
     )) {
+      if (tab !== rankingTab) {
+        nativeTabState.set(tab, {
+          ariaSelected: tab.getAttribute("aria-selected"),
+          tabIndex: tab.getAttribute("tabindex"),
+          selected: tab.classList.contains("Mui-selected"),
+        });
+        tab.classList.remove("Mui-selected");
+      }
       tab.setAttribute("aria-selected", String(tab === rankingTab));
       tab.setAttribute("tabindex", tab === rankingTab ? "0" : "-1");
     }
-    rankingTab.style.color = "#1976d2";
-    rankingTab.style.borderBottom = "2px solid #1976d2";
+    rankingTab.classList.add("Mui-selected");
+    indicator =
+      slot.tabList.parentElement?.querySelector<HTMLElement>(
+        ".MuiTabs-indicator",
+      ) ?? null;
+    if (indicator !== null) {
+      indicatorVisibility = indicator.style.visibility;
+      indicator.style.visibility = "hidden";
+    }
     hostElement.style.display = "block";
   };
 

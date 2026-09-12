@@ -44,7 +44,13 @@ function extensionReducer(state: IvState, action: WorkspaceAction): IvState {
 }
 
 const RankingWorkspace = React.memo(
-  ({ refreshRevision }: { refreshRevision: number }) => {
+  ({
+    refreshRevision,
+    onEditEnvironment,
+  }: {
+    refreshRevision: number;
+    onEditEnvironment: () => void;
+  }) => {
     const initial = React.useMemo(() => loadUpstreamRankingInputs(), []);
     const [state, dispatch] = React.useReducer(extensionReducer, initial);
     // biome-ignore lint/correctness/useExhaustiveDependencies: the revision explicitly requests a fresh upstream snapshot
@@ -72,6 +78,7 @@ const RankingWorkspace = React.memo(
       <>
         <RankingScenarioView
           state={state}
+          onEditEnvironment={onEditEnvironment}
           comparisonIv={comparisonIv}
           onAddComparison={() => {
             dispatch({ type: "changeLowerTab", payload: { index: 0 } });

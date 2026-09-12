@@ -8,6 +8,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
   type IngredientName,
@@ -110,12 +111,14 @@ export function RankingEnvironmentSummary({
 
 export default function RankingScenarioView({
   state,
+  onEditEnvironment,
   comparisonIv,
   onAddComparison,
   onEditComparison,
   onRemoveComparison,
 }: {
   state: IvState;
+  onEditEnvironment: () => void;
   comparisonIv: PokemonIv | null;
   onAddComparison: () => void;
   onEditComparison: () => void;
@@ -128,6 +131,23 @@ export default function RankingScenarioView({
   const update = (patch: Partial<RankingScenarioConfig>) =>
     ranking.setConfig({ ...config, ...patch });
   const validation = validateRankingScenario(config, state.parameter);
+  useEffect(() => {
+    if (
+      ranking.snapshot === null ||
+      !ranking.stale ||
+      validation !== null ||
+      ranking.status === "running"
+    )
+      return;
+    const timeout = window.setTimeout(() => void ranking.calculate(), 300);
+    return () => window.clearTimeout(timeout);
+  }, [
+    ranking.snapshot,
+    ranking.stale,
+    ranking.status,
+    ranking.calculate,
+    validation,
+  ]);
   const metricLabel = (value: RankingScenarioConfig) =>
     `${t(`fork.ingredientRanking.${metricKeys[value.target]}`)}${value.target === "specificIngredientCount" && value.ingredient ? ` (${t(`ingredients.${value.ingredient}`)})` : ""}`;
   return (
@@ -264,6 +284,24 @@ export default function RankingScenarioView({
       >
         {t(key("reset purpose"))}
       </Button>
+      <Box
+        sx={{
+          border: "1px solid",
+          borderColor: "divider",
+          borderRadius: 1,
+          p: 1,
+        }}
+      >
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+        >
+          <Typography>{t(key("environment"))}</Typography>
+          <Button onClick={onEditEnvironment}>{t("edit")}</Button>
+        </Stack>
+        <RankingEnvironmentSummary parameter={state.parameter} />
+      </Box>
       {validation && (
         <Alert severity="info">{t(key(`reason ${validation}`))}</Alert>
       )}
