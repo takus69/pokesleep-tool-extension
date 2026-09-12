@@ -1,6 +1,6 @@
 export interface FeatureContext {
   readonly hostElement: HTMLElement;
-  readonly mountPoint: ShadowRoot;
+  readonly mountPoint: HTMLElement;
 }
 
 export interface FeatureModule {

@@ -1,8 +1,8 @@
 import type { FeatureModule } from "../types";
-import { mountRankingPanel } from "./ui";
+import { mountRankingWorkspace } from "./reactUi";
 
 export const rankingFeature: FeatureModule = {
   id: "ranking",
   defaultEnabled: true,
-  mount: mountRankingPanel,
+  mount: mountRankingWorkspace,
 };
