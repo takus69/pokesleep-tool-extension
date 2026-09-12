@@ -1,6 +1,8 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.4.13/schema.json",
-  "files": { "includes": ["**", "!dist", "!coverage"] },
+  "files": {
+    "includes": ["**", "!dist", "!coverage", "!.tmp-*-profile*"]
+  },
   "formatter": { "indentStyle": "space", "indentWidth": 2 },
   "linter": { "enabled": true, "rules": { "recommended": true } }
 }
