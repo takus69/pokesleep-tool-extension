@@ -75,6 +75,9 @@ describe("upstream data pack", () => {
   it("fetches, validates, caches, and applies a network pack atomically", async () => {
     const set = vi.fn();
     vi.stubGlobal("chrome", {
+      runtime: {
+        sendMessage: vi.fn().mockResolvedValue({ shouldRefresh: true }),
+      },
       storage: { local: { get: vi.fn().mockResolvedValue({}), set } },
     });
     vi.stubGlobal(
@@ -90,5 +93,32 @@ describe("upstream data pack", () => {
     expect(status.source).toBe("network");
     expect(status.pokemonCount).toBe(baseline.pokemon.length);
     expect(set).toHaveBeenCalledOnce();
+  });
+
+  it("uses cached data without fetching again in the same browser session", async () => {
+    vi.stubGlobal("chrome", {
+      runtime: {
+        sendMessage: vi.fn().mockResolvedValue({ shouldRefresh: false }),
+      },
+      storage: {
+        local: {
+          get: vi.fn().mockResolvedValue({
+            "upstream-data-pack.v1": {
+              checkedAt: 1234,
+              pokemon: pokemonJson,
+              event: eventJson,
+            },
+          }),
+          set: vi.fn(),
+        },
+      },
+    });
+    const fetch = vi.fn();
+    vi.stubGlobal("fetch", fetch);
+
+    const status = await prepareUpstreamDataPack(5678);
+
+    expect(status.source).toBe("cached");
+    expect(fetch).not.toHaveBeenCalled();
   });
 });

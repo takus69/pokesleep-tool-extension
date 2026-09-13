@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "description": "Adds optional, local-only features to Pokémon Sleep Tool.",
   "permissions": ["storage"],
+  "background": { "service_worker": "background.js" },
   "host_permissions": [
     "https://nitoyon.github.io/pokesleep-tool/*",
     "https://raw.githubusercontent.com/nitoyon/pokesleep-tool/*"

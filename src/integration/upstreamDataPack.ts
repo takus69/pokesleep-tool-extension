@@ -13,7 +13,7 @@ import bundledPokemonJson from "../vendor/upstream-data/pokemon.json";
 const sourceBase =
   "https://raw.githubusercontent.com/nitoyon/pokesleep-tool/main/src/data";
 const cacheKey = "upstream-data-pack.v1";
-const refreshInterval = 6 * 60 * 60 * 1000;
+const refreshClaimMessage = "claim-upstream-data-refresh";
 const bundledPokemonCount = pokemons.length;
 const supportedSkills = new Set([
   "Ingredient Magnet S",
@@ -412,6 +412,21 @@ async function fetchJson(file: string): Promise<unknown> {
   return response.json() as Promise<unknown>;
 }
 
+async function claimBrowserSessionRefresh(): Promise<boolean> {
+  try {
+    const response = await chrome.runtime.sendMessage({
+      type: refreshClaimMessage,
+    });
+    return response?.shouldRefresh === true;
+  } catch (cause) {
+    console.warn(
+      "[Pokémon Sleep Tool Extension] Could not determine browser-session refresh state",
+      cause,
+    );
+    return false;
+  }
+}
+
 export async function prepareUpstreamDataPack(
   now = Date.now(),
 ): Promise<UpstreamDataStatus> {
@@ -433,7 +448,6 @@ export async function prepareUpstreamDataPack(
     if (cached !== null) {
       const pack = validateUpstreamDataPack(cached.pokemon, cached.event);
       applyUpstreamDataPack(pack, "cached", cached.checkedAt);
-      if (now - cached.checkedAt < refreshInterval) return currentStatus;
     }
   } catch (cause) {
     console.warn(
@@ -441,6 +455,7 @@ export async function prepareUpstreamDataPack(
       cause,
     );
   }
+  if (!(await claimBrowserSessionRefresh())) return currentStatus;
   try {
     const [pokemon, event] = await Promise.all([
       fetchJson("pokemon.json"),
