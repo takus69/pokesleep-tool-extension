@@ -6,7 +6,10 @@ import {
   createStrengthParameter,
   saveStrengthParameter,
 } from "../../../pokesleep-tool/src/util/StrengthParameter";
-import { loadUpstreamRankingInputs } from "./upstreamRankingInputs";
+import {
+  loadUpstreamRankingInputs,
+  readRawRankingEnvironment,
+} from "./upstreamRankingInputs";
 
 describe("loadUpstreamRankingInputs", () => {
   beforeEach(() => localStorage.clear());
@@ -18,8 +21,8 @@ describe("loadUpstreamRankingInputs", () => {
     firstBox.save();
 
     const first = loadUpstreamRankingInputs();
-    expect(first.parameter.fieldBonus).toBe(10);
-    expect(first.box.items[0]?.nickname).toBe("first");
+    expect(first.state.parameter.fieldBonus).toBe(10);
+    expect(first.state.box.items[0]?.nickname).toBe("first");
 
     saveStrengthParameter(createStrengthParameter({ fieldBonus: 25 }));
     const secondBox = new PokemonBox();
@@ -29,14 +32,26 @@ describe("loadUpstreamRankingInputs", () => {
 
     const second = loadUpstreamRankingInputs();
 
-    expect(second.parameter.fieldBonus).toBe(25);
-    expect(second.box.items).toHaveLength(1);
-    expect(second.box.items[0]?.nickname).toBe("latest");
+    expect(second.state.parameter.fieldBonus).toBe(25);
+    expect(second.state.box.items).toHaveLength(1);
+    expect(second.state.box.items[0]?.nickname).toBe("latest");
     expect({ ...localStorage }).toEqual(before);
   });
 
   it("fails closed for malformed upstream box data", () => {
     localStorage.setItem("PstPokeBox", "{");
     expect(() => loadUpstreamRankingInputs()).toThrow();
+  });
+
+  it("fingerprints unknown events without ranking-only overrides", () => {
+    const first = readRawRankingEnvironment(
+      JSON.stringify({ event: "future-event", level: 10, fieldIndex: 1 }),
+    );
+    const second = readRawRankingEnvironment(
+      JSON.stringify({ fieldIndex: 1, level: 100, event: "future-event" }),
+    );
+
+    expect(first).toEqual(second);
+    expect(first.rawEvent).toBe("future-event");
   });
 });

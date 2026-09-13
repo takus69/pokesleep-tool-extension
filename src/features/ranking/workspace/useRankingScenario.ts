@@ -48,6 +48,7 @@ export function cloneRankingEnvironment(
 export default function useRankingScenario(
   environment: StrengthParameter,
   comparisonIv: PokemonIv | null,
+  sourceEnvironmentKey?: string,
 ) {
   const [settings, setSettings] = useState(loadRankingScenarioSettings);
   const [result, setResult] = useState<RankingScenarioResult | null>(null);
@@ -59,10 +60,12 @@ export default function useRankingScenario(
   const [progress, setProgress] = useState(0);
   const currentConfig = settings.configs[settings.purpose];
   const configKey = serializeRankingScenarioConfig(currentConfig);
-  const environmentKey = JSON.stringify({
-    ...createRankingEnvironment(environment),
-    teamMember: environment.teamMember.toProps(),
-  });
+  const environmentKey =
+    sourceEnvironmentKey ??
+    JSON.stringify({
+      ...createRankingEnvironment(environment),
+      teamMember: environment.teamMember.toProps(),
+    });
   const key = `${configKey}\n${environmentKey}`;
   const activeRun = useRef<{
     id: number;

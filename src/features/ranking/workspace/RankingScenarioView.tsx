@@ -110,6 +110,7 @@ export function RankingEnvironmentSummary({
 
 export default function RankingScenarioView({
   state,
+  environmentKey,
   onEditEnvironment,
   comparisonIv,
   onAddComparison,
@@ -117,6 +118,7 @@ export default function RankingScenarioView({
   onRemoveComparison,
 }: {
   state: IvState;
+  environmentKey: string;
   onEditEnvironment: () => void;
   comparisonIv: PokemonIv | null;
   onAddComparison: () => void;
@@ -124,7 +126,11 @@ export default function RankingScenarioView({
   onRemoveComparison: () => void;
 }) {
   const { t } = useTranslation();
-  const ranking = useRankingScenario(state.parameter, comparisonIv);
+  const ranking = useRankingScenario(
+    state.parameter,
+    comparisonIv,
+    environmentKey,
+  );
   const config = ranking.currentConfig;
   const metricNoteKey = metricNoteKeys[config.target];
   const update = (patch: Partial<RankingScenarioConfig>) =>
@@ -205,12 +211,17 @@ export default function RankingScenarioView({
         </TextField>
       )}
       {config.purpose === "field" && (
-        <Typography variant="body2" color="text.secondary">
-          {t(key("map"))}:{" "}
-          {state.parameter.fieldIndex >= 0
-            ? t(`area.${state.parameter.fieldIndex}`)
-            : t("none")}
-        </Typography>
+        <Stack direction="row" alignItems="center" gap={1}>
+          <Typography variant="body2" color="text.secondary">
+            {t(key("map"))}:{" "}
+            {state.parameter.fieldIndex >= 0
+              ? t(`area.${state.parameter.fieldIndex}`)
+              : t("none")}
+          </Typography>
+          <Button size="small" onClick={onEditEnvironment}>
+            {`${t(key("map"))} ${t("edit")}`}
+          </Button>
+        </Stack>
       )}
       <TextField
         select

@@ -52,10 +52,15 @@ const RankingWorkspace = React.memo(
     onEditEnvironment: () => void;
   }) => {
     const initial = React.useMemo(() => loadUpstreamRankingInputs(), []);
-    const [state, dispatch] = React.useReducer(extensionReducer, initial);
+    const [state, dispatch] = React.useReducer(extensionReducer, initial.state);
+    const [environmentKey, setEnvironmentKey] = React.useState(
+      initial.environmentKey,
+    );
     // biome-ignore lint/correctness/useExhaustiveDependencies: the revision explicitly requests a fresh upstream snapshot
     React.useEffect(() => {
-      dispatch({ type: "syncUpstream", payload: loadUpstreamRankingInputs() });
+      const latest = loadUpstreamRankingInputs();
+      dispatch({ type: "syncUpstream", payload: latest.state });
+      setEnvironmentKey(latest.environmentKey);
     }, [refreshRevision]);
     const [comparisonIv, setComparisonIv] = React.useState<PokemonIv | null>(
       null,
@@ -78,6 +83,7 @@ const RankingWorkspace = React.memo(
       <>
         <RankingScenarioView
           state={state}
+          environmentKey={environmentKey}
           onEditEnvironment={onEditEnvironment}
           comparisonIv={comparisonIv}
           onAddComparison={() => {
