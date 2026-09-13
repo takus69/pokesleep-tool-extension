@@ -31,4 +31,6 @@ This repository is a Manifest V3 browser-extension suite for Pokémon Sleep Tool
 - `npm run typecheck`: TypeScript
 - `npm run lint`: Biome check
 - `npm run build`: production MV3 bundle
+- `npm run sync:upstream-data`: refresh checked-in upstream JSON from `POKESLEEP_TOOL_SOURCE` or the sibling checkout
+- `npm run release:prepare`: refresh upstream JSON, then run full verification
 - `npm run verify`: full verification
