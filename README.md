@@ -16,6 +16,8 @@ Node.js 20以上で `npm install` 後、`npm run verify` を実行してくだ�
 
 設計資料は [アーキテクチャ](docs/architecture.md)、調査結果と移行計画は [fork調査](docs/fork-audit.md) にあります。
 
+開発への参加方法とPR運用は [CONTRIBUTING.md](CONTRIBUTING.md)、新機能の設計には [機能設計テンプレート](docs/design/feature-design-template.md) を参照してください。
+
 ## ライセンス
 
 MIT Licenseです。上流およびfork由来部分の帰属は [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) を参照してください。
