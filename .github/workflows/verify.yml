@@ -26,5 +26,11 @@ jobs:
           cache-dependency-path: pokesleep-tool-extension/package-lock.json
       - run: npm ci
         working-directory: pokesleep-tool-extension
-      - run: npm run verify
+      - run: npm run typecheck
+        working-directory: pokesleep-tool-extension
+      - run: npm run lint
+        working-directory: pokesleep-tool-extension
+      - run: npm run test
+        working-directory: pokesleep-tool-extension
+      - run: npm run build
         working-directory: pokesleep-tool-extension
