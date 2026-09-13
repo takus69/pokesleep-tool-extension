@@ -132,7 +132,7 @@ const RankingWorkspace = React.memo(
           }}
         >
           <DialogTitle>
-            {t(comparisonIv ? "fork.scenario.comparison" : "pokemon")}
+            {t(comparisonIv ? "ranking.scenario.comparison" : "pokemon")}
           </DialogTitle>
           <DialogContent
             sx={
@@ -190,7 +190,7 @@ const RankingWorkspace = React.memo(
                 setComparisonEditorOpen(false);
               }}
             >
-              {t("fork.scenario.set comparison")}
+              {t("ranking.scenario.set comparison")}
             </Button>
             <Button onClick={() => setComparisonEditorOpen(false)}>
               {t("close")}

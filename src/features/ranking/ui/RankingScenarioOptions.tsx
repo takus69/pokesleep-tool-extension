@@ -72,7 +72,7 @@ export function RankingOptionSummary({
       {config.purpose !== "traits" &&
         ` · ${t(`natures.${config.nature.name}`)} · ${iv.activeSubSkills.map((skill) => t(`subskill.${skill.name}`)).join(" / ") || t("none")}`}
       {!["traits", "ingredients"].includes(config.purpose) &&
-        ` · ${t(`fork.scenario.mythical ${config.mythical}`)} · ${t("fork.scenario.include unevolved")}: ${t(config.includeUnevolved ? "on" : "off")}`}
+        ` · ${t(`ranking.scenario.mythical ${config.mythical}`)} · ${t("ranking.scenario.include unevolved")}: ${t(config.includeUnevolved ? "on" : "off")}`}
     </Typography>
   );
 }
@@ -94,7 +94,7 @@ export default function RankingScenarioOptions({
     <Accordion disableGutters defaultExpanded={false}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <Stack gap={0.5}>
-          <Typography>{t("fork.scenario.options")}</Typography>
+          <Typography>{t("ranking.scenario.options")}</Typography>
           <RankingOptionSummary config={config} />
         </Stack>
       </AccordionSummary>
@@ -137,7 +137,7 @@ export default function RankingScenarioOptions({
             </TextField>
           </Stack>
           <Typography variant="caption">
-            {t("fork.scenario.skill level note")}
+            {t("ranking.scenario.skill level note")}
           </Typography>
           <div>
             <Typography variant="body2">{t("sleeping time shared")}</Typography>
@@ -172,7 +172,7 @@ export default function RankingScenarioOptions({
           {!["ingredients", "ingredient"].includes(config.purpose) && (
             <div>
               <Typography variant="body2">
-                {t("fork.ingredientRanking.ingredient configuration")}
+                {t("ranking.ingredientRanking.ingredient configuration")}
               </Typography>
               {config.purpose === "traits" && config.pokemonName ? (
                 <IngredientTextField
@@ -212,7 +212,7 @@ export default function RankingScenarioOptions({
               <TextField
                 select
                 size="small"
-                label={t("fork.scenario.mythical")}
+                label={t("ranking.scenario.mythical")}
                 value={config.mythical}
                 onChange={(event) =>
                   update({
@@ -223,15 +223,15 @@ export default function RankingScenarioOptions({
               >
                 {["exclude", "same", "all"].map((value) => (
                   <MenuItem key={value} value={value}>
-                    {t(`fork.scenario.mythical ${value}`)}
+                    {t(`ranking.scenario.mythical ${value}`)}
                   </MenuItem>
                 ))}
               </TextField>
               <Typography variant="caption" color="text.secondary">
-                {t("fork.scenario.mythical note")}
+                {t("ranking.scenario.mythical note")}
               </Typography>
               <FormControlLabel
-                label={t("fork.scenario.include unevolved")}
+                label={t("ranking.scenario.include unevolved")}
                 control={
                   <Switch
                     checked={config.includeUnevolved}

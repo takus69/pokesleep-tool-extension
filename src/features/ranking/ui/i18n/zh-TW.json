@@ -1,5 +1,5 @@
 {
-  "fork": {
+  "ranking": {
     "brand": {
       "screen title": "寶可夢性能排行榜",
       "subtitle": "以個體值計算器為基礎，用於比較培育候選與持有寶可夢的工具",
@@ -71,15 +71,6 @@
         "pumpkin": "南瓜",
         "avocado": "酪梨"
       }
-    },
-    "about": {
-      "about1": "本應用程式是以 nitoyon 開發的 <upstream>nitoyon/pokesleep-tool</upstream> 為基礎建立的分支版本。",
-      "about2": "本分支版本包含獨立修改，由 <maintainer>takus69</maintainer> 維護。原始碼公開於 <source>takus69/pokesleep-tool</source>。",
-      "about3": "使用的數據參考 「<wiki>ポケモンスリープ攻略・検証Wiki</wiki>」，「<rp>RP collection project</rp>」，以及「<raenonx>RaenonX</raenonx>」。食材圖標由ちゃんりわさん創作。",
-      "about4": "本工具的數據、模擬結果、截圖等歡迎自由使用。使用時，若能註明使用了本工具，將不勝感激。",
-      "about5": "本應用程式是非官方的愛好者作品，與 Nintendo、Creatures Inc.、GAME FREAK inc.、The Pokémon Company 及其關係企業不存在合作、贊助或認可關係。",
-      "about6": "關於授權與署名的詳情，請參閱 <license>MIT License</license>、<notices>第三方授權及聲明</notices>與<dependencies>開放原始碼依賴套件授權清單</dependencies>。",
-      "about7": "如有改進建議或錯誤回報，請提交至本分支版本的 <issues>GitHub Issues</issues>。"
     },
     "scenario": {
       "purpose": "目的",

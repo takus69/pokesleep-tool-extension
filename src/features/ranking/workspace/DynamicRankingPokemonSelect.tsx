@@ -46,7 +46,7 @@ export default function DynamicRankingPokemonSelect({
       <TextField
         label={t("pokemon")}
         value={selected?.localName ?? ""}
-        placeholder={t("fork.scenario.select condition")}
+        placeholder={t("ranking.scenario.select condition")}
         fullWidth
         size="small"
         onClick={() => setOpen(true)}

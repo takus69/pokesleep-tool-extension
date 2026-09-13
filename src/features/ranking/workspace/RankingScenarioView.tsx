@@ -37,7 +37,7 @@ import { IngredientIcon, type IvState } from "../upstreamUi";
 import DynamicRankingPokemonSelect from "./DynamicRankingPokemonSelect";
 import useRankingScenario from "./useRankingScenario";
 
-const key = (value: string) => `fork.scenario.${value}`;
+const key = (value: string) => `ranking.scenario.${value}`;
 const metricKeys: Record<RankingScenarioMetric, string> = {
   specificIngredientCount: "ranking target specific ingredient count",
   ingredientStrength: "ranking target ingredient strength",
@@ -87,7 +87,7 @@ export function RankingEnvironmentSummary({
         {` · ${t(key("total components"))}: ${
           ["Berries", "Ingredients", "Skills"]
             .filter((_value, index) => parameter.totalFlags[index])
-            .map((value) => t(`fork.ingredientRanking.specialty ${value}`))
+            .map((value) => t(`ranking.ingredientRanking.specialty ${value}`))
             .join(" / ") || t("none")
         }`}
       </Typography>
@@ -137,10 +137,12 @@ export default function RankingScenarioView({
     ranking.setConfig({ ...config, ...patch });
   const validation = validateRankingScenario(config, state.parameter);
   const metricLabel = (value: RankingScenarioConfig) =>
-    `${t(`fork.ingredientRanking.${metricKeys[value.target]}`)}${value.target === "specificIngredientCount" && value.ingredient ? ` (${t(`ingredients.${value.ingredient}`)})` : ""}`;
+    `${t(`ranking.ingredientRanking.${metricKeys[value.target]}`)}${value.target === "specificIngredientCount" && value.ingredient ? ` (${t(`ingredients.${value.ingredient}`)})` : ""}`;
   return (
     <Stack gap={2} sx={{ p: 1 }}>
-      <Typography color="text.secondary">{t("fork.brand.subtitle")}</Typography>
+      <Typography color="text.secondary">
+        {t("ranking.brand.subtitle")}
+      </Typography>
       {dataIssueCount > 0 && (
         <Alert severity="warning">
           {t("extension.partialData", { count: dataIssueCount })}
@@ -235,7 +237,7 @@ export default function RankingScenarioView({
       )}
       <TextField
         select
-        label={t("fork.ingredientRanking.ranking target")}
+        label={t("ranking.ingredientRanking.ranking target")}
         value={config.target}
         size="small"
         onChange={(event) =>
@@ -244,7 +246,7 @@ export default function RankingScenarioView({
       >
         {rankingScenarioMetrics[config.purpose].map((metric) => (
           <MenuItem key={metric} value={metric}>
-            {t(`fork.ingredientRanking.${metricKeys[metric]}`)}
+            {t(`ranking.ingredientRanking.${metricKeys[metric]}`)}
           </MenuItem>
         ))}
       </TextField>
@@ -252,7 +254,7 @@ export default function RankingScenarioView({
         config.target === "specificIngredientCount") && (
         <TextField
           select
-          label={t("fork.ingredientRanking.target ingredient")}
+          label={t("ranking.ingredientRanking.target ingredient")}
           value={config.ingredient ?? ""}
           size="small"
           onChange={(event) =>

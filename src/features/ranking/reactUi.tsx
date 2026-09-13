@@ -6,7 +6,7 @@ import { findUpstreamRankingSlot } from "../../integration/upstreamRankingSlot";
 import { createUpstreamViewVisibility } from "../../integration/upstreamViewVisibility";
 import type { FeatureContext } from "../types";
 import { registerExtensionTranslations } from "./i18n";
-import { registerForkTranslations } from "./ui/forkI18n";
+import { registerRankingTranslations } from "./ui/rankingI18n";
 import { AppConfigContext, i18n, loadConfig, loadLanguage } from "./upstreamUi";
 import RankingWorkspace from "./workspace/RankingWorkspace";
 
@@ -197,7 +197,7 @@ export function mountRankingWorkspace({
   const language = browserLanguage();
   void loadLanguage(language).then(() => {
     if (disposed) return;
-    registerForkTranslations(language);
+    registerRankingTranslations(language);
     registerExtensionTranslations(language);
     void i18n.changeLanguage(language);
     reactRoot = createRoot(hostElement);

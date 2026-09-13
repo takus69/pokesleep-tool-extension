@@ -19,7 +19,7 @@
 - adapterや保存形式の変更にはcontract testを追加する。
 - 計算仕様の変更にはbehavioral testを追加する。
 - UI変更はChromeとEdgeで確認し、結果または未確認理由を記録する。
-- 上流・fork由来コードを取り込む場合は`THIRD_PARTY_NOTICES.md`を更新する。
+- 第三者コードを取り込む場合は`THIRD_PARTY_NOTICES.md`を更新する。
 - 原則としてSquash Mergeを使用し、PRタイトルをConventional Commits形式にする。
 
 ## リリース

@@ -13,7 +13,7 @@ const resources: Record<string, Record<string, unknown>> = {
   "zh-TW": zhTW,
 };
 
-export function registerForkTranslations(language: string): void {
+export function registerRankingTranslations(language: string): void {
   const resource = resources[language];
   if (resource !== undefined) {
     i18n.addResourceBundle(language, "translation", resource, true, true);

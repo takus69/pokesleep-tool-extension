@@ -9,7 +9,7 @@ checkout時は `git clone --recurse-submodules`、既存checkoutでは `git subm
 
 上流データを同期する場合は `POKESLEEP_TOOL_SOURCE` に別の元ツールcheckoutを指定して `npm run sync:upstream-data` を実行します。未指定時は固定submoduleを読み取ります。同期元commitと各JSONのSHA-256は `src/vendor/upstream-data/manifest.json` に記録されます。`npm run release:prepare` は同期後に全検証を実行します。
 
-元ツールforkは調査専用です。明示的な依頼なしに `C:\workspaces\pokesleep-tool` を変更しないでください。機能追加はdomainとadapterの境界を先に定義し、UIから元ツールのDOMや保存キーを直接参照しません。
+機能追加はdomainとadapterの境界を先に定義し、UIから元ツールのDOMや保存キーを直接参照しません。元ツールとの境界変更時は [元ツール連携・互換性仕様](upstream-integration.md) を更新します。
 
 ## ブランチとPR
 
