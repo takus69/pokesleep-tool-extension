@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: takus69/pokesleep-tool
-          ref: 42b0c4ae
+          ref: 42b0c4ae34c168ba8d6fbb3329d3426a452beb80
           path: pokesleep-tool
       - uses: actions/checkout@v4
         with:
