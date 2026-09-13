@@ -7,7 +7,7 @@ import {
   validateRankingScenario,
 } from "./upstream";
 
-describe("fork ranking engine integration", () => {
+describe("ranking engine integration", () => {
   it("keeps all six externally visible purposes available", () => {
     expect(rankingScenarioPurposes).toEqual([
       "traits",

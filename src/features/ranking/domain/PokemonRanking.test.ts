@@ -1,0 +1,317 @@
+import Nature from "@upstream/util/Nature";
+import PokemonStrength, {
+  createStrengthParameter,
+} from "@upstream/util/PokemonStrength";
+import SubSkill from "@upstream/util/SubSkill";
+import SubSkillList from "@upstream/util/SubSkillList";
+import { describe, expect, test, vi } from "vitest";
+import {
+  calculatePokemonRanking,
+  calculatePokemonRankingAsync,
+  groupPokemonRankingEntries,
+  type PokemonRankingOptions,
+  type PokemonRankingTarget,
+} from "./PokemonRanking";
+
+const parameter = createStrengthParameter({});
+const fixedNature = new Nature("Brave");
+const fixedSubSkills = new SubSkillList({
+  lv10: new SubSkill("Ingredient Finder M"),
+  lv25: new SubSkill("Helping Speed M"),
+});
+
+const baseOptions = {
+  target: "totalStrength",
+  level: 60,
+  ribbon: 2,
+  nature: fixedNature,
+  subSkills: fixedSubSkills,
+  parameter,
+  filters: {},
+} satisfies PokemonRankingOptions;
+
+describe("calculatePokemonRanking", () => {
+  test("uses fixed traits and returns every matching normal ingredient pattern", () => {
+    const result = calculatePokemonRanking({
+      ...baseOptions,
+      filters: { type: "ghost", specialty: "Ingredients", ingredient: "apple" },
+      strengthCalculator: (iv) =>
+        strengthResult({ totalStrength: iv.pokemon.id }),
+    });
+    const skeledirge = result.filter(
+      ({ iv }) => iv.pokemonName === "Skeledirge",
+    );
+
+    expect(result.length).toBeGreaterThan(0);
+    expect(
+      result.every(
+        (entry) =>
+          entry.pokemon.isFullyEvolved &&
+          entry.pokemon.type === "ghost" &&
+          entry.pokemon.specialty === "Ingredients" &&
+          entry.iv.nature.name === fixedNature.name &&
+          entry.iv.subSkills.isEqual(fixedSubSkills) &&
+          entry.iv.ribbon === 2 &&
+          entry.ingredientSlots.some((slot) => slot.name === "apple"),
+      ),
+    ).toBe(true);
+    expect(skeledirge.map((entry) => entry.ingredientKey)).toEqual([
+      "AAA",
+      "AAB",
+      "AAC",
+      "ABA",
+      "ABB",
+      "ABC",
+    ]);
+    expect(new Set(skeledirge.map((entry) => entry.iv.idForm))).toEqual(
+      new Set([skeledirge[0].iv.idForm]),
+    );
+  });
+
+  test("returns every mythical ingredient pattern independently", () => {
+    const result = calculatePokemonRanking({
+      ...baseOptions,
+      filters: { type: "psychic", specialty: "All" },
+      strengthCalculator: (iv) =>
+        strengthResult({ totalStrength: iv.pokemon.id }),
+    });
+    const mew = result.filter(({ iv }) => iv.pokemonName === "Mew");
+
+    expect(mew).toHaveLength(392);
+    expect(new Set(mew.map((entry) => entry.ingredientKey)).size).toBe(392);
+    expect(mew.map((entry) => entry.ingredientOrder)).toEqual(
+      Array.from({ length: 392 }, (_, index) => index),
+    );
+  });
+
+  test.each<{
+    target: PokemonRankingTarget;
+    ingredient?: "apple";
+    expected: number;
+  }>([
+    { target: "berryStrength", expected: 101 },
+    { target: "ingredientStrength", expected: 202 },
+    { target: "ingredientCount", expected: 7 },
+    { target: "specificIngredientCount", ingredient: "apple", expected: 4 },
+    { target: "totalStrength", expected: 303 },
+    { target: "skillCount", expected: 5 },
+  ])("evaluates $target", ({ target, ingredient, expected }) => {
+    const result = calculatePokemonRanking({
+      ...baseOptions,
+      target,
+      ingredient,
+      filters: { type: "fire" },
+      strengthCalculator: () =>
+        strengthResult({
+          berryTotalStrength: 101,
+          ingStrength: 202,
+          totalStrength: 303,
+          skillCount: 5,
+          ingredients: [
+            { name: "apple", count: 4 },
+            { name: "sausage", count: 3 },
+          ],
+        }),
+    });
+
+    expect(result.length).toBeGreaterThan(0);
+    expect(result.every((entry) => entry.value === expected)).toBe(true);
+  });
+
+  test("requires an ingredient for the specific ingredient target", () => {
+    expect(
+      calculatePokemonRanking({
+        ...baseOptions,
+        target: "specificIngredientCount",
+      }),
+    ).toEqual([]);
+  });
+
+  test("combines filters and treats specialty as exact", () => {
+    const result = calculatePokemonRanking({
+      ...baseOptions,
+      filters: { type: "psychic", specialty: "Skills", ingredient: "apple" },
+      strengthCalculator: (iv) =>
+        strengthResult({ totalStrength: iv.pokemon.id }),
+    });
+
+    expect(result.length).toBeGreaterThan(0);
+    expect(
+      result.every(
+        ({ pokemon, ingredientSlots }) =>
+          pokemon.type === "psychic" &&
+          pokemon.specialty === "Skills" &&
+          ingredientSlots.some((slot) => slot.name === "apple"),
+      ),
+    ).toBe(true);
+    expect(result.some(({ pokemon }) => pokemon.specialty === "All")).toBe(
+      false,
+    );
+  });
+
+  test.each([
+    { level: 1, ingredient: "tomato" as const },
+    { level: 29, ingredient: "potato" as const },
+  ])("matches $ingredient in locked ingredient slots at level $level", ({
+    level,
+    ingredient,
+  }) => {
+    const result = calculatePokemonRanking({
+      ...baseOptions,
+      level,
+      filters: { type: "grass", specialty: "Ingredients", ingredient },
+      strengthCalculator: (iv) =>
+        strengthResult({ totalStrength: iv.pokemon.id }),
+    });
+    const venusaur = result.find(({ iv }) => iv.pokemonName === "Venusaur");
+
+    expect(venusaur).toBeDefined();
+    expect(venusaur?.ingredientSlots[0].name).not.toBe(ingredient);
+    expect(
+      venusaur?.ingredientSlots
+        .slice(1)
+        .some((slot) => slot.name === ingredient),
+    ).toBe(true);
+  });
+
+  test("keeps the requested nature instead of normalized Toxtricity forms", () => {
+    const result = calculatePokemonRanking({
+      ...baseOptions,
+      nature: new Nature("Hardy"),
+      filters: { type: "poison" },
+      strengthCalculator: (iv) =>
+        strengthResult({ totalStrength: iv.pokemon.id }),
+    });
+    const toxtricity = result.filter(({ iv }) =>
+      iv.pokemonName.startsWith("Toxtricity"),
+    );
+
+    expect(toxtricity).toHaveLength(6);
+    expect(
+      toxtricity.every(
+        ({ iv }) =>
+          iv.pokemonName === "Toxtricity (Amped)" && iv.nature.name === "Hardy",
+      ),
+    ).toBe(true);
+  });
+
+  test("sorts descending with stable Pokedex and form tie-breaks", () => {
+    const result = calculatePokemonRanking({
+      ...baseOptions,
+      level: 9,
+      strengthCalculator: (iv) =>
+        strengthResult({
+          totalStrength: iv.pokemonName === "Persian" ? 20 : 10,
+        }),
+    });
+
+    const firstNonPersian = result.findIndex(
+      ({ iv }) => iv.pokemonName !== "Persian",
+    );
+    expect(
+      result.slice(0, firstNonPersian).map((entry) => entry.ingredientKey),
+    ).toEqual(["AAA", "AAB", "ABA", "ABB"]);
+    expect(
+      result.slice(firstNonPersian).map(({ pokemon }) => pokemon.id),
+    ).toEqual(
+      result
+        .slice(firstNonPersian)
+        .map(({ pokemon }) => pokemon.id)
+        .sort((a, b) => a - b),
+    );
+  });
+
+  test("groups equal values after applying the same stable order", () => {
+    const entries = calculatePokemonRanking({
+      ...baseOptions,
+      level: 9,
+      filters: { type: "fire" },
+      strengthCalculator: (iv) =>
+        strengthResult({ totalStrength: iv.pokemon.id % 2 }),
+    });
+    const groups = groupPokemonRankingEntries(entries);
+
+    expect(groups.map((group) => group.value)).toEqual([1, 0]);
+    expect(groups.flatMap((group) => group.entries)).toEqual(entries);
+  });
+
+  test("uses PokemonStrength by default", () => {
+    const calculateSpy = vi.spyOn(PokemonStrength.prototype, "calculate");
+    const result = calculatePokemonRanking({
+      ...baseOptions,
+      level: 9,
+      filters: { type: "fire" },
+    });
+
+    expect(result.length).toBeGreaterThan(0);
+    expect(calculateSpy).toHaveBeenCalled();
+    calculateSpy.mockRestore();
+  });
+});
+
+describe("calculatePokemonRankingAsync", () => {
+  test("matches the synchronous result", async () => {
+    const options = {
+      ...baseOptions,
+      level: 9,
+      strengthCalculator: (iv) =>
+        strengthResult({ totalStrength: iv.pokemon.id }),
+    } satisfies PokemonRankingOptions;
+
+    expect(await calculatePokemonRankingAsync(options)).toEqual(
+      calculatePokemonRanking(options),
+    );
+  });
+
+  test("rejects immediately when already aborted", async () => {
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(
+      calculatePokemonRankingAsync({
+        ...baseOptions,
+        signal: controller.signal,
+      }),
+    ).rejects.toMatchObject({ name: "AbortError" });
+  });
+
+  test("aborts while evaluating candidates", async () => {
+    const controller = new AbortController();
+    let calls = 0;
+    await expect(
+      calculatePokemonRankingAsync({
+        ...baseOptions,
+        signal: controller.signal,
+        strengthCalculator: () => {
+          calls += 1;
+          if (calls === 1) controller.abort();
+          return strengthResult({ totalStrength: 1 });
+        },
+      }),
+    ).rejects.toMatchObject({ name: "AbortError" });
+  });
+});
+
+function strengthResult({
+  ingredients = [],
+  ...metrics
+}: {
+  ingredients?: Array<{ name: "apple" | "sausage"; count: number }>;
+  totalStrength?: number;
+  berryTotalStrength?: number;
+  ingStrength?: number;
+  skillCount?: number;
+}) {
+  return {
+    ...metrics,
+    ingredients: ingredients.map(({ name, count }) => ({
+      name,
+      count,
+      strength: 0,
+      overflowCount: 0,
+      helpCount: 0,
+      countPerHelp: 0,
+      slots: [],
+    })),
+  };
+}

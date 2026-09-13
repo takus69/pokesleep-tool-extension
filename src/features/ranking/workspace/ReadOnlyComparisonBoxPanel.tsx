@@ -1,8 +1,8 @@
 import { ButtonBase, Typography } from "@mui/material";
 import { styled } from "@mui/system";
+import PokemonIcon from "@upstream/ui/IvCalc/PokemonIcon";
+import type { PokemonBoxItem } from "@upstream/util/PokemonBox";
 import { useTranslation } from "react-i18next";
-import PokemonIcon from "../../../../../pokesleep-tool/src/ui/IvCalc/PokemonIcon";
-import type { PokemonBoxItem } from "../../../../../pokesleep-tool/src/util/PokemonBox";
 
 export default function ReadOnlyComparisonBoxPanel({
   items,

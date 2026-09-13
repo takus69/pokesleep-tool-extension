@@ -1,0 +1,1083 @@
+import pokemons, {
+  type IngredientName,
+  type PokemonData,
+} from "@upstream/data/pokemons";
+import Nature from "@upstream/util/Nature";
+import PokemonIv, { type IngredientSlot } from "@upstream/util/PokemonIv";
+import { type IngredientType, IngredientTypes } from "@upstream/util/PokemonRp";
+import PokemonStrength, {
+  type IngredientStrength,
+  type StrengthParameter,
+} from "@upstream/util/PokemonStrength";
+import SubSkill from "@upstream/util/SubSkill";
+import SubSkillList from "@upstream/util/SubSkillList";
+import {
+  evaluateNumericRankingValue,
+  groupNumericRankingEntries,
+  stableSortNumericRankingEntries,
+} from "./NumericRanking";
+
+export type IngredientRankingLevel = number;
+
+export type IngredientRankingStrengthResult = {
+  ingredients: IngredientStrength[];
+  totalStrength?: number;
+  berryTotalStrength?: number;
+  ingStrength?: number;
+  skillCount?: number;
+};
+
+export type IngredientRankingStrengthCalculator = (
+  iv: PokemonIv,
+  parameter: StrengthParameter,
+) => IngredientRankingStrengthResult;
+
+export interface IngredientRankingCandidate {
+  iv: PokemonIv;
+  /** Normal ingredient pattern or mythical slot names. */
+  ingredientKey: string;
+  /** Order within the Pokemon's generated ingredient patterns. */
+  ingredientOrder: number;
+  /** Stable fallback order across all generated candidates. */
+  ordinal: number;
+  /** Nature order in Nature.allNatures. */
+  natureOrder?: number;
+  /** Canonical sub-skill combination order. */
+  subSkillOrder?: number;
+}
+
+export interface IngredientCountMetric {
+  count: number;
+}
+
+export type IngredientRankingTarget =
+  | "ingredientCount"
+  | "totalStrength"
+  | "berryStrength"
+  | "skillCount";
+
+export interface IngredientRankingEntry extends IngredientRankingCandidate {
+  pokemon: PokemonData;
+  ingredientSlots: IngredientSlot[];
+  count: number;
+  metric: IngredientCountMetric;
+  variants: readonly IngredientRankingVariant[];
+}
+
+export interface IngredientRankingVariant {
+  iv: PokemonIv;
+  natureOrder: number;
+  subSkillOrder: number;
+  neutralSubSkillCount: number;
+}
+
+export interface IngredientRankingOptions {
+  /** Retained for caller compatibility; candidate generation ignores it. */
+  baseIv?: PokemonIv;
+  /** Restricts candidates to one exact Pokemon/form name. */
+  pokemonName?: string;
+  level: IngredientRankingLevel;
+  ribbon?: 0 | 1 | 2 | 3 | 4;
+  target?: IngredientRankingTarget;
+  ingredient?: IngredientName;
+  parameter: StrengthParameter;
+  strengthCalculator?: IngredientRankingStrengthCalculator;
+  /** Maximum number of entries returned after the final stable sort. */
+  limit?: number;
+  /** Cancels asynchronous ranking with an AbortError. */
+  signal?: AbortSignal;
+}
+
+export interface IngredientRankingBaselineOptions {
+  pokemonName: string;
+  level: IngredientRankingLevel;
+  ribbon?: 0 | 1 | 2 | 3 | 4;
+  target?: IngredientRankingTarget;
+  ingredient?: IngredientName;
+  parameter: StrengthParameter;
+  strengthCalculator?: IngredientRankingStrengthCalculator;
+}
+
+export type IngredientEvaluation =
+  | { status: "positive"; count: number }
+  | { status: "zero"; count: 0 }
+  | { status: "uncalculable" };
+
+const defaultRankingTarget: IngredientRankingTarget = "ingredientCount";
+
+export interface IngredientRankingCountGroup {
+  count: number;
+  entries: readonly IngredientRankingEntry[];
+}
+
+export interface IngredientRankingComparisonGroup
+  extends IngredientRankingCountGroup {
+  includesComparison: boolean;
+}
+
+export type IngredientRankingComparison =
+  | {
+      evaluation: Exclude<IngredientEvaluation, { status: "uncalculable" }>;
+      rank: number;
+      groupIndex: number;
+      page: number;
+      groups: IngredientRankingComparisonGroup[];
+    }
+  | {
+      evaluation: Extract<IngredientEvaluation, { status: "uncalculable" }>;
+      rank: null;
+      groupIndex: null;
+      page: null;
+      groups: IngredientRankingComparisonGroup[];
+    };
+
+const unknownIngredientPattern = /^unknown(?:[123])?$/;
+const asyncSelectionYieldInterval = 32;
+const asyncCombinationYieldInterval = 64;
+const excludedRankingSubSkillNames = new Set<SubSkill["name"]>([
+  "Dream Shard Bonus",
+  "Research EXP Bonus",
+  "Sleep EXP Bonus",
+  "Skill Level Up M",
+  "Skill Level Up S",
+]);
+const rankingSubSkills = SubSkill.allSubSkills.filter(
+  (skill) => !excludedRankingSubSkillNames.has(skill.name),
+);
+/**
+ * Generate all ingredient-pattern candidates for calculable final evolutions.
+ * Calculation-specific exclusions are deliberately left to the ranking step.
+ */
+export function generateIngredientRankingCandidates(
+  _baseIv: PokemonIv | undefined,
+  level: IngredientRankingLevel,
+  pokemonName?: string,
+  ribbon: 0 | 1 | 2 | 3 | 4 = 0,
+): IngredientRankingCandidate[] {
+  if (!Number.isInteger(level) || level < 1 || level > 100) {
+    return [];
+  }
+
+  const candidates: IngredientRankingCandidate[] = [];
+  let ordinal = 0;
+
+  for (const pokemon of pokemons) {
+    if (
+      !pokemon.isFullyEvolved ||
+      (pokemonName !== undefined && pokemon.name !== pokemonName)
+    ) {
+      continue;
+    }
+
+    const patterns =
+      pokemon.mythIng === undefined
+        ? generateNormalPatterns(pokemon)
+        : generateMythicalPatterns(pokemon);
+
+    for (const pattern of patterns) {
+      const props = {
+        pokemonName: pokemon.name,
+        level,
+        ribbon,
+        nature: getNeutralNature(pokemon.name),
+        subSkills: new SubSkillList(),
+        ...pattern.props,
+      };
+      candidates.push({
+        iv: new PokemonIv(props),
+        ingredientKey: pattern.key,
+        ingredientOrder: pattern.order,
+        ordinal,
+      });
+      ordinal += 1;
+    }
+  }
+
+  return candidates;
+}
+
+/**
+ * Calculate the helper-produced count of one ingredient for a candidate.
+ * Main-skill ingredient gains are not part of StrengthResult.ingredients.
+ */
+export function calculateIngredientCount(
+  candidate: IngredientRankingCandidate,
+  ingredient: IngredientName,
+  parameter: StrengthParameter,
+  strengthCalculator: IngredientRankingStrengthCalculator = defaultStrengthCalculator,
+): IngredientCountMetric | null {
+  const evaluation = evaluatePokemonIngredient(
+    candidate.iv,
+    ingredient,
+    parameter,
+    strengthCalculator,
+  );
+  return evaluation.status === "positive" ? { count: evaluation.count } : null;
+}
+
+/**
+ * Calculate the selected ranking metric for a candidate.
+ */
+export function calculateIngredientRankingMetric(
+  candidate: IngredientRankingCandidate,
+  target: IngredientRankingTarget,
+  ingredient: IngredientName | undefined,
+  parameter: StrengthParameter,
+  strengthCalculator: IngredientRankingStrengthCalculator = defaultStrengthCalculator,
+): IngredientCountMetric | null {
+  const evaluation = evaluatePokemonRankingTarget(
+    candidate.iv,
+    target,
+    ingredient,
+    parameter,
+    strengthCalculator,
+  );
+  return evaluation.status === "positive" ? { count: evaluation.count } : null;
+}
+
+/**
+ * Evaluate one Pokemon using its own level and helper-produced ingredients.
+ */
+export function evaluatePokemonIngredient(
+  iv: PokemonIv,
+  ingredient: IngredientName,
+  parameter: StrengthParameter,
+  strengthCalculator: IngredientRankingStrengthCalculator = defaultStrengthCalculator,
+): IngredientEvaluation {
+  const unlockedSlots = getUnlockedIngredientSlots(iv);
+  if (
+    isUnknownIngredient(ingredient) ||
+    unlockedSlots === null ||
+    !isIvCalculable(iv, unlockedSlots)
+  ) {
+    return { status: "uncalculable" };
+  }
+  if (!unlockedSlots.some((slot) => slot.name === ingredient)) {
+    return { status: "zero", count: 0 };
+  }
+  const result = calculatePokemonRankingStrengthResult(
+    iv,
+    parameter,
+    strengthCalculator,
+  );
+  if (result === null) return { status: "uncalculable" };
+  try {
+    const count =
+      result.ingredients.find((item) => item.name === ingredient)?.count ?? 0;
+    if (evaluateNumericRankingValue(count) === null) {
+      return { status: "uncalculable" };
+    }
+    return count > 0
+      ? { status: "positive", count }
+      : { status: "zero", count: 0 };
+  } catch {
+    return { status: "uncalculable" };
+  }
+}
+
+/**
+ * Evaluate one Pokemon using the currently selected ranking target.
+ */
+export function evaluatePokemonRankingTarget(
+  iv: PokemonIv,
+  target: IngredientRankingTarget,
+  ingredient: IngredientName | undefined,
+  parameter: StrengthParameter,
+  strengthCalculator: IngredientRankingStrengthCalculator = defaultStrengthCalculator,
+): IngredientEvaluation {
+  if (target === "ingredientCount") {
+    return ingredient === undefined
+      ? { status: "uncalculable" }
+      : evaluatePokemonIngredient(
+          iv,
+          ingredient,
+          parameter,
+          strengthCalculator,
+        );
+  }
+
+  const result = calculatePokemonRankingStrengthResult(
+    iv,
+    parameter,
+    strengthCalculator,
+  );
+  if (result === null) return { status: "uncalculable" };
+  try {
+    const count = getRankingTargetValue(result, target);
+    if (evaluateNumericRankingValue(count) === null) {
+      return { status: "uncalculable" };
+    }
+    return count > 0
+      ? { status: "positive", count }
+      : { status: "zero", count: 0 };
+  } catch {
+    return { status: "uncalculable" };
+  }
+}
+
+/** Calculate one IV with its own level, returning null when it is invalid. */
+export function calculatePokemonRankingStrengthResult(
+  iv: PokemonIv,
+  parameter: StrengthParameter,
+  strengthCalculator: IngredientRankingStrengthCalculator = defaultStrengthCalculator,
+): IngredientRankingStrengthResult | null {
+  const unlockedSlots = getUnlockedIngredientSlots(iv);
+  if (unlockedSlots === null || !isIvCalculable(iv, unlockedSlots)) {
+    return null;
+  }
+  try {
+    return strengthCalculator(iv, { ...parameter, level: 0 });
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Build the neutral, no-subskill IV for the selected Pokemon's best ingredient
+ * pattern at the ranking level.
+ */
+export function createIngredientRankingBaselineIv(
+  options: IngredientRankingBaselineOptions,
+): PokemonIv | null {
+  const candidates = generateIngredientRankingCandidates(
+    undefined,
+    options.level,
+    options.pokemonName,
+    options.ribbon,
+  );
+  const selected = selectBestIngredientCandidates(
+    candidates,
+    options.target ?? defaultRankingTarget,
+    options.ingredient,
+    options.parameter,
+    options.strengthCalculator ?? defaultStrengthCalculator,
+  );
+  return selected[0]?.iv ?? null;
+}
+
+/**
+ * Group stable-sorted theoretical ranking entries by exact ingredient count.
+ */
+export function groupIngredientRankingEntries(
+  entries: readonly IngredientRankingEntry[],
+): IngredientRankingCountGroup[] {
+  return groupNumericRankingEntries(
+    entries,
+    (entry) => entry.metric.count,
+    compareIngredientRankingEntryTies,
+  ).map((group) => ({ count: group.value, entries: group.entries }));
+}
+
+/**
+ * Merge a comparison evaluation into theoretical count groups.
+ */
+export function mergeIngredientRankingComparison(
+  groups: readonly IngredientRankingCountGroup[],
+  evaluation: IngredientEvaluation,
+  pageSize = 100,
+): IngredientRankingComparison {
+  const normalizedGroups = [...groups]
+    .map((group) => ({ ...group, includesComparison: false }))
+    .sort((a, b) => b.count - a.count);
+  if (evaluation.status === "uncalculable") {
+    return {
+      evaluation,
+      rank: null,
+      groupIndex: null,
+      page: null,
+      groups: normalizedGroups,
+    };
+  }
+
+  const count = evaluation.count;
+  let groupIndex = normalizedGroups.findIndex((group) => group.count === count);
+  if (groupIndex < 0) {
+    groupIndex = normalizedGroups.findIndex((group) => group.count < count);
+    if (groupIndex < 0) {
+      groupIndex = normalizedGroups.length;
+    }
+    normalizedGroups.splice(groupIndex, 0, {
+      count,
+      entries: [],
+      includesComparison: true,
+    });
+  } else {
+    normalizedGroups[groupIndex] = {
+      ...normalizedGroups[groupIndex],
+      includesComparison: true,
+    };
+  }
+
+  const safePageSize = Math.max(1, Math.floor(pageSize));
+  return {
+    evaluation,
+    rank: groupIndex + 1,
+    groupIndex,
+    page: Math.floor(groupIndex / safePageSize),
+    groups: normalizedGroups,
+  };
+}
+
+/**
+ * Select each Pokemon's best ingredient pattern, then rank every nature and
+ * active sub-skill combination by helper-produced ingredient count.
+ */
+export function calculateIngredientRanking(
+  options: IngredientRankingOptions,
+): IngredientRankingEntry[];
+export function calculateIngredientRanking(
+  candidates: readonly IngredientRankingCandidate[],
+  ingredient: IngredientName,
+  parameter: StrengthParameter,
+  strengthCalculator?: IngredientRankingStrengthCalculator,
+): IngredientRankingEntry[];
+export function calculateIngredientRanking(
+  optionsOrCandidates:
+    | IngredientRankingOptions
+    | readonly IngredientRankingCandidate[],
+  ingredient?: IngredientName,
+  parameter?: StrengthParameter,
+  strengthCalculator?: IngredientRankingStrengthCalculator,
+): IngredientRankingEntry[] {
+  const context = createRankingContext(
+    optionsOrCandidates,
+    ingredient,
+    parameter,
+    strengthCalculator,
+  );
+  if (context === null) {
+    return [];
+  }
+
+  const selectedCandidates = selectBestIngredientCandidates(
+    context.candidates,
+    context.target,
+    context.ingredient,
+    context.parameter,
+    context.calculator,
+  );
+  const entries: IngredientRankingEntry[] = [];
+
+  for (const selected of selectedCandidates) {
+    entries.push(...evaluateSelectedCandidate(selected, context));
+  }
+
+  return finalizeRankingEntries(entries, context.limit);
+}
+
+/**
+ * Async ranking variant that yields during selection and combination
+ * evaluation while preserving the synchronous result and ordering.
+ */
+export async function calculateIngredientRankingAsync(
+  options: IngredientRankingOptions,
+): Promise<IngredientRankingEntry[]> {
+  throwIfAborted(options.signal);
+  const context = createRankingContext(options);
+  if (context === null) {
+    return [];
+  }
+
+  const selectedCandidates = await selectBestIngredientCandidatesAsync(
+    context.candidates,
+    context.target,
+    context.ingredient,
+    context.parameter,
+    context.calculator,
+    options.signal,
+  );
+  const entries: IngredientRankingEntry[] = [];
+
+  for (const selected of selectedCandidates) {
+    entries.push(
+      ...(await evaluateSelectedCandidateAsync(
+        selected,
+        context,
+        options.signal,
+      )),
+    );
+  }
+
+  throwIfAborted(options.signal);
+  return finalizeRankingEntries(entries, context.limit);
+}
+
+interface IngredientRankingContext {
+  candidates: readonly IngredientRankingCandidate[];
+  target: IngredientRankingTarget;
+  ingredient: IngredientName | undefined;
+  parameter: StrengthParameter;
+  calculator: IngredientRankingStrengthCalculator;
+  limit?: number;
+}
+
+function createRankingContext(
+  optionsOrCandidates:
+    | IngredientRankingOptions
+    | readonly IngredientRankingCandidate[],
+  ingredient?: IngredientName,
+  parameter?: StrengthParameter,
+  strengthCalculator?: IngredientRankingStrengthCalculator,
+): IngredientRankingContext | null {
+  const options = Array.isArray(optionsOrCandidates)
+    ? null
+    : (optionsOrCandidates as IngredientRankingOptions);
+  const candidates = options
+    ? generateIngredientRankingCandidates(
+        options.baseIv,
+        options.level,
+        options.pokemonName,
+        options.ribbon,
+      )
+    : (optionsOrCandidates as readonly IngredientRankingCandidate[]);
+  const targetIngredient = options?.ingredient ?? ingredient;
+  const target = options?.target ?? defaultRankingTarget;
+  const strengthParameter = options?.parameter ?? parameter;
+
+  if (
+    strengthParameter === undefined ||
+    (target === "ingredientCount" && targetIngredient === undefined)
+  ) {
+    return null;
+  }
+
+  return {
+    candidates,
+    target,
+    ingredient: targetIngredient,
+    parameter: strengthParameter,
+    calculator:
+      options?.strengthCalculator ??
+      strengthCalculator ??
+      defaultStrengthCalculator,
+    limit: options?.limit,
+  };
+}
+
+interface CandidateEvaluationState {
+  entriesByCount: Map<number, IngredientRankingEntry>;
+  variantsByCount: Map<number, IngredientRankingVariant[]>;
+  metricCache: Map<string, IngredientCountMetric | null> | null;
+}
+
+type SubSkillCombination = {
+  subSkills: SubSkillList;
+  skills: SubSkill[];
+  order: number;
+  neutralSubSkillCount: number;
+};
+
+function evaluateSelectedCandidate(
+  selected: IngredientRankingCandidate,
+  context: IngredientRankingContext,
+): IngredientRankingEntry[] {
+  const state = createCandidateEvaluationState(context);
+  for (const [natureOrder, nature] of getRankingNatures(selected)) {
+    for (const combination of generateIngredientRankingSubSkillCombinations(
+      selected.iv.level,
+    )) {
+      evaluateCandidateCombination(
+        state,
+        selected,
+        nature,
+        natureOrder,
+        combination,
+        context,
+      );
+    }
+  }
+
+  return [...state.entriesByCount.values()];
+}
+
+async function evaluateSelectedCandidateAsync(
+  selected: IngredientRankingCandidate,
+  context: IngredientRankingContext,
+  signal?: AbortSignal,
+): Promise<IngredientRankingEntry[]> {
+  const state = createCandidateEvaluationState(context);
+  let iteration = 0;
+
+  for (const [natureOrder, nature] of getRankingNatures(selected)) {
+    for (const combination of generateIngredientRankingSubSkillCombinations(
+      selected.iv.level,
+    )) {
+      evaluateCandidateCombination(
+        state,
+        selected,
+        nature,
+        natureOrder,
+        combination,
+        context,
+      );
+      iteration += 1;
+      if (iteration % asyncCombinationYieldInterval === 0) {
+        await yieldToEventLoop(signal);
+      }
+    }
+  }
+
+  throwIfAborted(signal);
+  return [...state.entriesByCount.values()];
+}
+
+function createCandidateEvaluationState(
+  context: IngredientRankingContext,
+): CandidateEvaluationState {
+  return {
+    entriesByCount: new Map(),
+    variantsByCount: new Map(),
+    metricCache:
+      context.calculator === defaultStrengthCalculator
+        ? new Map<string, IngredientCountMetric | null>()
+        : null,
+  };
+}
+
+function evaluateCandidateCombination(
+  state: CandidateEvaluationState,
+  selected: IngredientRankingCandidate,
+  nature: Nature,
+  natureOrder: number,
+  combination: SubSkillCombination,
+  context: IngredientRankingContext,
+): void {
+  const iv = new PokemonIv({
+    ...selected.iv.toProps(),
+    nature,
+    subSkills: combination.subSkills,
+  });
+  const candidate = {
+    ...selected,
+    iv,
+    natureOrder,
+    subSkillOrder: combination.order,
+  };
+  const cacheKey = getIngredientCalculationCacheKey(
+    iv.nature,
+    combination.skills,
+  );
+  let metric: IngredientCountMetric | null;
+  if (state.metricCache === null) {
+    metric = calculateIngredientRankingMetric(
+      candidate,
+      context.target,
+      context.ingredient,
+      context.parameter,
+      context.calculator,
+    );
+  } else if (state.metricCache.has(cacheKey)) {
+    metric = state.metricCache.get(cacheKey) ?? null;
+  } else {
+    metric = calculateIngredientRankingMetric(
+      candidate,
+      context.target,
+      context.ingredient,
+      context.parameter,
+      context.calculator,
+    );
+    state.metricCache.set(cacheKey, metric);
+  }
+  if (metric === null) {
+    return;
+  }
+  const variant: IngredientRankingVariant = {
+    iv,
+    natureOrder,
+    subSkillOrder: combination.order,
+    neutralSubSkillCount: combination.neutralSubSkillCount,
+  };
+  const current = state.entriesByCount.get(metric.count);
+  if (current !== undefined) {
+    state.variantsByCount.get(metric.count)?.push(variant);
+    return;
+  }
+  const variants = [variant];
+  state.variantsByCount.set(metric.count, variants);
+  state.entriesByCount.set(metric.count, {
+    ...candidate,
+    pokemon: iv.pokemon,
+    ingredientSlots: getIngredientSlots(iv),
+    count: metric.count,
+    metric,
+    variants,
+  });
+}
+
+function finalizeRankingEntries(
+  entries: IngredientRankingEntry[],
+  limit?: number,
+): IngredientRankingEntry[] {
+  const sorted = stableSortNumericRankingEntries(
+    entries,
+    (entry) => entry.metric.count,
+    compareIngredientRankingEntryTies,
+  );
+  if (limit === undefined || !Number.isFinite(limit)) {
+    return sorted;
+  }
+  return sorted.slice(0, Math.max(0, Math.floor(limit)));
+}
+
+async function yieldToEventLoop(signal?: AbortSignal): Promise<void> {
+  throwIfAborted(signal);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  throwIfAborted(signal);
+}
+
+function throwIfAborted(signal?: AbortSignal): void {
+  signal?.throwIfAborted();
+}
+
+/**
+ * Generate and rank all candidates in one call.
+ */
+export function rankIngredientPokemon(
+  baseIv: PokemonIv,
+  level: IngredientRankingLevel,
+  ingredient: IngredientName,
+  parameter: StrengthParameter,
+  strengthCalculator?: IngredientRankingStrengthCalculator,
+): IngredientRankingEntry[] {
+  return calculateIngredientRanking(
+    generateIngredientRankingCandidates(baseIv, level),
+    ingredient,
+    parameter,
+    strengthCalculator,
+  );
+}
+
+export function compareIngredientRankingEntries(
+  a: IngredientRankingEntry,
+  b: IngredientRankingEntry,
+): number {
+  return (
+    b.metric.count - a.metric.count || compareIngredientRankingEntryTies(a, b)
+  );
+}
+
+function compareIngredientRankingEntryTies(
+  a: IngredientRankingEntry,
+  b: IngredientRankingEntry,
+): number {
+  return (
+    a.iv.pokemon.id - b.iv.pokemon.id ||
+    a.iv.form - b.iv.form ||
+    a.ingredientOrder - b.ingredientOrder ||
+    (a.natureOrder ?? 0) - (b.natureOrder ?? 0) ||
+    (a.subSkillOrder ?? 0) - (b.subSkillOrder ?? 0) ||
+    a.ordinal - b.ordinal
+  );
+}
+
+interface SelectedIngredientCandidate {
+  candidate: IngredientRankingCandidate;
+  count: number;
+}
+
+function selectBestIngredientCandidates(
+  candidates: readonly IngredientRankingCandidate[],
+  target: IngredientRankingTarget,
+  ingredient: IngredientName | undefined,
+  parameter: StrengthParameter,
+  strengthCalculator: IngredientRankingStrengthCalculator,
+): IngredientRankingCandidate[] {
+  const selected = new Map<string, SelectedIngredientCandidate>();
+
+  for (const candidate of candidates) {
+    selectIngredientCandidate(
+      selected,
+      candidate,
+      target,
+      ingredient,
+      parameter,
+      strengthCalculator,
+    );
+  }
+
+  return [...selected.values()].map(({ candidate }) => candidate);
+}
+
+async function selectBestIngredientCandidatesAsync(
+  candidates: readonly IngredientRankingCandidate[],
+  target: IngredientRankingTarget,
+  ingredient: IngredientName | undefined,
+  parameter: StrengthParameter,
+  strengthCalculator: IngredientRankingStrengthCalculator,
+  signal?: AbortSignal,
+): Promise<IngredientRankingCandidate[]> {
+  const selected = new Map<string, SelectedIngredientCandidate>();
+
+  for (const [index, candidate] of candidates.entries()) {
+    selectIngredientCandidate(
+      selected,
+      candidate,
+      target,
+      ingredient,
+      parameter,
+      strengthCalculator,
+    );
+    if ((index + 1) % asyncSelectionYieldInterval === 0) {
+      await yieldToEventLoop(signal);
+    }
+  }
+
+  throwIfAborted(signal);
+  return [...selected.values()].map(({ candidate }) => candidate);
+}
+
+function selectIngredientCandidate(
+  selected: Map<string, SelectedIngredientCandidate>,
+  candidate: IngredientRankingCandidate,
+  target: IngredientRankingTarget,
+  ingredient: IngredientName | undefined,
+  parameter: StrengthParameter,
+  strengthCalculator: IngredientRankingStrengthCalculator,
+): void {
+  const baselineCandidate = {
+    ...candidate,
+    iv: new PokemonIv({
+      ...candidate.iv.toProps(),
+      nature: getNeutralNature(candidate.iv.pokemonName),
+      subSkills: new SubSkillList(),
+    }),
+  };
+  const metric = calculateIngredientRankingMetric(
+    baselineCandidate,
+    target,
+    ingredient,
+    parameter,
+    strengthCalculator,
+  );
+  if (metric === null) {
+    return;
+  }
+
+  const pokemonKey = `${baselineCandidate.iv.pokemon.id}:${baselineCandidate.iv.form}`;
+  const current = selected.get(pokemonKey);
+  if (
+    current === undefined ||
+    metric.count > current.count ||
+    (metric.count === current.count &&
+      compareIngredientCandidateOrder(baselineCandidate, current.candidate) < 0)
+  ) {
+    selected.set(pokemonKey, {
+      candidate: baselineCandidate,
+      count: metric.count,
+    });
+  }
+}
+
+function compareIngredientCandidateOrder(
+  a: IngredientRankingCandidate,
+  b: IngredientRankingCandidate,
+): number {
+  return a.ingredientOrder - b.ingredientOrder || a.ordinal - b.ordinal;
+}
+
+function getRankingTargetValue(
+  result: IngredientRankingStrengthResult,
+  target: Exclude<IngredientRankingTarget, "ingredientCount">,
+): number {
+  switch (target) {
+    case "totalStrength":
+      return result.totalStrength ?? Number.NaN;
+    case "berryStrength":
+      return result.berryTotalStrength ?? Number.NaN;
+    case "skillCount":
+      return result.skillCount ?? Number.NaN;
+  }
+}
+
+export function* generateIngredientRankingSubSkillCombinations(
+  level: number,
+): Generator<SubSkillCombination> {
+  const slotCount =
+    level < 10
+      ? 0
+      : level < 25
+        ? 1
+        : level < 50
+          ? 2
+          : level < 70
+            ? 3
+            : level < 80
+              ? 4
+              : 5;
+  const skills = rankingSubSkills;
+  const selected: SubSkill[] = [];
+  let order = 0;
+
+  function* visit(start: number, count: number): Generator<SubSkill[]> {
+    if (selected.length === count) {
+      yield [...selected];
+      return;
+    }
+    for (let index = start; index < skills.length; index += 1) {
+      selected.push(skills[index]);
+      yield* visit(index + 1, count);
+      selected.pop();
+    }
+  }
+
+  for (let activeCount = 0; activeCount <= slotCount; activeCount += 1) {
+    for (const combination of visit(0, activeCount)) {
+      yield {
+        subSkills: new SubSkillList({
+          lv10: combination[0],
+          lv25: combination[1],
+          lv50: combination[2],
+          lv70: combination[3],
+          lv80: combination[4],
+        }),
+        skills: combination,
+        order,
+        neutralSubSkillCount: slotCount - activeCount,
+      };
+      order += 1;
+    }
+  }
+}
+
+function getRankingNatures(
+  selected: IngredientRankingCandidate,
+): Array<[number, Nature]> {
+  return Nature.allNatures.flatMap((nature, natureOrder) => {
+    if (
+      (selected.iv.pokemon.form === "Amped" && !nature.isAmped) ||
+      (selected.iv.pokemon.form === "Low Key" && !nature.isLowKey)
+    ) {
+      return [];
+    }
+    return [[natureOrder, nature]];
+  });
+}
+
+export function getIngredientCalculationCacheKey(
+  nature: Nature,
+  activeSubSkills: readonly SubSkill[],
+): string {
+  return [
+    nature.energyRecoveryFactor,
+    nature.speedOfHelpFactor,
+    nature.mainSkillChanceFactor,
+    nature.ingredientFindingFactor,
+    activeSubSkills.reduce((sum, skill) => sum + skill.helpingSpeed, 0),
+    activeSubSkills.reduce((sum, skill) => sum + skill.ingredientFinder, 0),
+    activeSubSkills.reduce((sum, skill) => sum + skill.inventory, 0),
+    activeSubSkills.reduce((sum, skill) => sum + skill.skillTrigger, 0),
+    activeSubSkills.reduce((sum, skill) => sum + skill.skillLevelUp, 0),
+    activeSubSkills.some((skill) => skill.name === "Helping Bonus"),
+    activeSubSkills.some((skill) => skill.name === "Energy Recovery Bonus"),
+    activeSubSkills.some((skill) => skill.isBFS),
+  ].join(":");
+}
+
+export function generateNormalPatterns(pokemon: PokemonData): Array<{
+  key: IngredientType;
+  order: number;
+  props: { ingredient: IngredientType };
+}> {
+  return IngredientTypes.flatMap((ingredient, order) =>
+    pokemon.ing3 === undefined && ingredient.endsWith("C")
+      ? []
+      : [{ key: ingredient, order, props: { ingredient } }],
+  );
+}
+
+export function generateMythicalPatterns(pokemon: PokemonData): Array<{
+  key: string;
+  order: number;
+  props: {
+    mythIng1: IngredientName;
+    mythIng2: IngredientName;
+    mythIng3: IngredientName;
+  };
+}> {
+  if (pokemon.mythIng === undefined) {
+    return [];
+  }
+
+  const slot1 = pokemon.mythIng.filter((item) => item.c1 > 0);
+  const slot2 = pokemon.mythIng.filter((item) => item.c2 > 0);
+  const slot3 = pokemon.mythIng.filter((item) => item.c3 > 0);
+  const seen = new Set<string>();
+  const patterns: ReturnType<typeof generateMythicalPatterns> = [];
+
+  for (const ing1 of slot1) {
+    for (const ing2 of slot2) {
+      for (const ing3 of slot3) {
+        const key = `${ing1.name}/${ing2.name}/${ing3.name}`;
+        if (seen.has(key)) {
+          continue;
+        }
+        seen.add(key);
+        patterns.push({
+          key,
+          order: patterns.length,
+          props: {
+            mythIng1: ing1.name,
+            mythIng2: ing2.name,
+            mythIng3: ing3.name,
+          },
+        });
+      }
+    }
+  }
+  return patterns;
+}
+
+function isIvCalculable(
+  iv: PokemonIv,
+  slots: readonly IngredientSlot[],
+): boolean {
+  if (iv.pokemon.rateNotFixed && iv.baseIngRate === undefined) {
+    return false;
+  }
+
+  return slots.every(
+    (slot) => slot.count > 0 && !isUnknownIngredient(slot.name),
+  );
+}
+
+function getUnlockedIngredientSlots(iv: PokemonIv): IngredientSlot[] | null {
+  const slots = [iv.ingredient1];
+  if (iv.level >= 30) {
+    slots.push(iv.ingredient2);
+  }
+  if (iv.level >= 60) {
+    try {
+      slots.push(iv.ingredient3);
+    } catch {
+      return null;
+    }
+  }
+  return slots;
+}
+
+function isUnknownIngredient(ingredient: IngredientName): boolean {
+  return unknownIngredientPattern.test(ingredient);
+}
+
+function getIngredientSlots(iv: PokemonIv): IngredientSlot[] {
+  return [iv.ingredient1, iv.ingredient2, iv.ingredient3];
+}
+
+function defaultStrengthCalculator(
+  iv: PokemonIv,
+  parameter: StrengthParameter,
+): IngredientRankingStrengthResult {
+  return new PokemonStrength(iv, parameter).calculate();
+}
+
+const neutralNatureCache = new Map<string, Nature>();
+
+function getNeutralNature(pokemonName: string): Nature {
+  const cached = neutralNatureCache.get(pokemonName);
+  if (cached !== undefined) {
+    return cached;
+  }
+  const nature = new PokemonIv({ pokemonName }).nature;
+  neutralNatureCache.set(pokemonName, nature);
+  return nature;
+}

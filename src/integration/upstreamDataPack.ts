@@ -1,12 +1,9 @@
-import events, {
-  BonusEventData,
-  DrowsyEventData,
-} from "../../../pokesleep-tool/src/data/events";
+import events, { BonusEventData, DrowsyEventData } from "@upstream/data/events";
 import pokemons, {
   IngredientNames,
   type PokemonData,
   PokemonTypes,
-} from "../../../pokesleep-tool/src/data/pokemons";
+} from "@upstream/data/pokemons";
 import bundledEventJson from "../vendor/upstream-data/event.json";
 import bundledPokemonJson from "../vendor/upstream-data/pokemon.json";
 

@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
-import { beforeEach, describe, expect, it } from "vitest";
-import PokemonBox from "../../../pokesleep-tool/src/util/PokemonBox";
-import PokemonIv from "../../../pokesleep-tool/src/util/PokemonIv";
+
+import PokemonBox from "@upstream/util/PokemonBox";
+import PokemonIv from "@upstream/util/PokemonIv";
 import {
   createStrengthParameter,
   saveStrengthParameter,
-} from "../../../pokesleep-tool/src/util/StrengthParameter";
+} from "@upstream/util/StrengthParameter";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
   loadUpstreamRankingInputs,
   readRawRankingEnvironment,

@@ -6,6 +6,7 @@
       "!dist",
       "!coverage",
       "!src/vendor/upstream-data",
+      "!vendor/pokesleep-tool",
       "!.tmp-*-profile*",
       "!.tmp-node-modules-*"
     ]

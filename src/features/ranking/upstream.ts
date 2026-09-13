@@ -1,21 +1,26 @@
-// Build-time adapter for the read-only ranking fork. Vite bundles the imported
-// data and calculation code into the extension; no code is fetched at runtime.
-export { default as fields } from "../../../../pokesleep-tool/src/data/fields";
+// Build-time adapter for the pinned official upstream. Vite bundles imported
+// code into the extension; no executable code is fetched at runtime.
+export { default as fields } from "@upstream/data/fields";
 export {
   default as pokemons,
   type IngredientName,
   IngredientNames,
   type PokemonType,
   PokemonTypes,
-} from "../../../../pokesleep-tool/src/data/pokemons";
-export {
-  createRankingScenarioConfig,
-  rankingScenarioPurposes,
-} from "../../../../pokesleep-tool/src/fork/RankingScenarioState";
+} from "@upstream/data/pokemons";
 export {
   type MainSkillName,
   MainSkillNames,
-} from "../../../../pokesleep-tool/src/util/MainSkill";
+} from "@upstream/util/MainSkill";
+export {
+  createStrengthParameter,
+  deserializeStrengthParameter,
+  type StrengthParameter,
+} from "@upstream/util/StrengthParameter";
+export {
+  createRankingScenarioConfig,
+  rankingScenarioPurposes,
+} from "./application/RankingScenarioState";
 export {
   calculateRankingScenarioAsync,
   type RankingScenarioConfig,
@@ -24,9 +29,4 @@ export {
   type RankingScenarioResult,
   rankingScenarioMetrics,
   validateRankingScenario,
-} from "../../../../pokesleep-tool/src/util/RankingScenario";
-export {
-  createStrengthParameter,
-  deserializeStrengthParameter,
-  type StrengthParameter,
-} from "../../../../pokesleep-tool/src/util/StrengthParameter";
+} from "./domain/RankingScenario";

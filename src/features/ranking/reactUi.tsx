@@ -1,17 +1,14 @@
 import { createTheme, ThemeProvider } from "@mui/material";
+import i18n, { loadLanguage } from "@upstream/i18n";
+import { AppConfigContext, loadConfig } from "@upstream/ui/AppConfig";
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { registerForkTranslations } from "../../../../pokesleep-tool/src/fork/i18n";
-import i18n, { loadLanguage } from "../../../../pokesleep-tool/src/i18n";
-import {
-  AppConfigContext,
-  loadConfig,
-} from "../../../../pokesleep-tool/src/ui/AppConfig";
 import { openUpstreamCalculationSettings } from "../../integration/upstreamCalculationSettings";
 import { findUpstreamRankingSlot } from "../../integration/upstreamRankingSlot";
 import { createUpstreamViewVisibility } from "../../integration/upstreamViewVisibility";
 import type { FeatureContext } from "../types";
 import { registerExtensionTranslations } from "./i18n";
+import { registerForkTranslations } from "./ui/forkI18n";
 import RankingWorkspace from "./workspace/RankingWorkspace";
 
 const theme = createTheme({

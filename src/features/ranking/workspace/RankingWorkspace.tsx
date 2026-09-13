@@ -7,18 +7,20 @@ import {
   Tab,
   Tabs,
 } from "@mui/material";
+import IvForm from "@upstream/ui/IvCalc/IvForm/IvForm";
+import type IvState from "@upstream/ui/IvCalc/IvState";
+import type { IvAction } from "@upstream/ui/IvCalc/IvState";
+import RateNotFixedPanel from "@upstream/ui/IvCalc/RateNotFixedPanel";
+import type PokemonIv from "@upstream/util/PokemonIv";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { preserveRankingIndividualSettings } from "../../../../../pokesleep-tool/src/fork/RankingEnvironmentForm";
-import { rankingWorkspaceReducer } from "../../../../../pokesleep-tool/src/fork/RankingWorkspaceState";
-import IvForm from "../../../../../pokesleep-tool/src/ui/IvCalc/IvForm/IvForm";
-import type IvState from "../../../../../pokesleep-tool/src/ui/IvCalc/IvState";
-import type { IvAction } from "../../../../../pokesleep-tool/src/ui/IvCalc/IvState";
-import RateNotFixedPanel from "../../../../../pokesleep-tool/src/ui/IvCalc/RateNotFixedPanel";
-import type PokemonIv from "../../../../../pokesleep-tool/src/util/PokemonIv";
-import { createRankingEnvironment } from "../../../../../pokesleep-tool/src/util/RankingScenario";
 import { getUpstreamDataStatus } from "../../../integration/upstreamDataPack";
 import { loadUpstreamRankingInputs } from "../../../integration/upstreamRankingInputs";
+import {
+  preserveRankingIndividualSettings,
+  rankingWorkspaceReducer,
+} from "../application/RankingWorkspaceState";
+import { createRankingEnvironment } from "../domain/RankingScenario";
 import RankingScenarioView from "./RankingScenarioView";
 import ReadOnlyComparisonBoxPanel from "./ReadOnlyComparisonBoxPanel";
 
@@ -160,7 +162,7 @@ const RankingWorkspace = React.memo(
             </Tabs>
             {state.lowerTabIndex !== 1 ? (
               <>
-                <RateNotFixedPanel state={state} dispatch={dispatch} />
+                <RateNotFixedPanel state={state} />
                 <IvForm
                   parameter={createRankingEnvironment(state.parameter)}
                   pokemonIv={state.pokemonIv}

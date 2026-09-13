@@ -2,6 +2,12 @@
 
 調査日: 2026-09-12。参照元は `C:\workspaces\pokesleep-tool` の `main` (`42b0c4ae`) と `upstream/main` (`e223123c`)、差分は27コミット、57ファイル、約11,112行追加です。参照のみで変更していません。
 
+## 移管結果
+
+ランキング独自コードは `src/features/ranking` へ移管済みで、本リポジトリを唯一の正本とします。旧forkは履歴とライセンスの出典であり、ビルド、テスト、CI、実行時の依存先ではありません。公式元ツールは `vendor/pokesleep-tool` のsubmodule commit `aec938d72d52fe875029aae13f58ae850db2fe98` に固定し、上流内部パスへの依存は `@upstream` aliasとintegration層を境界として管理します。
+
+移管時に公式最新版でMewの基礎確率が正式データ化されていることを確認し、旧fork固有の `StrengthParameter.mew` 特例を削除しました。上流が `rateNotFixed` とする未知確率は引き続きランキングから除外し、推測値を表示しません。
+
 ## コードの区分
 
 - 上流由来: `src/ui`, 既存の `src/util`, `src/data`。forkは境界文書上、上流所有18ファイルを同一に保つ方針。

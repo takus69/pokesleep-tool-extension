@@ -4,7 +4,7 @@
 
 This repository is a Manifest V3 browser-extension suite for Pokémon Sleep Tool. The initial targets are desktop Chrome and Edge. Keep reusable logic independent from Chromium APIs so Safari and a limited bookmarklet remain possible.
 
-`C:\workspaces\pokesleep-tool` is a read-only reference unless the user explicitly authorizes changes. Never retire its published page as part of extension work.
+`C:\workspaces\pokesleep-tool` is a historical, read-only reference unless the user explicitly authorizes changes. It is not a build or runtime dependency. Never retire its published page as part of extension work. Treat the pinned `vendor/pokesleep-tool` submodule as read-only official upstream source and update its commit only through a reviewed compatibility PR.
 
 ## Architecture rules
 
@@ -37,6 +37,6 @@ This repository is a Manifest V3 browser-extension suite for Pokémon Sleep Tool
 - `npm run typecheck`: TypeScript
 - `npm run lint`: Biome check
 - `npm run build`: production MV3 bundle
-- `npm run sync:upstream-data`: refresh checked-in upstream JSON from `POKESLEEP_TOOL_SOURCE` or the sibling checkout
+- `npm run sync:upstream-data`: refresh checked-in upstream JSON from `POKESLEEP_TOOL_SOURCE` or the pinned upstream submodule
 - `npm run release:prepare`: refresh upstream JSON, then run full verification
 - `npm run verify`: full verification

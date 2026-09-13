@@ -1,4 +1,4 @@
-import i18n from "../../../../pokesleep-tool/src/i18n";
+import i18n from "@upstream/i18n";
 import { getUpstreamDataStatus } from "../../integration/upstreamDataPack";
 
 const resources: Record<string, Record<string, string>> = {
