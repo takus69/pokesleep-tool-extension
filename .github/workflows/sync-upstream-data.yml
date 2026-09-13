@@ -29,7 +29,11 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: pokesleep-tool-extension/package-lock.json
+          cache-dependency-path: |
+            pokesleep-tool-extension/package-lock.json
+            pokesleep-tool/package-lock.json
+      - run: npm ci
+        working-directory: pokesleep-tool
       - run: npm ci
         working-directory: pokesleep-tool-extension
       - run: npm run sync:upstream-data
