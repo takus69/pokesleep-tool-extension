@@ -1,5 +1,5 @@
+import PokemonIv from "@upstream/util/PokemonIv";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import PokemonIv from "../../../pokesleep-tool/src/util/PokemonIv";
 import eventJson from "../vendor/upstream-data/event.json";
 import pokemonJson from "../vendor/upstream-data/pokemon.json";
 import {

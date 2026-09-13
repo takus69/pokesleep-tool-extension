@@ -1,10 +1,10 @@
 import { TextField } from "@mui/material";
+import pokemons from "@upstream/data/pokemons";
+import PokemonSelectDialog from "@upstream/ui/IvCalc/IvForm/PokemonSelectDialog";
+import type { PokemonOption } from "@upstream/ui/IvCalc/IvForm/PokemonTextField";
+import PokemonIv from "@upstream/util/PokemonIv";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import pokemons from "../../../../../pokesleep-tool/src/data/pokemons";
-import PokemonSelectDialog from "../../../../../pokesleep-tool/src/ui/IvCalc/IvForm/PokemonSelectDialog";
-import type { PokemonOption } from "../../../../../pokesleep-tool/src/ui/IvCalc/IvForm/PokemonTextField";
-import PokemonIv from "../../../../../pokesleep-tool/src/util/PokemonIv";
 
 /** Upstream picker adapted so data-only additions retain a readable name. */
 export default function DynamicRankingPokemonSelect({

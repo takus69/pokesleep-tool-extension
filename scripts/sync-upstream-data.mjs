@@ -7,7 +7,7 @@ import process from "node:process";
 const repositoryRoot = path.resolve(import.meta.dirname, "..");
 const sourceRoot = path.resolve(
   process.env.POKESLEEP_TOOL_SOURCE ??
-    path.join(repositoryRoot, "..", "pokesleep-tool"),
+    path.join(repositoryRoot, "vendor", "pokesleep-tool"),
 );
 const destination = path.join(repositoryRoot, "src", "vendor", "upstream-data");
 const files = ["pokemon.json", "event.json", "field.json"];

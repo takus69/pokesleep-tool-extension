@@ -10,8 +10,14 @@ export default defineConfig({
   resolve: {
     alias: [
       { find: "react-spring", replacement: "@react-spring/web" },
+      {
+        find: "@upstream",
+        replacement: normalizePath(path.resolve("vendor/pokesleep-tool/src")),
+      },
       ...["pokemon.json", "event.json", "field.json"].map((file) => ({
-        find: normalizePath(path.resolve("../pokesleep-tool/src/data", file)),
+        find: normalizePath(
+          path.resolve("vendor/pokesleep-tool/src/data", file),
+        ),
         replacement: normalizePath(
           path.resolve("src/vendor/upstream-data", file),
         ),

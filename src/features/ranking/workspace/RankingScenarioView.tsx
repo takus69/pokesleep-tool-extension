@@ -8,36 +8,33 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useTranslation } from "react-i18next";
 import {
   type IngredientName,
   IngredientNames,
   type PokemonType,
   PokemonTypes,
-} from "../../../../../pokesleep-tool/src/data/pokemons";
-import RankingScenarioOptions, {
-  RankingOptionSummary,
-} from "../../../../../pokesleep-tool/src/fork/RankingScenarioOptions";
-import RankingScenarioResults from "../../../../../pokesleep-tool/src/fork/RankingScenarioResults";
-import { rankingScenarioPurposes } from "../../../../../pokesleep-tool/src/fork/RankingScenarioState";
-import IngredientIcon from "../../../../../pokesleep-tool/src/ui/IvCalc/IngredientIcon";
-import type IvState from "../../../../../pokesleep-tool/src/ui/IvCalc/IvState";
-import {
-  type MainSkillName,
-  MainSkillNames,
-} from "../../../../../pokesleep-tool/src/util/MainSkill";
-import type PokemonIv from "../../../../../pokesleep-tool/src/util/PokemonIv";
+} from "@upstream/data/pokemons";
+import IngredientIcon from "@upstream/ui/IvCalc/IngredientIcon";
+import type IvState from "@upstream/ui/IvCalc/IvState";
+import { type MainSkillName, MainSkillNames } from "@upstream/util/MainSkill";
+import type PokemonIv from "@upstream/util/PokemonIv";
 import {
   getCurrentFavoriteBerries,
   type StrengthParameter,
-} from "../../../../../pokesleep-tool/src/util/PokemonStrength";
+} from "@upstream/util/PokemonStrength";
+import { useTranslation } from "react-i18next";
+import { rankingScenarioPurposes } from "../application/RankingScenarioState";
 import {
   type RankingScenarioConfig,
   type RankingScenarioMetric,
   type RankingScenarioPurpose,
   rankingScenarioMetrics,
   validateRankingScenario,
-} from "../../../../../pokesleep-tool/src/util/RankingScenario";
+} from "../domain/RankingScenario";
+import RankingScenarioOptions, {
+  RankingOptionSummary,
+} from "../ui/RankingScenarioOptions";
+import RankingScenarioResults from "../ui/RankingScenarioResults";
 import DynamicRankingPokemonSelect from "./DynamicRankingPokemonSelect";
 import useRankingScenario from "./useRankingScenario";
 

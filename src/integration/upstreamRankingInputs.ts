@@ -1,6 +1,6 @@
-import { getInitialIvState } from "../../../pokesleep-tool/src/ui/IvCalc/IvState";
-import PokemonBox from "../../../pokesleep-tool/src/util/PokemonBox";
-import { loadStrengthParameter } from "../../../pokesleep-tool/src/util/StrengthParameter";
+import { getInitialIvState } from "@upstream/ui/IvCalc/IvState";
+import PokemonBox from "@upstream/util/PokemonBox";
+import { loadStrengthParameter } from "@upstream/util/StrengthParameter";
 import { isUpstreamEventSupported } from "./upstreamDataPack";
 
 export interface UpstreamRankingInputs {

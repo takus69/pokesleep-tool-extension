@@ -1,3 +1,8 @@
+import PokemonIv from "@upstream/util/PokemonIv";
+import {
+  type StrengthParameter,
+  serializeStrengthParameter,
+} from "@upstream/util/StrengthParameter";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   loadRankingScenarioSettings,
@@ -5,8 +10,7 @@ import {
   resetRankingScenarioSettings,
   saveRankingScenarioSettings,
   serializeRankingScenarioConfig,
-} from "../../../../../pokesleep-tool/src/fork/RankingScenarioState";
-import PokemonIv from "../../../../../pokesleep-tool/src/util/PokemonIv";
+} from "../application/RankingScenarioState";
 import {
   calculateRankingScenarioAsync,
   createRankingEnvironment,
@@ -14,11 +18,7 @@ import {
   type RankingScenarioConfig,
   type RankingScenarioPurpose,
   type RankingScenarioResult,
-} from "../../../../../pokesleep-tool/src/util/RankingScenario";
-import {
-  type StrengthParameter,
-  serializeStrengthParameter,
-} from "../../../../../pokesleep-tool/src/util/StrengthParameter";
+} from "../domain/RankingScenario";
 
 export interface RankingScenarioSnapshot {
   config: RankingScenarioConfig;
