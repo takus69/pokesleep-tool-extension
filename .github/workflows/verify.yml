@@ -1,0 +1,30 @@
+name: Verify
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: pokesleep-tool-extension
+      - uses: actions/checkout@v4
+        with:
+          repository: takus69/pokesleep-tool
+          ref: 42b0c4ae
+          path: pokesleep-tool
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: pokesleep-tool-extension/package-lock.json
+      - run: npm ci
+        working-directory: pokesleep-tool-extension
+      - run: npm run verify
+        working-directory: pokesleep-tool-extension

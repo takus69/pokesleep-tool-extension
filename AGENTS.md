@@ -18,6 +18,11 @@ This repository is a Manifest V3 browser-extension suite for Pokémon Sleep Tool
 
 ## Workflow
 
+- Follow Semantic Versioning: `MAJOR.MINOR.PATCH` means incompatible change, backward-compatible feature, and backward-compatible fix respectively. Prefix release tags with `v`.
+- Never push directly to `main` or `develop`. Branch from `develop` with `feature/`, `fix/`, `refactor/`, `docs/`, or `chore/`, then merge through a reviewed PR.
+- PRs into `develop` require automated verification. Promote `develop` to `main` only through a release PR after unpacked-extension acceptance in both Chrome and Edge.
+- Treat `main` as release-ready. Create an annotated `vX.Y.Z` tag from the accepted `main` commit and use that exact commit for both browser stores.
+- Start emergency fixes from `main`, merge them to `main` through a PR, then merge the released fix back into `develop`.
 - Use small PDCA units: document the plan, inspect relevant code, implement narrowly, run the closest test, adjust, then run `npm run verify`.
 - Preserve user changes and avoid unrelated formatting.
 - Add contract tests for every adapter/schema change and behavioral tests for domain changes.
