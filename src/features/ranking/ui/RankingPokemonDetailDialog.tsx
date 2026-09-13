@@ -11,16 +11,18 @@ import {
   useTheme,
 } from "@mui/material";
 import type { Theme } from "@mui/material/styles";
-import type IvState from "@upstream/ui/IvCalc/IvState";
-import type { IvAction } from "@upstream/ui/IvCalc/IvState";
-import RatingView from "@upstream/ui/IvCalc/RatingView";
-import RpView from "@upstream/ui/IvCalc/Rp/RpView";
-import StrengthBerryIngSkillView from "@upstream/ui/IvCalc/Strength/StrengthBerryIngSkillView";
 import PokemonBox from "@upstream/util/PokemonBox";
 import type PokemonIv from "@upstream/util/PokemonIv";
 import type { StrengthParameter } from "@upstream/util/PokemonStrength";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import {
+  type IvAction,
+  type IvState,
+  RatingView,
+  RpView,
+  StrengthBerryIngSkillView,
+} from "../upstreamUi";
 import { cloneRankingEnvironment } from "../workspace/useRankingScenario";
 
 type DetailTab = 0 | 1 | 2;

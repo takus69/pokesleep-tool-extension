@@ -11,11 +11,6 @@ import {
   Typography,
 } from "@mui/material";
 import pokemons from "@upstream/data/pokemons";
-import IngredientTextField from "@upstream/ui/IvCalc/IvForm/IngredientTextField";
-import { LevelInput } from "@upstream/ui/IvCalc/IvForm/LevelControl";
-import NatureTextField from "@upstream/ui/IvCalc/IvForm/NatureTextField";
-import SleepingTimeControl from "@upstream/ui/IvCalc/IvForm/SleepingTimeControl";
-import SubSkillControl from "@upstream/ui/IvCalc/IvForm/SubSkillControl";
 import {
   getMaxSkillLevel,
   type MainSkillName,
@@ -26,6 +21,13 @@ import PokemonIv from "@upstream/util/PokemonIv";
 import { type IngredientType, IngredientTypes } from "@upstream/util/PokemonRp";
 import { useTranslation } from "react-i18next";
 import type { RankingScenarioConfig } from "../domain/RankingScenario";
+import {
+  IngredientTextField,
+  LevelInput,
+  NatureTextField,
+  SleepingTimeControl,
+  SubSkillControl,
+} from "../upstreamUi";
 
 export function rankingConfigIv(config: RankingScenarioConfig): PokemonIv {
   const pokemon = pokemons.find((value) => value.name === config.pokemonName);

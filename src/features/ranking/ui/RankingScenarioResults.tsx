@@ -11,12 +11,6 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import IngredientCountIcon from "@upstream/ui/IvCalc/IngredientCountIcon";
-import {
-  StyledNatureDownEffect,
-  StyledNatureUpEffect,
-} from "@upstream/ui/IvCalc/IvForm/NatureTextField";
-import PokemonIcon from "@upstream/ui/IvCalc/PokemonIcon";
 import type PokemonIv from "@upstream/util/PokemonIv";
 import type { StrengthParameter } from "@upstream/util/PokemonStrength";
 import React from "react";
@@ -27,6 +21,12 @@ import type {
   RankingScenarioGroup,
   RankingScenarioResult,
 } from "../domain/RankingScenario";
+import {
+  IngredientCountIcon,
+  PokemonIcon,
+  StyledNatureDownEffect,
+  StyledNatureUpEffect,
+} from "../upstreamUi";
 import RankingPokemonDetailDialog from "./RankingPokemonDetailDialog";
 import { ribbonLabels } from "./RankingScenarioOptions";
 

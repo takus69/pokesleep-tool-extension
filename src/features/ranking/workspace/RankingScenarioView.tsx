@@ -14,8 +14,6 @@ import {
   type PokemonType,
   PokemonTypes,
 } from "@upstream/data/pokemons";
-import IngredientIcon from "@upstream/ui/IvCalc/IngredientIcon";
-import type IvState from "@upstream/ui/IvCalc/IvState";
 import { type MainSkillName, MainSkillNames } from "@upstream/util/MainSkill";
 import type PokemonIv from "@upstream/util/PokemonIv";
 import {
@@ -35,6 +33,7 @@ import RankingScenarioOptions, {
   RankingOptionSummary,
 } from "../ui/RankingScenarioOptions";
 import RankingScenarioResults from "../ui/RankingScenarioResults";
+import { IngredientIcon, type IvState } from "../upstreamUi";
 import DynamicRankingPokemonSelect from "./DynamicRankingPokemonSelect";
 import useRankingScenario from "./useRankingScenario";
 
