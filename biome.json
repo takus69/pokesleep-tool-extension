@@ -5,6 +5,7 @@
       "**",
       "!dist",
       "!coverage",
+      "!src/vendor/upstream-data",
       "!.tmp-*-profile*",
       "!.tmp-node-modules-*"
     ]

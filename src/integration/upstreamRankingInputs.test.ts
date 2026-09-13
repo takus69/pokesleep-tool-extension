@@ -54,4 +54,13 @@ describe("loadUpstreamRankingInputs", () => {
     expect(first).toEqual(second);
     expect(first.rawEvent).toBe("future-event");
   });
+
+  it("reports an event that the active calculation data does not know", () => {
+    localStorage.setItem(
+      "PstStrenghParam",
+      JSON.stringify({ event: "future-event" }),
+    );
+
+    expect(loadUpstreamRankingInputs().unsupportedEvent).toBe("future-event");
+  });
 });

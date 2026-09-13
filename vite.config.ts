@@ -1,5 +1,6 @@
+import path from "node:path";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { defineConfig, normalizePath } from "vite";
 
 export default defineConfig({
   plugins: [react()],
@@ -7,7 +8,15 @@ export default defineConfig({
     include: ["src/**/*.test.ts"],
   },
   resolve: {
-    alias: { "react-spring": "@react-spring/web" },
+    alias: [
+      { find: "react-spring", replacement: "@react-spring/web" },
+      ...["pokemon.json", "event.json", "field.json"].map((file) => ({
+        find: normalizePath(path.resolve("../pokesleep-tool/src/data", file)),
+        replacement: normalizePath(
+          path.resolve("src/vendor/upstream-data", file),
+        ),
+      })),
+    ],
     dedupe: [
       "react",
       "react-dom",

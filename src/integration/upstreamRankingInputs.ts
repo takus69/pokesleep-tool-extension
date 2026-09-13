@@ -1,11 +1,13 @@
 import { getInitialIvState } from "../../../pokesleep-tool/src/ui/IvCalc/IvState";
 import PokemonBox from "../../../pokesleep-tool/src/util/PokemonBox";
 import { loadStrengthParameter } from "../../../pokesleep-tool/src/util/StrengthParameter";
+import { isUpstreamEventSupported } from "./upstreamDataPack";
 
 export interface UpstreamRankingInputs {
   state: ReturnType<typeof getInitialIvState>;
   environmentKey: string;
   rawEvent: string | null;
+  unsupportedEvent: string | null;
 }
 
 function stableValue(value: unknown): unknown {
@@ -47,5 +49,8 @@ export function loadUpstreamRankingInputs(): UpstreamRankingInputs {
   return {
     state: { ...state, parameter: loadStrengthParameter(), box },
     ...rawEnvironment,
+    unsupportedEvent: isUpstreamEventSupported(rawEnvironment.rawEvent)
+      ? null
+      : rawEnvironment.rawEvent,
   };
 }

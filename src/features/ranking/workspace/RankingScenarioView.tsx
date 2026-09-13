@@ -15,7 +15,6 @@ import {
   type PokemonType,
   PokemonTypes,
 } from "../../../../../pokesleep-tool/src/data/pokemons";
-import RankingPokemonSelect from "../../../../../pokesleep-tool/src/fork/RankingPokemonSelect";
 import RankingScenarioOptions, {
   RankingOptionSummary,
 } from "../../../../../pokesleep-tool/src/fork/RankingScenarioOptions";
@@ -39,6 +38,7 @@ import {
   rankingScenarioMetrics,
   validateRankingScenario,
 } from "../../../../../pokesleep-tool/src/util/RankingScenario";
+import DynamicRankingPokemonSelect from "./DynamicRankingPokemonSelect";
 import useRankingScenario from "./useRankingScenario";
 
 const key = (value: string) => `fork.scenario.${value}`;
@@ -111,6 +111,8 @@ export function RankingEnvironmentSummary({
 export default function RankingScenarioView({
   state,
   environmentKey,
+  unsupportedEvent,
+  dataIssueCount,
   onEditEnvironment,
   comparisonIv,
   onAddComparison,
@@ -119,6 +121,8 @@ export default function RankingScenarioView({
 }: {
   state: IvState;
   environmentKey: string;
+  unsupportedEvent: string | null;
+  dataIssueCount: number;
   onEditEnvironment: () => void;
   comparisonIv: PokemonIv | null;
   onAddComparison: () => void;
@@ -141,6 +145,16 @@ export default function RankingScenarioView({
   return (
     <Stack gap={2} sx={{ p: 1 }}>
       <Typography color="text.secondary">{t("fork.brand.subtitle")}</Typography>
+      {dataIssueCount > 0 && (
+        <Alert severity="warning">
+          {t("extension.partialData", { count: dataIssueCount })}
+        </Alert>
+      )}
+      {unsupportedEvent !== null && (
+        <Alert severity="warning">
+          {t("extension.unsupportedEvent", { event: unsupportedEvent })}
+        </Alert>
+      )}
       <TextField
         select
         label={t(key("purpose"))}
@@ -158,7 +172,7 @@ export default function RankingScenarioView({
         ))}
       </TextField>
       {["traits", "ingredients"].includes(config.purpose) && (
-        <RankingPokemonSelect
+        <DynamicRankingPokemonSelect
           value={config.pokemonName}
           onChange={(pokemonName) =>
             update({

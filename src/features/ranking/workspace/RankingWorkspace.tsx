@@ -16,6 +16,7 @@ import LowerTabHeader from "../../../../../pokesleep-tool/src/ui/IvCalc/LowerTab
 import RateNotFixedPanel from "../../../../../pokesleep-tool/src/ui/IvCalc/RateNotFixedPanel";
 import type PokemonIv from "../../../../../pokesleep-tool/src/util/PokemonIv";
 import { createRankingEnvironment } from "../../../../../pokesleep-tool/src/util/RankingScenario";
+import { getUpstreamDataStatus } from "../../../integration/upstreamDataPack";
 import { loadUpstreamRankingInputs } from "../../../integration/upstreamRankingInputs";
 import RankingScenarioView from "./RankingScenarioView";
 import ReadOnlyComparisonBoxPanel from "./ReadOnlyComparisonBoxPanel";
@@ -56,11 +57,15 @@ const RankingWorkspace = React.memo(
     const [environmentKey, setEnvironmentKey] = React.useState(
       initial.environmentKey,
     );
+    const [unsupportedEvent, setUnsupportedEvent] = React.useState(
+      initial.unsupportedEvent,
+    );
     // biome-ignore lint/correctness/useExhaustiveDependencies: the revision explicitly requests a fresh upstream snapshot
     React.useEffect(() => {
       const latest = loadUpstreamRankingInputs();
       dispatch({ type: "syncUpstream", payload: latest.state });
       setEnvironmentKey(latest.environmentKey);
+      setUnsupportedEvent(latest.unsupportedEvent);
     }, [refreshRevision]);
     const [comparisonIv, setComparisonIv] = React.useState<PokemonIv | null>(
       null,
@@ -84,6 +89,8 @@ const RankingWorkspace = React.memo(
         <RankingScenarioView
           state={state}
           environmentKey={environmentKey}
+          unsupportedEvent={unsupportedEvent}
+          dataIssueCount={getUpstreamDataStatus().issues.length}
           onEditEnvironment={onEditEnvironment}
           comparisonIv={comparisonIv}
           onAddComparison={() => {

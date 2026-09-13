@@ -19,6 +19,8 @@
     "build": "vite build",
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
+    "sync:upstream-data": "node scripts/sync-upstream-data.mjs",
+    "release:prepare": "npm run sync:upstream-data && npm run verify",
     "test": "vitest run",
     "verify": "npm run typecheck && npm run lint && npm run test && npm run build"
   },

@@ -1,0 +1,39 @@
+name: Sync upstream data
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 18 * * *"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: nitoyon/pokesleep-tool
+          path: .upstream/pokesleep-tool
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run sync:upstream-data
+        env:
+          POKESLEEP_TOOL_SOURCE: ${{ github.workspace }}/.upstream/pokesleep-tool
+      - run: npm run verify
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          branch: automation/sync-upstream-data
+          delete-branch: true
+          commit-message: "chore: sync upstream data"
+          title: "chore: sync upstream data"
+          body: |
+            Automated, schema-validated data synchronization from `nitoyon/pokesleep-tool`.
+
+            Review the source commit in `src/vendor/upstream-data/manifest.json` and the verification result before merging.

@@ -1,9 +1,11 @@
 import { rankingFeature } from "../../features/ranking";
 import { readToolSnapshot } from "../../integration/upstreamAdapter";
+import { prepareUpstreamDataPack } from "../../integration/upstreamDataPack";
 import { ChromeSettingsStore } from "../../settings/chromeSettingsStore";
 import { mountSuite } from "../../ui/mountSuite";
 
 async function start(): Promise<void> {
+  await prepareUpstreamDataPack();
   const snapshot = readToolSnapshot({
     url: new URL(window.location.href),
     rootExists: document.getElementById("root") !== null,

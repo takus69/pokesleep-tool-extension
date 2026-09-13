@@ -11,6 +11,7 @@ import { openUpstreamCalculationSettings } from "../../integration/upstreamCalcu
 import { findUpstreamRankingSlot } from "../../integration/upstreamRankingSlot";
 import { createUpstreamViewVisibility } from "../../integration/upstreamViewVisibility";
 import type { FeatureContext } from "../types";
+import { registerExtensionTranslations } from "./i18n";
 import RankingWorkspace from "./workspace/RankingWorkspace";
 
 const theme = createTheme({
@@ -201,6 +202,7 @@ export function mountRankingWorkspace({
   void loadLanguage(language).then(() => {
     if (disposed) return;
     registerForkTranslations(language);
+    registerExtensionTranslations(language);
     void i18n.changeLanguage(language);
     reactRoot = createRoot(hostElement);
     workspaceReady = true;
