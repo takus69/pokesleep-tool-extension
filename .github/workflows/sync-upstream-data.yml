@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: takus69/pokesleep-tool
-          ref: 42b0c4ae
+          ref: 42b0c4ae34c168ba8d6fbb3329d3426a452beb80
           path: pokesleep-tool
       - uses: actions/checkout@v4
         with:
@@ -29,7 +29,11 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: pokesleep-tool-extension/package-lock.json
+          cache-dependency-path: |
+            pokesleep-tool-extension/package-lock.json
+            pokesleep-tool/package-lock.json
+      - run: npm ci
+        working-directory: pokesleep-tool
       - run: npm ci
         working-directory: pokesleep-tool-extension
       - run: npm run sync:upstream-data
