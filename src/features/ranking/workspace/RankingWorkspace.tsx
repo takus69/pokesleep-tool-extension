@@ -4,6 +4,8 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Tab,
+  Tabs,
 } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -12,7 +14,6 @@ import { rankingWorkspaceReducer } from "../../../../../pokesleep-tool/src/fork/
 import IvForm from "../../../../../pokesleep-tool/src/ui/IvCalc/IvForm/IvForm";
 import type IvState from "../../../../../pokesleep-tool/src/ui/IvCalc/IvState";
 import type { IvAction } from "../../../../../pokesleep-tool/src/ui/IvCalc/IvState";
-import LowerTabHeader from "../../../../../pokesleep-tool/src/ui/IvCalc/LowerTabHeader";
 import RateNotFixedPanel from "../../../../../pokesleep-tool/src/ui/IvCalc/RateNotFixedPanel";
 import type PokemonIv from "../../../../../pokesleep-tool/src/util/PokemonIv";
 import { createRankingEnvironment } from "../../../../../pokesleep-tool/src/util/RankingScenario";
@@ -141,11 +142,22 @@ const RankingWorkspace = React.memo(
                 : undefined
             }
           >
-            <LowerTabHeader
-              state={{ ...state, tabIndex: 0 }}
-              isBoxEmpty={state.box.items.length === 0}
-              dispatch={individualDispatch}
-            />
+            <Tabs
+              value={state.lowerTabIndex}
+              onChange={(_event, index: number) =>
+                dispatch({ type: "changeLowerTab", payload: { index } })
+              }
+              sx={{ minHeight: "clamp(20px, 3vh, 36px)" }}
+            >
+              <Tab
+                label={t("pokemon")}
+                sx={{ minHeight: "clamp(20px, 3vh, 36px)", py: 0.75 }}
+              />
+              <Tab
+                label={t("box")}
+                sx={{ minHeight: "clamp(20px, 3vh, 36px)", py: 0.75 }}
+              />
+            </Tabs>
             {state.lowerTabIndex !== 1 ? (
               <>
                 <RateNotFixedPanel state={state} dispatch={dispatch} />
