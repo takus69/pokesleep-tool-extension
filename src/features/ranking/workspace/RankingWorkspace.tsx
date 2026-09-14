@@ -7,10 +7,6 @@ import {
   Tab,
   Tabs,
 } from "@mui/material";
-import IvForm from "@upstream/ui/IvCalc/IvForm/IvForm";
-import type IvState from "@upstream/ui/IvCalc/IvState";
-import type { IvAction } from "@upstream/ui/IvCalc/IvState";
-import RateNotFixedPanel from "@upstream/ui/IvCalc/RateNotFixedPanel";
 import type PokemonIv from "@upstream/util/PokemonIv";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -21,6 +17,12 @@ import {
   rankingWorkspaceReducer,
 } from "../application/RankingWorkspaceState";
 import { createRankingEnvironment } from "../domain/RankingScenario";
+import {
+  type IvAction,
+  IvForm,
+  type IvState,
+  RateNotFixedPanel,
+} from "../upstreamUi";
 import RankingScenarioView from "./RankingScenarioView";
 import ReadOnlyComparisonBoxPanel from "./ReadOnlyComparisonBoxPanel";
 
@@ -130,7 +132,7 @@ const RankingWorkspace = React.memo(
           }}
         >
           <DialogTitle>
-            {t(comparisonIv ? "fork.scenario.comparison" : "pokemon")}
+            {t(comparisonIv ? "ranking.scenario.comparison" : "pokemon")}
           </DialogTitle>
           <DialogContent
             sx={
@@ -188,7 +190,7 @@ const RankingWorkspace = React.memo(
                 setComparisonEditorOpen(false);
               }}
             >
-              {t("fork.scenario.set comparison")}
+              {t("ranking.scenario.set comparison")}
             </Button>
             <Button onClick={() => setComparisonEditorOpen(false)}>
               {t("close")}

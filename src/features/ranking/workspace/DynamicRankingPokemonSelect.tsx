@@ -1,10 +1,9 @@
 import { TextField } from "@mui/material";
 import pokemons from "@upstream/data/pokemons";
-import PokemonSelectDialog from "@upstream/ui/IvCalc/IvForm/PokemonSelectDialog";
-import type { PokemonOption } from "@upstream/ui/IvCalc/IvForm/PokemonTextField";
 import PokemonIv from "@upstream/util/PokemonIv";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { type PokemonOption, PokemonSelectDialog } from "../upstreamUi";
 
 /** Upstream picker adapted so data-only additions retain a readable name. */
 export default function DynamicRankingPokemonSelect({
@@ -47,7 +46,7 @@ export default function DynamicRankingPokemonSelect({
       <TextField
         label={t("pokemon")}
         value={selected?.localName ?? ""}
-        placeholder={t("fork.scenario.select condition")}
+        placeholder={t("ranking.scenario.select condition")}
         fullWidth
         size="small"
         onClick={() => setOpen(true)}

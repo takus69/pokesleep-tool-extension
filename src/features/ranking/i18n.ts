@@ -1,5 +1,5 @@
-import i18n from "@upstream/i18n";
 import { getUpstreamDataStatus } from "../../integration/upstreamDataPack";
+import { i18n } from "./upstreamUi";
 
 const resources: Record<string, Record<string, string>> = {
   en: {

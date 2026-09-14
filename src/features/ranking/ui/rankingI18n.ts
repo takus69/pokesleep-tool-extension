@@ -1,4 +1,4 @@
-import i18n from "@upstream/i18n";
+import { i18n } from "../upstreamUi";
 import en from "./i18n/en.json";
 import ja from "./i18n/ja.json";
 import ko from "./i18n/ko.json";
@@ -13,7 +13,7 @@ const resources: Record<string, Record<string, unknown>> = {
   "zh-TW": zhTW,
 };
 
-export function registerForkTranslations(language: string): void {
+export function registerRankingTranslations(language: string): void {
   const resource = resources[language];
   if (resource !== undefined) {
     i18n.addResourceBundle(language, "translation", resource, true, true);

@@ -11,12 +11,6 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import IngredientCountIcon from "@upstream/ui/IvCalc/IngredientCountIcon";
-import {
-  StyledNatureDownEffect,
-  StyledNatureUpEffect,
-} from "@upstream/ui/IvCalc/IvForm/NatureTextField";
-import PokemonIcon from "@upstream/ui/IvCalc/PokemonIcon";
 import type PokemonIv from "@upstream/util/PokemonIv";
 import type { StrengthParameter } from "@upstream/util/PokemonStrength";
 import React from "react";
@@ -27,6 +21,12 @@ import type {
   RankingScenarioGroup,
   RankingScenarioResult,
 } from "../domain/RankingScenario";
+import {
+  IngredientCountIcon,
+  PokemonIcon,
+  StyledNatureDownEffect,
+  StyledNatureUpEffect,
+} from "../upstreamUi";
 import RankingPokemonDetailDialog from "./RankingPokemonDetailDialog";
 import { ribbonLabels } from "./RankingScenarioOptions";
 
@@ -82,7 +82,7 @@ export function ScenarioIvSummary({
   );
   if (neutralSubSkillCount > 0)
     subSkills.push(
-      t("fork.ingredientRanking.neutral subskill") +
+      t("ranking.ingredientRanking.neutral subskill") +
         ` ×${neutralSubSkillCount}`,
     );
   const summary = (
@@ -210,7 +210,7 @@ function RankingScenarioResults({
       >
         <Stack direction="row" justifyContent="space-between">
           <Typography fontWeight="bold">
-            {merged.rank} · {t("fork.scenario.comparison")}
+            {merged.rank} · {t("ranking.scenario.comparison")}
           </Typography>
           <Typography fontWeight="bold">
             {formatter.format(comparison.value)}
@@ -227,7 +227,7 @@ function RankingScenarioResults({
         </Typography>
         {!comparisonIv && (
           <Button onClick={() => onAddComparison()}>
-            {t("fork.scenario.add comparison")}
+            {t("ranking.scenario.add comparison")}
           </Button>
         )}
       </Stack>
@@ -241,14 +241,14 @@ function RankingScenarioResults({
           }}
         >
           <Typography fontWeight="bold">
-            {t("fork.scenario.comparison")}
+            {t("ranking.scenario.comparison")}
             {merged.rank !== null &&
-              ` · ${t("fork.ingredientRanking.rank")} ${merged.rank}`}
+              ` · ${t("ranking.ingredientRanking.rank")} ${merged.rank}`}
           </Typography>
           <ScenarioIvSummary iv={comparisonIv} />
           {comparison?.status === "uncalculable" ? (
             <Alert severity="warning">
-              {t(`fork.scenario.reason ${comparison.reason}`)}
+              {t(`ranking.scenario.reason ${comparison.reason}`)}
             </Alert>
           ) : comparison ? (
             <Typography>
@@ -258,30 +258,30 @@ function RankingScenarioResults({
             <Typography>
               {t(
                 stale
-                  ? "fork.scenario.stale comparison"
-                  : "fork.scenario.comparison pending",
+                  ? "ranking.scenario.stale comparison"
+                  : "ranking.scenario.comparison pending",
               )}
             </Typography>
           )}
           <Button onClick={onEditComparison}>{t("edit")}</Button>
           <Button disabled={merged.page === null} onClick={jump}>
-            {t("fork.scenario.jump")}
+            {t("ranking.scenario.jump")}
           </Button>
           <Button onClick={onRemoveComparison}>
-            {t("fork.scenario.remove comparison")}
+            {t("ranking.scenario.remove comparison")}
           </Button>
         </Box>
       )}
       {result.exclusions.map((exclusion) => (
         <Alert key={exclusion.reason} severity="warning">
-          {t("fork.scenario.excluded", {
+          {t("ranking.scenario.excluded", {
             count: exclusion.count,
-            reason: t(`fork.scenario.reason ${exclusion.reason}`),
+            reason: t(`ranking.scenario.reason ${exclusion.reason}`),
           })}
         </Alert>
       ))}
       <Typography variant="body2" color="text.secondary">
-        {t("fork.scenario.result counts", {
+        {t("ranking.scenario.result counts", {
           start:
             result.groups.length === 0 || start >= result.groups.length
               ? 0
@@ -293,7 +293,7 @@ function RankingScenarioResults({
       </Typography>
       {result.groups.length === 0 && (
         <Typography>
-          {t("fork.ingredientRanking.no ranking results")}
+          {t("ranking.ingredientRanking.no ranking results")}
         </Typography>
       )}
       {pageCount > 1 && (
@@ -340,7 +340,7 @@ function RankingScenarioResults({
                     setDetailPage(1);
                   }}
                 >
-                  {t("fork.scenario.show conditions", {
+                  {t("ranking.scenario.show conditions", {
                     count: group.entries.length,
                   })}
                 </Button>
@@ -366,7 +366,7 @@ function RankingScenarioResults({
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>{t("fork.scenario.conditions")}</DialogTitle>
+        <DialogTitle>{t("ranking.scenario.conditions")}</DialogTitle>
         <DialogContent>
           {detailEntries
             ?.slice((detailPage - 1) * 50, detailPage * 50)

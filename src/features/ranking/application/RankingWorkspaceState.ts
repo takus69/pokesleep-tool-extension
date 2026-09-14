@@ -1,10 +1,9 @@
-import type IvState from "@upstream/ui/IvCalc/IvState";
-import { type IvAction, ivStateReducer } from "@upstream/ui/IvCalc/IvState";
 import {
   normalizeStrengthParameter,
   type StrengthParameter,
   saveStrengthParameter,
 } from "@upstream/util/PokemonStrength";
+import { type IvAction, type IvState, ivStateReducer } from "../upstreamUi";
 import { cloneRankingEnvironment } from "../workspace/useRankingScenario";
 
 /** Keep the shared environment independent of the currently edited individual. */
