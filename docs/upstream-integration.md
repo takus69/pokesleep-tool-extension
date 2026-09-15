@@ -8,7 +8,7 @@
 - 元ツールのDOM、保存形式、内部モジュールへの依存箇所を限定する。
 - 元ツールの計算・データ・画面部品を利用し、公式情報を拡張側で重複管理しない。
 - 必要な情報を検証できない場合はfail closedとし、推測した結果を表示しない。
-- 元ツールの保存値を自動修復・上書きしない。
+- 元ツールの保存値を自動修復・削除しない。元ツールのAsIs UI操作で保存する経路は下記の監査結果で区別する。
 - 実行コードを外部から取得しない。
 
 ## 2. 入力仕様
@@ -35,7 +35,7 @@
 
 ランキング独自の計算と状態は `src/features/ranking` で管理します。Chromium APIとDOMへ依存しない計算をdomainへ置きます。元ツールの純粋な計算型・関数はbundleへ含めて利用します。
 
-元ツールのReact UIと状態へのimportは `src/features/ranking/upstreamUi.ts` に集約します。機能コードから上流UI内部パスを直接importしないことを契約テストで検証します。DOM、画面遷移、保存形式の知識は `src/integration` に配置します。
+元ツールのReact UIと状態へのimportは `src/features/ranking/upstreamUi.ts` に集約します。機能コードから上流UI内部パスを直接importしないことを契約テストで検証します。DOMと画面遷移の知識は主に `src/integration` に配置しますが、現時点では `src/features/ranking/reactUi.tsx` にタブ操作と監視が残っています。保存形式の知識もランキング条件の保存キーを除いて `src/integration` に置きます。
 
 ## 4. 出力仕様
 
@@ -86,7 +86,32 @@ Manifest V3を使用し、対象サイトと検証済みJSON取得先だけにho
 
 新しいJSONだけで対応できるポケモンとイベントはデータ同期で反映できます。新スキル、新しい計算式、保存形式、DOMまたはUI exportの変更は拡張本体の更新対象です。
 
-## 10. 未決事項
+## 10. 疎結合監査（2026-09-16）
+
+現行コードを固定上流commit `aec938d72d52fe875029aae13f58ae850db2fe98` と照合した結果です。これらは改善候補の分類であり、今回の監査では動作を変更しません。
+
+| 依存 | 現在の境界 | 分類 | 上流変更時の影響・方針 |
+|---|---|---|---|
+| ポケモン・食材・スキル・イベントの型、データ、計算関数 | ranking domain、`upstream.ts`、`upstreamDataPack.ts` | 必要なAsIs再利用 | 公式情報と計算式を二重管理しない。内部API変更は固定commit更新PRで型検査・計算テストにより追従する。 |
+| 元ツールのReactフォーム、アイコン、詳細画面 | `upstreamUi.ts` | 意図したAsIs再利用 | exportの変更は境界モジュールへ集約済み。ただしbundle済みコードはページ再読み込みだけでは更新されず、拡張更新が必要。 |
+| 上段タブ、表示退避、設定画面へのクリック | `src/integration` と `reactUi.tsx` | 変更に弱いDOM境界 | sticky構造、タブ位置、MUI class、再描画に依存する。タブ制御をintegrationへ寄せ、SPA・タブ追加・復元の契約テストを増やす。 |
+| 計算条件・ボックスの保存値 | `upstreamRankingInputs.ts` | 非公開保存形式への依存 | 元ツールdecoderと型を利用しているが、保存スキーマ変更に備えたfixture・異常値テストを強化する。ボックスは参照専用。 |
+| 元ツールの `ivStateReducer` とその副作用 | `RankingWorkspaceState.ts` | 優先修正候補 | ランキング内の個体編集、下段タブ切替等が `PstIvState` を保存する。`changeParameter` は `PstStrenghParam` を保存する。元ツール設定を編集する導線は維持しつつ、ランキングだけの個体操作が元ツール状態へ書き込まない境界を設計する。 |
+| ランキング条件の保存 | `RankingScenarioState.ts` | 実行環境依存 | `localStorage` をapplicationが直接利用する。保存ポートとschema変換を分け、既存キーの読み取り互換性を保つ。 |
+| 最新JSONの取得、キャッシュ、セッション判定 | `upstreamDataPack.ts` | Chromium依存の混在 | 検証処理は再利用可能だが、同じファイルに `fetch`、`chrome.storage`、`chrome.runtime` がある。runtime portへ分ける。 |
+
+### 確認された保存副作用
+
+`RankingWorkspace` の `updateIv`、`changeLowerTab`、比較編集時のIV変更は `rankingWorkspaceReducer` から上流 `ivStateReducer` を呼びます。上流の同reducerはこれらの操作で `PstIvState` を保存します。ランキング画面からボックスへ書き込むUIはありませんが、「ボックスが参照専用」と「元ツールの個体状態を全く変更しない」は同義ではありません。元ツールの計算条件を明示編集する操作では `PstStrenghParam` の保存が意図した動作です。
+
+### 推奨する小PRの順序
+
+1. ランキング固有の個体・タブ操作から上流保存副作用を切り離し、元ツール設定の明示編集だけ保存する。保存前後のcontract testを追加する。
+2. タブ挿入・選択・再描画のDOM連携をintegrationへ集約し、上流変更を模したfixtureを増やす。
+3. 最新JSON検証からChrome Storage、セッション判定、通信を分離する。
+4. ランキング条件のschema変換と保存処理を分離する。既存保存キーは移行が確認できるまで維持する。
+
+## 11. 未決事項
 
 - 上流計算クラスをさらに中立的なdomain portで包むかは、料理シミュレーション等との共通利用範囲を見て判断する。
 - 上流UIを利用する詳細画面を独自UIへ置換するかは、保守コストと視覚的一貫性を比較して判断する。
