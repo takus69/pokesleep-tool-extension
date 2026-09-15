@@ -1,15 +1,51 @@
 # ストア公開・リリース手順
 
-1. `develop`でCHANGELOG、`package.json`とmanifestのversion、対応上流版、ライセンス通知を更新。
-2. 元ツールの検証対象checkoutを用意し、`POKESLEEP_TOOL_SOURCE` を指定して `npm run release:prepare` を実行。
-3. Chrome／Edgeの最新安定版で手動受入試験。
-4. `dist/` のmanifestと内容を確認し、外部コードがないことを確認。
-5. 再現可能なZIP、ストア説明、画像、プライバシー回答を作成。
-6. Chrome Web Storeへ提出後、同一ソースからEdge Add-onsへ提出。
-7. Chrome／Edgeの受入完了後、`develop`から`main`へのリリースPRを作成。
-8. マージされた`main`の同一コミットへ注釈付き`vX.Y.Z`タグとGitHub Releaseを作成し、同一成果物を両ストアへ提出。
-9. 審査結果と既知問題を記録。
+## リリース候補を作る
 
-日次および手動実行の `Sync upstream data` workflowは元ツールをcheckoutし、JSON同期、型検査、lint、テスト、ビルドを通過した変更だけを`develop`へのPRにします。PRではデータmanifestのcommit、除外された未知仕様、ランキング回帰結果を確認します。計算コードの同期とストア公開は自動化対象外で、レビュー後に行います。
+1. `develop`が最新で、未完了の変更がないことを確認する。
+2. リリースする版をSemantic Versioningで決める。
+3. 作業ブランチで `package.json`、`public/manifest.json`、CHANGELOGの版と内容を一致させる。
+4. 対応する公式元ツールcommit、権限、第三者通知、プライバシー方針を確認する。
+5. `npm run release:prepare` を実行する。
+6. 生成したunpacked `dist` をChromeとEdgeの最新安定版で受入確認する。
+7. `develop`へのPRをレビュー・マージする。
 
-署名鍵、ストア資格情報、公開操作は管理者が行います。既存の公開物を廃止する場合は、安定版公開と移行確認の完了後に別途判断します。
+## mainへ昇格する
+
+1. 受入済みの `develop` から `main` へのリリースPRを作成する。
+2. 差分が今回のリリース対象だけであることと、必須CI成功を確認する。
+3. PRをマージし、マージされた `main` のcommitを確定する。
+4. 同commitへ注釈付きタグ `vX.Y.Z` を作成する。
+5. タグのcommitから依存関係をクリーンインストールし、`npm run build` を実行する。
+6. `dist` をZIP化し、ハッシュを記録してGitHub Releaseへ添付する。
+
+同じタグcommitから作成した同一成果物をChrome Web StoreとMicrosoft Edge Add-onsへ提出します。
+
+## ストア提出物
+
+- 拡張ZIP
+- 名称、短い説明、詳細説明
+- アイコン、スクリーンショット、必要に応じた紹介画像
+- プライバシー方針の公開URL
+- 権限ごとの利用目的
+- サポートURL、問題報告先
+- 対応ブラウザと既知の制限
+
+掲載文案は [ストア掲載情報](store-listing.md) を使用し、実際の版と画面に合わせて更新します。
+
+## 提出後
+
+1. 両ストアの審査状態と提出した版を記録する。
+2. 差し戻し理由がある場合は `fix/` ブランチで修正し、同じ検証・PR手順を繰り返す。
+3. 公開後、ストア上の版、対象ページでの起動、更新配信を確認する。
+4. リリースノートへ対応上流commit、既知問題、成果物ハッシュを記録する。
+
+## 上流データ同期
+
+`Sync upstream data` workflowは公式元ツールをcheckoutし、非実行JSONの同期、型検査、lint、テスト、ビルドを通過した変更だけを `develop` 向けPRにします。PRではデータmanifestのcommit、除外された未知仕様、ランキング回帰結果を確認します。計算コードの更新とストア公開は自動化せず、通常のレビューと受入確認を行います。
+
+署名鍵、ストア資格情報、公開操作は管理者が扱い、リポジトリへ保存しません。
+
+## 緊急修正
+
+公開版の緊急修正は `main` から `hotfix/` ブランチを作り、PRで `main` へ反映します。PATCH版として検証・タグ・提出した後、修正を `develop` へ戻します。
