@@ -24,4 +24,17 @@ describe("ranking upstream UI boundary", () => {
 
     expect(violations).toEqual([]);
   });
+
+  it("keeps upstream DOM inspection out of the ranking feature", () => {
+    const upstreamDomKnowledge =
+      /\b(?:MutationObserver|querySelector(?:All)?|closest)\b|MuiTabs-indicator|Mui-selected|data-pokesleep-extension-ranking/;
+    const violations = sourceFiles(rankingRoot)
+      .filter((file) => !/\.test\.[jt]sx?$/.test(file))
+      .filter((file) =>
+        upstreamDomKnowledge.test(fs.readFileSync(file, "utf8")),
+      )
+      .map((file) => path.relative(rankingRoot, file));
+
+    expect(violations).toEqual([]);
+  });
 });
