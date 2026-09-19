@@ -116,9 +116,4 @@ Manifest V3を使用し、対象サイトと検証済みJSON取得先だけにho
 | ランキング条件の保存 | `RankingScenarioState.ts` | 実行環境依存 | `localStorage` をapplicationが直接利用する。保存ポートとschema変換を分け、既存キーの読み取り互換性を保つ。 |
 | 最新JSONの取得、キャッシュ、セッション判定 | `upstreamDataPack.ts` | Chromium依存の混在 | 検証処理は再利用可能だが、同じファイルに `fetch`、`chrome.storage`、`chrome.runtime` がある。runtime portへ分ける。 |
 
-監査で確認した改善課題の内容、優先度、完了条件は[GitHub Issues](https://github.com/takus69/pokesleep-tool-extension/issues)で管理します。本書には現在有効な境界仕様と、上流更新時に継続して確認する依存関係を記載します。
-
-## 11. 未決事項
-
-- 上流計算クラスをさらに中立的なdomain portで包むかは、料理シミュレーション等との共通利用範囲を見て判断する。
-- 上流UIを利用する詳細画面を独自UIへ置換するかは、保守コストと視覚的一貫性を比較して判断する。
+監査で確認した改善課題と設計判断の内容、優先度、完了条件は[GitHub Issues](https://github.com/takus69/pokesleep-tool-extension/issues)で管理します。本書には現在有効な境界仕様と、上流更新時に継続して確認する依存関係を記載します。

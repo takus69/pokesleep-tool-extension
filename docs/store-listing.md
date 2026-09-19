@@ -30,10 +30,4 @@ Pokémon Sleep Toolのページへ「ランキング」タブを追加する非�
 - Pokémon Sleep Toolのサイト: 対象ページへランキングUIを追加し、計算条件とボックスを端末内で参照します。
 - raw.githubusercontent.com: 公式元ツールが公開するポケモン・イベントJSONの確認に使用します。
 
-## 公開前の未決事項
-
-- ストアで使用する最終名称
-- サポートURLとプライバシー方針の公開URL
-- 128pxアイコンと各ストア指定サイズの画像
-- 実画面スクリーンショットと説明文
-- 対応言語として申告する範囲
+公開前に確定する掲載情報と画像素材は [GitHub Issue #12](https://github.com/takus69/pokesleep-tool-extension/issues/12) で管理します。
