@@ -25,6 +25,22 @@
 
 元ツールの `PokemonBox` を使って保存値を読み直し、ランキングにはスナップショットを渡します。ランキング側は参照と比較対象の選択だけを行い、追加、編集、複製、削除、import、exportを行いません。
 
+### 保存状態の所有権と共有方針
+
+保存状態は、元ツールと共有する状態、元ツールから読み取るだけの状態、拡張機能が所有する状態に分けます。
+
+| 区分 | 保存先・キー | 内容 | ランキングからの扱い |
+|---|---|---|---|
+| 元ツールと共有 | ページの `localStorage`: `PstStrenghParam` | フィールド、イベント、好きなきのみ、睡眠時間などの共有計算条件 | 読み取る。元ツールの画面を利用した明示的な条件変更は、元ツールと同じ保存処理で書き込む。 |
+| 元ツールと共有 | ページの `localStorage`: `PstIvState` | 作業中の個体、選択中の個体、個体値計算画面内のタブ位置 | 読み取り、ランキングでの個体編集や下段タブ操作による更新を許容する。ボックス登録とは区別し、元ツールとランキングを往復して確認できる一時的な作業状態として共有する。 |
+| 元ツールから読み取り専用 | ページの `localStorage`: `PstPokeBox` | 元ツールのボックス登録内容 | 最新スナップショットを読み取るだけとし、ランキングから書き込まない。 |
+| 拡張機能が所有 | ページの `localStorage`: `PstForkRankingScenarios.v1` | ランキング目的別の独自条件 | 元ツールの状態と分離して読み書きする。既存利用者との互換性のため、現行キー名を維持する。 |
+| 拡張機能が所有 | `chrome.storage.local`: `settings.v1` | 機能ごとの有効・無効設定 | 拡張機能だけが読み書きする。 |
+| 拡張機能が所有 | `chrome.storage.local`: `upstream-data-pack.v1` | 検証済み上流データと確認時刻 | 拡張機能だけが検証後に読み書きする。元ツールの保存値として扱わない。 |
+| 拡張機能が所有 | `chrome.storage.session`: `upstream-data-refresh-claimed.v1` | ブラウザセッション内で上流確認済みかどうか | 拡張機能だけが読み書きし、セッション終了後の保持を前提にしない。 |
+
+元ツール所有の保存値については、拡張側で自動修復、削除、独自schemaへの置換を行いません。書き込みが必要な場合は元ツールの型、正規化、保存処理を利用し、対応する操作を上表で明示します。上流の保存形式が変わった場合は互換性変更として扱い、固定submodule更新時にcontract testと実ブラウザ試験で確認します。
+
 ### 静的データ
 
 公式元ツールは `vendor/pokesleep-tool` のGit submoduleで検証済みcommitに固定します。ポケモン、イベント、フィールドの同梱JSONは `src/vendor/upstream-data` に置き、manifestへ同期元commitとSHA-256を記録します。
@@ -96,20 +112,22 @@ Manifest V3を使用し、対象サイトと検証済みJSON取得先だけにho
 | 元ツールのReactフォーム、アイコン、詳細画面 | `upstreamUi.ts` | 意図したAsIs再利用 | exportの変更は境界モジュールへ集約済み。ただしbundle済みコードはページ再読み込みだけでは更新されず、拡張更新が必要。 |
 | 上段タブ、表示退避、設定画面へのクリック | `src/integration` と `reactUi.tsx` | 変更に弱いDOM境界 | sticky構造、タブ位置、MUI class、再描画に依存する。タブ制御をintegrationへ寄せ、SPA・タブ追加・復元の契約テストを増やす。 |
 | 計算条件・ボックスの保存値 | `upstreamRankingInputs.ts` | 非公開保存形式への依存 | 元ツールdecoderと型を利用しているが、保存スキーマ変更に備えたfixture・異常値テストを強化する。ボックスは参照専用。 |
-| 元ツールの `ivStateReducer` とその副作用 | `RankingWorkspaceState.ts` | 優先修正候補 | ランキング内の個体編集、下段タブ切替等が `PstIvState` を保存する。`changeParameter` は `PstStrenghParam` を保存する。元ツール設定を編集する導線は維持しつつ、ランキングだけの個体操作が元ツール状態へ書き込まない境界を設計する。 |
+| 元ツールの `ivStateReducer` とその保存処理 | `RankingWorkspaceState.ts` | 意図した作業状態の共有 | ランキング内の個体編集、下段タブ切替等は `PstIvState`、明示的な計算条件変更は `PstStrenghParam` を保存する。ボックス本体とは分離された作業状態として共有し、上流更新時は保存対象が増えていないか監査する。 |
 | ランキング条件の保存 | `RankingScenarioState.ts` | 実行環境依存 | `localStorage` をapplicationが直接利用する。保存ポートとschema変換を分け、既存キーの読み取り互換性を保つ。 |
 | 最新JSONの取得、キャッシュ、セッション判定 | `upstreamDataPack.ts` | Chromium依存の混在 | 検証処理は再利用可能だが、同じファイルに `fetch`、`chrome.storage`、`chrome.runtime` がある。runtime portへ分ける。 |
 
-### 確認された保存副作用
+### 保存動作に関する判断（2026-09-20）
 
-`RankingWorkspace` の `updateIv`、`changeLowerTab`、比較編集時のIV変更は `rankingWorkspaceReducer` から上流 `ivStateReducer` を呼びます。上流の同reducerはこれらの操作で `PstIvState` を保存します。ランキング画面からボックスへ書き込むUIはありませんが、「ボックスが参照専用」と「元ツールの個体状態を全く変更しない」は同義ではありません。元ツールの計算条件を明示編集する操作では `PstStrenghParam` の保存が意図した動作です。
+`RankingWorkspace` の `updateIv`、`changeLowerTab`、比較編集時のIV変更は `rankingWorkspaceReducer` から上流 `ivStateReducer` を呼び、`PstIvState` を保存します。この動作は、元ツールとランキングの間で作業中の個体を往復して確認できるようにする意図した共有仕様とします。ボックス登録内容を保持する `PstPokeBox` への書き込みとは区別します。
+
+元ツールの計算条件を明示編集する操作で `PstStrenghParam` を保存することも意図した共有仕様です。今後、ランキング固有の操作によってボックス内容または上表にない元ツール状態へ書き込むようになった場合は、仕様追加ではなく境界逸脱として扱います。作業中個体を独立させたいという利用要望が生じた場合は、共有仕様の変更として別途設計します。
 
 ### 推奨する小PRの順序
 
-1. ランキング固有の個体・タブ操作から上流保存副作用を切り離し、元ツール設定の明示編集だけ保存する。保存前後のcontract testを追加する。
-2. タブ挿入・選択・再描画のDOM連携をintegrationへ集約し、上流変更を模したfixtureを増やす。
-3. 最新JSON検証からChrome Storage、セッション判定、通信を分離する。
-4. ランキング条件のschema変換と保存処理を分離する。既存保存キーは移行が確認できるまで維持する。
+1. タブ挿入・選択・再描画のDOM連携をintegrationへ集約し、上流変更を模したfixtureを増やす。
+2. 最新JSON検証からChrome Storage、セッション判定、通信を分離する。
+3. ランキング条件のschema変換と保存処理を分離する。既存保存キーは移行が確認できるまで維持する。
+4. 共有保存状態について、意図したキーだけが変更されることを確認するcontract testを強化する。
 
 ## 11. 未決事項
 
