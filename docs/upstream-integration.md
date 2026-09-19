@@ -35,7 +35,7 @@
 | 元ツールと共有 | ページの `localStorage`: `PstIvState` | 作業中の個体、選択中の個体、個体値計算画面内のタブ位置 | 読み取り、ランキングでの個体編集や下段タブ操作による更新を許容する。ボックス登録とは区別し、元ツールとランキングを往復して確認できる一時的な作業状態として共有する。 |
 | 元ツールから読み取り専用 | ページの `localStorage`: `PstPokeBox` | 元ツールのボックス登録内容 | 最新スナップショットを読み取るだけとし、ランキングから書き込まない。 |
 | 拡張機能が所有 | ページの `localStorage`: `PstForkRankingScenarios.v1` | ランキング目的別の独自条件 | 元ツールの状態と分離して読み書きする。既存利用者との互換性のため、現行キー名を維持する。 |
-| 拡張機能が所有 | `chrome.storage.local`: `settings.v1` | 機能ごとの有効・無効設定 | 拡張機能だけが読み書きする。 |
+| 拡張機能が所有 | `chrome.storage.local`: `settings.v1` | 拡張機能スイート内の機能ごとの有効・無効設定 | 拡張機能だけが読み書きする。現在の対象はランキングで、未設定時は機能側の既定値（有効）を使う。利用者向け設定画面は未実装。 |
 | 拡張機能が所有 | `chrome.storage.local`: `upstream-data-pack.v1` | 検証済み上流データと確認時刻 | 拡張機能だけが検証後に読み書きする。元ツールの保存値として扱わない。 |
 | 拡張機能が所有 | `chrome.storage.session`: `upstream-data-refresh-claimed.v1` | ブラウザセッション内で上流確認済みかどうか | 拡張機能だけが読み書きし、セッション終了後の保持を前提にしない。 |
 
@@ -116,18 +116,7 @@ Manifest V3を使用し、対象サイトと検証済みJSON取得先だけにho
 | ランキング条件の保存 | `RankingScenarioState.ts` | 実行環境依存 | `localStorage` をapplicationが直接利用する。保存ポートとschema変換を分け、既存キーの読み取り互換性を保つ。 |
 | 最新JSONの取得、キャッシュ、セッション判定 | `upstreamDataPack.ts` | Chromium依存の混在 | 検証処理は再利用可能だが、同じファイルに `fetch`、`chrome.storage`、`chrome.runtime` がある。runtime portへ分ける。 |
 
-### 保存動作に関する判断（2026-09-20）
-
-`RankingWorkspace` の `updateIv`、`changeLowerTab`、比較編集時のIV変更は `rankingWorkspaceReducer` から上流 `ivStateReducer` を呼び、`PstIvState` を保存します。この動作は、元ツールとランキングの間で作業中の個体を往復して確認できるようにする意図した共有仕様とします。ボックス登録内容を保持する `PstPokeBox` への書き込みとは区別します。
-
-元ツールの計算条件を明示編集する操作で `PstStrenghParam` を保存することも意図した共有仕様です。今後、ランキング固有の操作によってボックス内容または上表にない元ツール状態へ書き込むようになった場合は、仕様追加ではなく境界逸脱として扱います。作業中個体を独立させたいという利用要望が生じた場合は、共有仕様の変更として別途設計します。
-
-### 推奨する小PRの順序
-
-1. タブ挿入・選択・再描画のDOM連携をintegrationへ集約し、上流変更を模したfixtureを増やす。
-2. 最新JSON検証からChrome Storage、セッション判定、通信を分離する。
-3. ランキング条件のschema変換と保存処理を分離する。既存保存キーは移行が確認できるまで維持する。
-4. 共有保存状態について、意図したキーだけが変更されることを確認するcontract testを強化する。
+監査で確認した改善課題の内容、優先度、完了条件は[GitHub Issues](https://github.com/takus69/pokesleep-tool-extension/issues)で管理します。本書には現在有効な境界仕様と、上流更新時に継続して確認する依存関係を記載します。
 
 ## 11. 未決事項
 
