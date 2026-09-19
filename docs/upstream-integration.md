@@ -51,7 +51,7 @@
 
 ランキング独自の計算と状態は `src/features/ranking` で管理します。Chromium APIとDOMへ依存しない計算をdomainへ置きます。元ツールの純粋な計算型・関数はbundleへ含めて利用します。
 
-元ツールのReact UIと状態へのimportは `src/features/ranking/upstreamUi.ts` に集約します。機能コードから上流UI内部パスを直接importしないことを契約テストで検証します。DOMと画面遷移の知識は主に `src/integration` に配置しますが、現時点では `src/features/ranking/reactUi.tsx` にタブ操作と監視が残っています。保存形式の知識もランキング条件の保存キーを除いて `src/integration` に置きます。
+元ツールのReact UIと状態へのimportは `src/features/ranking/upstreamUi.ts` に集約します。機能コードから上流UI内部パスを直接importしないことを契約テストで検証します。DOM検出、タブ操作、表示退避、再描画監視、元ツール画面への遷移は `src/integration` に配置し、ランキングUIには型付きの操作だけを公開します。保存形式の知識もランキング条件の保存キーを除いて `src/integration` に置きます。
 
 ## 4. 出力仕様
 
@@ -110,7 +110,7 @@ Manifest V3を使用し、対象サイトと検証済みJSON取得先だけにho
 |---|---|---|---|
 | ポケモン・食材・スキル・イベントの型、データ、計算関数 | ranking domain、`upstream.ts`、`upstreamDataPack.ts` | 必要なAsIs再利用 | 公式情報と計算式を二重管理しない。内部API変更は固定commit更新PRで型検査・計算テストにより追従する。 |
 | 元ツールのReactフォーム、アイコン、詳細画面 | `upstreamUi.ts` | 意図したAsIs再利用 | exportの変更は境界モジュールへ集約済み。ただしbundle済みコードはページ再読み込みだけでは更新されず、拡張更新が必要。 |
-| 上段タブ、表示退避、設定画面へのクリック | `src/integration` と `reactUi.tsx` | 変更に弱いDOM境界 | sticky構造、タブ位置、MUI class、再描画に依存する。タブ制御をintegrationへ寄せ、SPA・タブ追加・復元の契約テストを増やす。 |
+| 上段タブ、表示退避、設定画面へのクリック | `src/integration` | 集約したDOM境界 | sticky構造、タブ位置、MUI class、再描画への依存をcontroller内に限定する。SPA再描画、タブ追加、選択状態復元をcontract testで監視する。 |
 | 計算条件・ボックスの保存値 | `upstreamRankingInputs.ts` | 非公開保存形式への依存 | 元ツールdecoderと型を利用しているが、保存スキーマ変更に備えたfixture・異常値テストを強化する。ボックスは参照専用。 |
 | 元ツールの `ivStateReducer` とその保存処理 | `RankingWorkspaceState.ts` | 意図した作業状態の共有 | ランキング内の個体編集、下段タブ切替等は `PstIvState`、明示的な計算条件変更は `PstStrenghParam` を保存する。ボックス本体とは分離された作業状態として共有し、上流更新時は保存対象が増えていないか監査する。 |
 | ランキング条件の保存 | `RankingScenarioState.ts` | 実行環境依存 | `localStorage` をapplicationが直接利用する。保存ポートとschema変換を分け、既存キーの読み取り互換性を保つ。 |
