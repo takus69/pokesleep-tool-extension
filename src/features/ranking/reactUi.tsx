@@ -6,6 +6,7 @@ import {
   type UpstreamRankingTabController,
 } from "../../integration/upstreamRankingTabController";
 import type { FeatureContext } from "../types";
+import type { RankingScenarioStorage } from "./application/RankingScenarioPersistence";
 import { registerExtensionTranslations } from "./i18n";
 import { registerRankingTranslations } from "./ui/rankingI18n";
 import { AppConfigContext, i18n, loadConfig, loadLanguage } from "./upstreamUi";
@@ -28,9 +29,10 @@ function browserLanguage(): string {
   return "en";
 }
 
-export function mountRankingWorkspace({
-  hostElement,
-}: FeatureContext): () => void {
+export function mountRankingWorkspace(
+  { hostElement }: FeatureContext,
+  rankingScenarioStorage: RankingScenarioStorage,
+): () => void {
   const upstreamRoot = document.getElementById("root");
   if (upstreamRoot === null) {
     console.warn(
@@ -57,6 +59,7 @@ export function mountRankingWorkspace({
         <ThemeProvider theme={theme}>
           <AppConfigContext.Provider value={loadConfig(browserLanguage())}>
             <RankingWorkspace
+              rankingScenarioStorage={rankingScenarioStorage}
               refreshRevision={refreshRevision}
               onEditEnvironment={editEnvironment}
             />

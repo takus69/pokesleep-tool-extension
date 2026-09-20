@@ -1,8 +1,13 @@
 import type { FeatureModule } from "../types";
+import type { RankingScenarioStorage } from "./application/RankingScenarioPersistence";
 import { mountRankingWorkspace } from "./reactUi";
 
-export const rankingFeature: FeatureModule = {
-  id: "ranking",
-  defaultEnabled: true,
-  mount: mountRankingWorkspace,
-};
+export function createRankingFeature(
+  storage: RankingScenarioStorage,
+): FeatureModule {
+  return {
+    id: "ranking",
+    defaultEnabled: true,
+    mount: (context) => mountRankingWorkspace(context, storage),
+  };
+}

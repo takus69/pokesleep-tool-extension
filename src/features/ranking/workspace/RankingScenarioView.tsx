@@ -21,6 +21,7 @@ import {
   type StrengthParameter,
 } from "@upstream/util/PokemonStrength";
 import { useTranslation } from "react-i18next";
+import type { RankingScenarioStorage } from "../application/RankingScenarioPersistence";
 import { rankingScenarioPurposes } from "../application/RankingScenarioState";
 import {
   type RankingScenarioConfig,
@@ -105,6 +106,7 @@ export function RankingEnvironmentSummary({
 }
 
 export default function RankingScenarioView({
+  storage,
   state,
   environmentKey,
   unsupportedEvent,
@@ -115,6 +117,7 @@ export default function RankingScenarioView({
   onEditComparison,
   onRemoveComparison,
 }: {
+  storage: RankingScenarioStorage;
   state: IvState;
   environmentKey: string;
   unsupportedEvent: string | null;
@@ -127,6 +130,7 @@ export default function RankingScenarioView({
 }) {
   const { t } = useTranslation();
   const ranking = useRankingScenario(
+    storage,
     state.parameter,
     comparisonIv,
     environmentKey,

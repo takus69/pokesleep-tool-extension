@@ -1,8 +1,9 @@
-import { rankingFeature } from "../../features/ranking";
+import { createRankingFeature } from "../../features/ranking";
 import { readToolSnapshot } from "../../integration/upstreamAdapter";
 import { prepareUpstreamDataPack } from "../../integration/upstreamDataPackRefresh";
 import { ChromeSettingsStore } from "../../settings/chromeSettingsStore";
 import { mountSuite } from "../../ui/mountSuite";
+import { ChromiumRankingScenarioStorage } from "./rankingScenarioStorage";
 import { ChromiumUpstreamDataPackRuntime } from "./upstreamDataPackRuntime";
 
 async function start(): Promise<void> {
@@ -18,6 +19,9 @@ async function start(): Promise<void> {
   }
 
   const settings = await new ChromeSettingsStore().load();
+  const rankingFeature = createRankingFeature(
+    new ChromiumRankingScenarioStorage(window.localStorage),
+  );
   const features = [rankingFeature].filter(
     (feature) => settings.enabledFeatures[feature.id] ?? feature.defaultEnabled,
   );

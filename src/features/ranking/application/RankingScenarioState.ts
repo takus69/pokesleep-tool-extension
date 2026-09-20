@@ -19,7 +19,6 @@ import {
   rankingScenarioMetrics,
 } from "../domain/RankingScenario";
 
-export const rankingScenarioStorageKey = "PstForkRankingScenarios.v1";
 export const rankingScenarioPurposes: readonly RankingScenarioPurpose[] = [
   "traits",
   "ingredients",
@@ -169,51 +168,6 @@ export function createRankingScenarioSettings(): RankingScenarioSettings {
       field: createRankingScenarioConfig("field"),
     },
   };
-}
-
-export function loadRankingScenarioSettings(): RankingScenarioSettings {
-  const result = createRankingScenarioSettings();
-  try {
-    const stored = record(
-      JSON.parse(localStorage.getItem(rankingScenarioStorageKey) ?? "null"),
-    );
-    if (stored.version !== 1) return result;
-    result.purpose =
-      member(stored.purpose, rankingScenarioPurposes) ?? "traits";
-    const configs = record(stored.configs);
-    for (const purpose of rankingScenarioPurposes)
-      result.configs[purpose] = normalizeRankingScenarioConfig(
-        purpose,
-        configs[purpose],
-      );
-  } catch {
-    // Corrupt or inaccessible browser storage must not prevent ranking use.
-  }
-  return result;
-}
-
-export function saveRankingScenarioSettings(
-  settings: RankingScenarioSettings,
-): void {
-  try {
-    localStorage.setItem(
-      rankingScenarioStorageKey,
-      JSON.stringify({
-        version: 1,
-        purpose: settings.purpose,
-        configs: Object.fromEntries(
-          rankingScenarioPurposes.map((purpose) => [
-            purpose,
-            JSON.parse(
-              serializeRankingScenarioConfig(settings.configs[purpose]),
-            ) as unknown,
-          ]),
-        ),
-      }),
-    );
-  } catch {
-    // Keep the in-memory settings usable when storage is unavailable or full.
-  }
 }
 
 export function resetRankingScenarioSettings(
