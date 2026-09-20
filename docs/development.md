@@ -24,6 +24,18 @@ checkout時は `git clone --recurse-submodules`、既存checkoutでは `git subm
 
 原則としてSquash Mergeを使い、PRタイトルをConventional Commits形式にします。複数の独立した変更を一つのPRへ混在させません。緊急修正は`main`から`hotfix/<name>`を作り、公開後に`main`の修正を`develop`へ反映します。
 
+## Issueのライフサイクル
+
+IssueがClosedであることを、原則として変更が`main`へ反映済みである印とします。
+
+1. 作業前にIssueを作成し、目的、対応範囲、完了条件を記載する。
+2. `develop`向けPRの「関連Issue」に`Refs #<番号>`を記載する。`Closes`、`Fixes`、`Resolves`は使用しない。
+3. `develop`へマージ後、Chrome／Edgeの受入結果または手動確認不要の理由をIssueへコメントする。IssueはOpenのまま維持する。
+4. `develop`から`main`へのリリースPRに、その版へ収録するIssueを`Closes #<番号>`で1行ずつ列挙する。
+5. リリースPRがデフォルトブランチの`main`へマージされると、列挙したIssueをGitHubが自動で閉じる。
+
+ストア審査・公開など`main`反映後にも作業が残るIssueは、リリースPRでは`Refs #<番号>`に留め、実際の完了後に結果をコメントして手動で閉じます。設計Issueは決定内容が文書化されて`main`へ反映された時点、緊急修正Issueは`main`向けhotfix PRのマージ時点を完了とします。必要に応じてIssueをリリース版のMilestoneへ割り当て、Openのままの受入済みIssueと未着手Issueを区別します。
+
 ## バージョン
 
 [Semantic Versioning](https://semver.org/)の`MAJOR.MINOR.PATCH`を使用し、Gitタグは`vX.Y.Z`とします。

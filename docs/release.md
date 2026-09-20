@@ -13,11 +13,13 @@
 ## mainへ昇格する
 
 1. 受入済みの `develop` から `main` へのリリースPRを作成する。
-2. 差分が今回のリリース対象だけであることと、必須CI成功を確認する。
-3. PRをマージし、マージされた `main` のcommitを確定する。
-4. 同commitへ注釈付きタグ `vX.Y.Z` を作成する。
-5. タグのcommitから依存関係をクリーンインストールし、`npm run build` を実行する。
-6. `dist` をZIP化し、ハッシュを記録してGitHub Releaseへ添付する。
+2. PR本文に、その版への収録と同時に完了するIssueを`Closes #<番号>`で1行ずつ列挙する。
+3. ストア公開などマージ後にも作業が残るIssueは`Refs #<番号>`として分ける。
+4. 差分が今回のリリース対象だけであること、列挙したIssueの受入記録、必須CI成功を確認する。
+5. PRをマージし、自動クローズ対象のIssueとマージされた `main` のcommitを確認する。
+6. 同commitへ注釈付きタグ `vX.Y.Z` を作成する。
+7. タグのcommitから依存関係をクリーンインストールし、`npm run build` を実行する。
+8. `dist` をZIP化し、ハッシュを記録してGitHub Releaseへ添付する。
 
 同じタグcommitから作成した同一成果物をChrome Web StoreとMicrosoft Edge Add-onsへ提出します。
 
@@ -48,4 +50,4 @@
 
 ## 緊急修正
 
-公開版の緊急修正は `main` から `hotfix/` ブランチを作り、PRで `main` へ反映します。PATCH版として検証・タグ・提出した後、修正を `develop` へ戻します。
+公開版の緊急修正は `main` から `hotfix/` ブランチを作り、`main`向けPRに`Closes #<番号>`を記載して反映します。PATCH版として検証・タグ・提出した後、修正を `develop` へ戻します。
