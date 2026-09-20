@@ -21,6 +21,8 @@ Treat the pinned `vendor/pokesleep-tool` submodule as read-only official upstrea
 - Follow Semantic Versioning: `MAJOR.MINOR.PATCH` means incompatible change, backward-compatible feature, and backward-compatible fix respectively. Prefix release tags with `v`.
 - Never push directly to `main` or `develop`. Branch from `develop` with `feature/`, `fix/`, `refactor/`, `docs/`, or `chore/`, then merge through a reviewed PR.
 - PRs into `develop` require automated verification. Promote `develop` to `main` only through a release PR after unpacked-extension acceptance in both Chrome and Edge.
+- Link normal PRs into `develop` with `Refs #N`; do not use automatic closing keywords. Record acceptance on the issue and keep it open until release.
+- In a `develop` to `main` release PR, list accepted issues completed by that release as `Closes #N`, one per line. Use only `Refs #N` for store-publication or other work that remains after the merge, and close it manually when actually complete.
 - Treat `main` as release-ready. Create an annotated `vX.Y.Z` tag from the accepted `main` commit and use that exact commit for both browser stores.
 - Start emergency fixes from `main`, merge them to `main` through a PR, then merge the released fix back into `develop`.
 - Before implementing a feature, use `docs/design/feature-design-template.md` to agree on inputs, browser-independent processing, outputs, UI/mock, upstream interfaces, Chromium concerns, errors, and unresolved decisions.

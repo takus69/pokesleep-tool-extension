@@ -12,9 +12,12 @@
 
 `main`と`develop`へ直接pushしません。通常は`feature/`、`fix/`、`refactor/`、`docs/`、`chore/`を使用します。公開版の緊急修正だけは`main`から`hotfix/`を作り、公開後に`develop`へ反映します。
 
+通常の`develop`向けPRは、関連Issueを`Refs #<番号>`で参照します。`develop`へのマージとChrome／Edgeでの受入結果をIssueへ記録しても、IssueはOpenのまま維持します。受入済みIssueは`develop`から`main`へのリリースPRで`Closes #<番号>`として列挙し、`main`へのマージ時に自動で閉じます。ストア公開など`main`反映後にも作業が残るIssueは、完了後に手動で閉じます。
+
 ## Pull Request
 
 - 一つのPRには一つの目的だけを含める。
+- `develop`向けPRでは関連Issueを`Refs`で明示し、自動クローズキーワードを使用しない。
 - 利用者から見える変更、元ツールとの境界変更、未決事項を説明する。
 - adapterや保存形式の変更にはcontract testを追加する。
 - 計算仕様の変更にはbehavioral testを追加する。
