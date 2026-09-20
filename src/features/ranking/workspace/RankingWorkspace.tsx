@@ -12,6 +12,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { getUpstreamDataStatus } from "../../../integration/upstreamDataPack";
 import { loadUpstreamRankingInputs } from "../../../integration/upstreamRankingInputs";
+import type { RankingScenarioStorage } from "../application/RankingScenarioPersistence";
 import {
   preserveRankingIndividualSettings,
   rankingWorkspaceReducer,
@@ -51,9 +52,11 @@ function extensionReducer(state: IvState, action: WorkspaceAction): IvState {
 
 const RankingWorkspace = React.memo(
   ({
+    rankingScenarioStorage,
     refreshRevision,
     onEditEnvironment,
   }: {
+    rankingScenarioStorage: RankingScenarioStorage;
     refreshRevision: number;
     onEditEnvironment: () => void;
   }) => {
@@ -92,6 +95,7 @@ const RankingWorkspace = React.memo(
     return (
       <>
         <RankingScenarioView
+          storage={rankingScenarioStorage}
           state={state}
           environmentKey={environmentKey}
           unsupportedEvent={unsupportedEvent}
