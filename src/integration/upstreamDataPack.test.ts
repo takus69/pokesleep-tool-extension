@@ -1,10 +1,9 @@
 import PokemonIv from "@upstream/util/PokemonIv";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import eventJson from "../vendor/upstream-data/event.json";
 import pokemonJson from "../vendor/upstream-data/pokemon.json";
 import {
   applyUpstreamDataPack,
-  prepareUpstreamDataPack,
   validateUpstreamDataPack,
 } from "./upstreamDataPack";
 
@@ -15,8 +14,6 @@ describe("upstream data pack", () => {
     baseline = validateUpstreamDataPack(pokemonJson, eventJson);
     applyUpstreamDataPack(baseline, "bundled", 0);
   });
-
-  afterEach(() => vi.unstubAllGlobals());
 
   it("accepts and applies the synchronized upstream data", () => {
     expect(baseline.issues).toContainEqual({
@@ -70,55 +67,5 @@ describe("upstream data pack", () => {
     expect(() => validateUpstreamDataPack([], eventJson)).toThrow(
       "missing or truncated",
     );
-  });
-
-  it("fetches, validates, caches, and applies a network pack atomically", async () => {
-    const set = vi.fn();
-    vi.stubGlobal("chrome", {
-      runtime: {
-        sendMessage: vi.fn().mockResolvedValue({ shouldRefresh: true }),
-      },
-      storage: { local: { get: vi.fn().mockResolvedValue({}), set } },
-    });
-    vi.stubGlobal(
-      "fetch",
-      vi
-        .fn()
-        .mockResolvedValueOnce({ ok: true, json: async () => pokemonJson })
-        .mockResolvedValueOnce({ ok: true, json: async () => eventJson }),
-    );
-
-    const status = await prepareUpstreamDataPack(1234);
-
-    expect(status.source).toBe("network");
-    expect(status.pokemonCount).toBe(baseline.pokemon.length);
-    expect(set).toHaveBeenCalledOnce();
-  });
-
-  it("uses cached data without fetching again in the same browser session", async () => {
-    vi.stubGlobal("chrome", {
-      runtime: {
-        sendMessage: vi.fn().mockResolvedValue({ shouldRefresh: false }),
-      },
-      storage: {
-        local: {
-          get: vi.fn().mockResolvedValue({
-            "upstream-data-pack.v1": {
-              checkedAt: 1234,
-              pokemon: pokemonJson,
-              event: eventJson,
-            },
-          }),
-          set: vi.fn(),
-        },
-      },
-    });
-    const fetch = vi.fn();
-    vi.stubGlobal("fetch", fetch);
-
-    const status = await prepareUpstreamDataPack(5678);
-
-    expect(status.source).toBe("cached");
-    expect(fetch).not.toHaveBeenCalled();
   });
 });

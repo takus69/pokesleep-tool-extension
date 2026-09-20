@@ -30,3 +30,4 @@
 - 文書内に残っていた実装・設計・公開準備の未決課題をGitHub Issuesへ移管。
 - 元ツールのタブ挿入、選択状態、表示退避、再描画監視をintegration controllerへ集約。
 - Issueを`develop`向けPRで参照し、受入後の`main`向けリリースPRで自動クローズする運用を整備。
+- 上流JSONの検証・fallback手順を、通信・Chrome Storage・セッション判定からruntime portで分離。
