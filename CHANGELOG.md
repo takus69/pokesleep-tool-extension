@@ -32,3 +32,4 @@
 - Issueを`develop`向けPRで参照し、受入後の`main`向けリリースPRで自動クローズする運用を整備。
 - 上流JSONの検証・fallback手順を、通信・Chrome Storage・セッション判定からruntime portで分離。
 - ランキング独自条件のschema変換と保存ポートを分離し、`localStorage` 依存をChromium runtimeへ限定。
+- 元ツールと共有する保存状態の操作別契約テストを追加し、ボックスと未定義キーへの書き込みを監視。
