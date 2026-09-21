@@ -18,10 +18,9 @@ export { default as PokemonSelectDialog } from "@upstream/ui/IvCalc/IvForm/Pokem
 export type { PokemonOption } from "@upstream/ui/IvCalc/IvForm/PokemonTextField";
 export { default as SleepingTimeControl } from "@upstream/ui/IvCalc/IvForm/SleepingTimeControl";
 export { default as SubSkillControl } from "@upstream/ui/IvCalc/IvForm/SubSkillControl";
-export type { default as IvState, IvAction } from "@upstream/ui/IvCalc/IvState";
-export { ivStateReducer } from "@upstream/ui/IvCalc/IvState";
 export { default as PokemonIcon } from "@upstream/ui/IvCalc/PokemonIcon";
 export { default as RateNotFixedPanel } from "@upstream/ui/IvCalc/RateNotFixedPanel";
 export { default as RatingView } from "@upstream/ui/IvCalc/RatingView";
 export { default as RpView } from "@upstream/ui/IvCalc/Rp/RpView";
 export { default as StrengthBerryIngSkillView } from "@upstream/ui/IvCalc/Strength/StrengthBerryIngSkillView";
+export type { IvAction, IvState } from "../../integration/upstreamIvState";

@@ -3,7 +3,11 @@ import {
   type StrengthParameter,
   saveStrengthParameter,
 } from "@upstream/util/PokemonStrength";
-import { type IvAction, type IvState, ivStateReducer } from "../upstreamUi";
+import {
+  type IvAction,
+  type IvState,
+  ivStateReducer,
+} from "../../../integration/upstreamIvState";
 import { cloneRankingEnvironment } from "../workspace/useRankingScenario";
 
 /** Keep the shared environment independent of the currently edited individual. */
@@ -48,4 +52,31 @@ export function preserveRankingIndividualSettings(
       },
     },
   };
+}
+
+export type RankingWorkspaceAction =
+  | IvAction
+  | { type: "syncUpstream"; payload: IvState }
+  | { type: "selectComparison"; payload: { id: number } };
+
+/** Ranking-only selections never dispatch upstream box mutations. */
+export function rankingWorkspaceViewReducer(
+  state: IvState,
+  action: RankingWorkspaceAction,
+): IvState {
+  if (action.type === "syncUpstream") {
+    return {
+      ...state,
+      parameter: action.payload.parameter,
+      box: action.payload.box,
+      selectedItemId: -1,
+    };
+  }
+  if (action.type === "selectComparison") {
+    const item = state.box.getById(action.payload.id);
+    return item === null
+      ? state
+      : { ...state, pokemonIv: item.iv, selectedItemId: item.id };
+  }
+  return rankingWorkspaceReducer(state, action);
 }

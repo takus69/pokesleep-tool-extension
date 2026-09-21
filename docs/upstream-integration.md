@@ -53,7 +53,7 @@
 
 最新JSONのdecode、検証、適用と、同梱データ・キャッシュ・ネットワークの選択手順は `src/integration` に置きます。この手順は型付きruntime portだけを利用します。取得先URL、`fetch`、Chrome Storage、service workerとのセッション判定は `src/runtime/chromium/upstreamDataPackRuntime.ts` と `public/background.js` に限定します。
 
-元ツールのReact UIと状態へのimportは `src/features/ranking/upstreamUi.ts` に集約します。機能コードから上流UI内部パスを直接importしないことを契約テストで検証します。DOM検出、タブ操作、表示退避、再描画監視、元ツール画面への遷移は `src/integration` に配置し、ランキングUIには型付きの操作だけを公開します。保存形式の知識もランキング条件の保存キーを除いて `src/integration` に置きます。
+元ツールのReact画面部品へのimportは `src/features/ranking/upstreamUi.ts`、保存処理を持つ状態reducerへのimportは `src/integration/upstreamIvState.ts` に集約します。機能コードから上流UI内部パスを直接importしないことを契約テストで検証します。DOM検出、タブ操作、表示退避、再描画監視、元ツール画面への遷移は `src/integration` に配置し、ランキングUIには型付きの操作だけを公開します。保存形式の知識もランキング条件の保存キーを除いて `src/integration` に置きます。
 
 ## 4. 出力仕様
 
@@ -75,7 +75,7 @@
 | 境界 | 場所 | 責務 |
 |---|---|---|
 | URL・DOM・保存形式 | `src/integration` | 検出、decode、スナップショット、画面遷移 |
-| 上流React UI | `src/features/ranking/upstreamUi.ts` | 上流内部exportをランキング向けに限定して公開 |
+| 上流React UI・状態 | `src/features/ranking/upstreamUi.ts`、`src/integration/upstreamIvState.ts` | 画面部品と保存処理を持つ状態reducerを別の境界から公開 |
 | 上流計算・データ | `src/features/ranking/upstream.ts`、ranking domain | 型付き計算と候補データ |
 | Chromium実行環境 | `src/runtime/chromium` | content script、service worker、Chrome API |
 | ランキング独自実装 | `src/features/ranking` | 条件、計算、表示、機能内状態 |
@@ -113,8 +113,8 @@ Manifest V3を使用し、対象サイトと検証済みJSON取得先だけにho
 | ポケモン・食材・スキル・イベントの型、データ、計算関数 | ranking domain、`upstream.ts`、`upstreamDataPack.ts` | 必要なAsIs再利用 | 公式情報と計算式を二重管理しない。内部API変更は固定commit更新PRで型検査・計算テストにより追従する。 |
 | 元ツールのReactフォーム、アイコン、詳細画面 | `upstreamUi.ts` | 意図したAsIs再利用 | exportの変更は境界モジュールへ集約済み。ただしbundle済みコードはページ再読み込みだけでは更新されず、拡張更新が必要。 |
 | 上段タブ、表示退避、設定画面へのクリック | `src/integration` | 集約したDOM境界 | sticky構造、タブ位置、MUI class、再描画への依存をcontroller内に限定する。SPA再描画、タブ追加、選択状態復元をcontract testで監視する。 |
-| 計算条件・ボックスの保存値 | `upstreamRankingInputs.ts` | 非公開保存形式への依存 | 元ツールdecoderと型を利用しているが、保存スキーマ変更に備えたfixture・異常値テストを強化する。ボックスは参照専用。 |
-| 元ツールの `ivStateReducer` とその保存処理 | `RankingWorkspaceState.ts` | 意図した作業状態の共有 | ランキング内の個体編集、下段タブ切替等は `PstIvState`、明示的な計算条件変更は `PstStrenghParam` を保存する。ボックス本体とは分離された作業状態として共有し、上流更新時は保存対象が増えていないか監査する。 |
+| 計算条件・ボックスの保存値 | `upstreamRankingInputs.ts` | 非公開保存形式への依存 | 元ツールdecoderと型を利用し、保存schemaと読み取り専用の動作をcontract testで監視する。ボックスは参照専用。 |
+| 元ツールの `ivStateReducer` とその保存処理 | `upstreamIvState.ts`、`RankingWorkspaceState.ts` | 意図した作業状態の共有 | ランキング内の個体編集、下段タブ切替等は `PstIvState`、明示的な計算条件変更は `PstStrenghParam` を保存する。ボックス本体とは分離された作業状態として共有し、上流更新時は操作別のstorage差分contract testで保存対象が増えていないか監視する。比較用ボックスの選択自体は画面内状態のみを変更する。 |
 | ランキング条件の保存 | `RankingScenarioPersistence.ts` / `runtime/chromium/rankingScenarioStorage.ts` | 分離済み | application層はschema変換と保存ポートだけを定義し、ページの `localStorage` と既存キーはChromium runtimeが扱う。 |
 | 最新JSONの取得、キャッシュ、セッション判定 | `upstreamDataPack.ts`、`upstreamDataPackRefresh.ts`、`runtime/chromium/upstreamDataPackRuntime.ts` | runtime portで分離済み | integrationはdecode、検証、適用、fallback順序を管理し、Chromium adapterだけが取得先URL、`fetch`、Chrome Storage、service workerメッセージを知る。境界テストで再混在を防止する。 |
 

@@ -15,40 +15,12 @@ import { loadUpstreamRankingInputs } from "../../../integration/upstreamRankingI
 import type { RankingScenarioStorage } from "../application/RankingScenarioPersistence";
 import {
   preserveRankingIndividualSettings,
-  rankingWorkspaceReducer,
+  rankingWorkspaceViewReducer,
 } from "../application/RankingWorkspaceState";
 import { createRankingEnvironment } from "../domain/RankingScenario";
-import {
-  type IvAction,
-  IvForm,
-  type IvState,
-  RateNotFixedPanel,
-} from "../upstreamUi";
+import { type IvAction, IvForm, RateNotFixedPanel } from "../upstreamUi";
 import RankingScenarioView from "./RankingScenarioView";
 import ReadOnlyComparisonBoxPanel from "./ReadOnlyComparisonBoxPanel";
-
-type WorkspaceAction =
-  | IvAction
-  | { type: "syncUpstream"; payload: IvState }
-  | { type: "selectComparison"; payload: { id: number } };
-
-function extensionReducer(state: IvState, action: WorkspaceAction): IvState {
-  if (action.type === "syncUpstream") {
-    return {
-      ...state,
-      parameter: action.payload.parameter,
-      box: action.payload.box,
-      selectedItemId: -1,
-    };
-  }
-  if (action.type === "selectComparison") {
-    const item = state.box.getById(action.payload.id);
-    return item === null
-      ? state
-      : { ...state, pokemonIv: item.iv, selectedItemId: item.id };
-  }
-  return rankingWorkspaceReducer(state, action);
-}
 
 const RankingWorkspace = React.memo(
   ({
@@ -61,7 +33,10 @@ const RankingWorkspace = React.memo(
     onEditEnvironment: () => void;
   }) => {
     const initial = React.useMemo(() => loadUpstreamRankingInputs(), []);
-    const [state, dispatch] = React.useReducer(extensionReducer, initial.state);
+    const [state, dispatch] = React.useReducer(
+      rankingWorkspaceViewReducer,
+      initial.state,
+    );
     const [environmentKey, setEnvironmentKey] = React.useState(
       initial.environmentKey,
     );
