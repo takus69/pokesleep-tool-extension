@@ -24,11 +24,16 @@ describe("loadUpstreamRankingInputs", () => {
     const first = loadUpstreamRankingInputs();
     expect(first.state.parameter.fieldBonus).toBe(10);
     expect(first.state.box.items[0]?.nickname).toBe("first");
+    expect(first.boxSortConfig.sort).toBe("level");
 
     saveStrengthParameter(createStrengthParameter({ fieldBonus: 25 }));
     const secondBox = new PokemonBox();
     secondBox.add(new PokemonIv({ pokemonName: "Pikachu" }), "latest");
     secondBox.save();
+    localStorage.setItem(
+      "PstPokemonBoxParam",
+      JSON.stringify({ sort: "name", descending: false }),
+    );
     const before = { ...localStorage };
 
     const second = loadUpstreamRankingInputs();
@@ -36,6 +41,8 @@ describe("loadUpstreamRankingInputs", () => {
     expect(second.state.parameter.fieldBonus).toBe(25);
     expect(second.state.box.items).toHaveLength(1);
     expect(second.state.box.items[0]?.nickname).toBe("latest");
+    expect(second.boxSortConfig.sort).toBe("name");
+    expect(second.boxSortConfig.descending).toBe(false);
     expect({ ...localStorage }).toEqual(before);
   });
 

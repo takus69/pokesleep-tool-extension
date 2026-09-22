@@ -10,6 +10,7 @@ import {
 import type PokemonIv from "@upstream/util/PokemonIv";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { orderUpstreamBoxItems } from "../../../integration/upstreamBoxOrdering";
 import { getUpstreamDataStatus } from "../../../integration/upstreamDataPack";
 import { loadUpstreamRankingInputs } from "../../../integration/upstreamRankingInputs";
 import type { RankingScenarioStorage } from "../application/RankingScenarioPersistence";
@@ -43,12 +44,16 @@ const RankingWorkspace = React.memo(
     const [unsupportedEvent, setUnsupportedEvent] = React.useState(
       initial.unsupportedEvent,
     );
+    const [boxSortConfig, setBoxSortConfig] = React.useState(
+      initial.boxSortConfig,
+    );
     // biome-ignore lint/correctness/useExhaustiveDependencies: the revision explicitly requests a fresh upstream snapshot
     React.useEffect(() => {
       const latest = loadUpstreamRankingInputs();
       dispatch({ type: "syncUpstream", payload: latest.state });
       setEnvironmentKey(latest.environmentKey);
       setUnsupportedEvent(latest.unsupportedEvent);
+      setBoxSortConfig(latest.boxSortConfig);
     }, [refreshRevision]);
     const [comparisonIv, setComparisonIv] = React.useState<PokemonIv | null>(
       null,
@@ -56,6 +61,25 @@ const RankingWorkspace = React.memo(
     const [comparisonEditorOpen, setComparisonEditorOpen] =
       React.useState(false);
     const { t } = useTranslation();
+    const orderedBox = React.useMemo(
+      () =>
+        comparisonEditorOpen && state.lowerTabIndex === 1
+          ? orderUpstreamBoxItems(
+              state.box.items,
+              boxSortConfig,
+              state.parameter,
+              t,
+            )
+          : { ok: true as const, items: [], emptyMessage: "" },
+      [
+        comparisonEditorOpen,
+        state.lowerTabIndex,
+        state.box.items,
+        boxSortConfig,
+        state.parameter,
+        t,
+      ],
+    );
 
     const onPokemonIvChange = React.useCallback((value: PokemonIv) => {
       dispatch({ type: "updateIv", payload: { iv: value } });
@@ -153,7 +177,10 @@ const RankingWorkspace = React.memo(
               </>
             ) : (
               <ReadOnlyComparisonBoxPanel
-                items={state.box.items}
+                items={orderedBox.ok ? orderedBox.items : []}
+                emptyMessage={
+                  orderedBox.ok ? orderedBox.emptyMessage : orderedBox.message
+                }
                 selectedId={state.selectedItemId}
                 onSelect={(id) =>
                   dispatch({ type: "selectComparison", payload: { id } })
@@ -164,6 +191,7 @@ const RankingWorkspace = React.memo(
           <DialogActions>
             <Button
               variant="contained"
+              disabled={state.lowerTabIndex === 1 && !orderedBox.ok}
               onClick={() => {
                 setComparisonIv(state.pokemonIv);
                 setComparisonEditorOpen(false);
