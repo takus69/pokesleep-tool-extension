@@ -44,6 +44,7 @@ const supportedSkills = new Set([
   "Cooking Assist S (Bulk Up)",
   "Versatile",
   "Berry Burst (Draco Meteor)",
+  "Berry Zone (Psystrike)",
 ]);
 const supportedForms = new Set([
   undefined,
@@ -96,6 +97,8 @@ const supportedEventEffectKeys = new Set([
   "potSize",
   "carryLimitAdd",
   "carryLimitMul",
+  "globalCarryLimitAdd",
+  "bigBerry",
   "fixedBerries",
   "fixedAreas",
 ]);
@@ -114,7 +117,9 @@ const supportedNumericEventEffects: Record<string, ReadonlySet<number>> = {
   potSize: new Set([1, 1.6, 2]),
   carryLimitAdd: new Set([0, 8, 15]),
   carryLimitMul: new Set([1, 1.5]),
+  globalCarryLimitAdd: new Set([0, 8, 15]),
 };
+const supportedBigBerryEvents = new Set(["", "mewtwo1"]);
 
 type JsonObject = Record<string, unknown>;
 
@@ -132,6 +137,7 @@ export interface ValidatedUpstreamDataPack {
 }
 
 export interface CachedUpstreamDataPack {
+  bundledCommit: string;
   checkedAt: number;
   pokemon: unknown;
   event: unknown;
@@ -279,6 +285,9 @@ function validateBonusEvent(
     } else if (key === "fixedAreas") {
       if (!Array.isArray(effect) || !effect.every(Number.isInteger))
         return "invalid fixed areas";
+    } else if (key === "bigBerry") {
+      if (!supportedBigBerryEvents.has(String(effect)))
+        return "unsupported big berry event";
     } else if (
       !finite(effect) ||
       !supportedNumericEventEffects[key]?.has(effect)
@@ -386,6 +395,7 @@ export function decodeCachedUpstreamDataPack(
   const candidate = object(value);
   if (
     candidate === null ||
+    typeof candidate.bundledCommit !== "string" ||
     !finite(candidate.checkedAt) ||
     candidate.pokemon === undefined ||
     candidate.event === undefined

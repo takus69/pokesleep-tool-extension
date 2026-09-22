@@ -189,6 +189,26 @@ describe("ranking shared-storage contract with the pinned upstream tool", () => 
       "teamMember",
       "totalFlags",
     ]);
+    expect(Object.keys(environment.customEventBonus.effects).sort()).toEqual([
+      "berry",
+      "berryBurst",
+      "bigBerry",
+      "carryLimitAdd",
+      "carryLimitMul",
+      "dish",
+      "dreamShard",
+      "energyFromDish",
+      "fixedAreas",
+      "fixedBerries",
+      "globalCarryLimitAdd",
+      "ingredient",
+      "ingredientDraw",
+      "ingredientMagnet",
+      "potSize",
+      "skillIngredient",
+      "skillLevel",
+      "skillTrigger",
+    ]);
     const box = JSON.parse(localStorage.getItem(boxKey) ?? "null");
     expect(box).toEqual([state.box.items[0].serialize()]);
   });
