@@ -16,7 +16,7 @@
 2. PR本文に、その版への収録と同時に完了するIssueを`Closes #<番号>`で1行ずつ列挙する。
 3. ストア公開などマージ後にも作業が残るIssueは`Refs #<番号>`として分ける。
 4. 差分が今回のリリース対象だけであること、列挙したIssueの受入記録、必須CI成功を確認する。
-5. PRをマージし、自動クローズ対象のIssueとマージされた `main` のcommitを確認する。
+5. PRをマージし、自動クローズ対象のIssueとマージされた `main` のcommitを確認する。ProjectのStatusを`mainマージ済み`にする。
 6. 同commitへ注釈付きタグ `vX.Y.Z` を作成する。
 7. タグのcommitから依存関係をクリーンインストールし、`npm run build` を実行する。
 8. `dist` をZIP化し、ハッシュを記録してGitHub Releaseへ添付する。

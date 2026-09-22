@@ -14,6 +14,8 @@
 
 通常の`develop`向けPRは、関連Issueを`Refs #<番号>`で参照します。`develop`へのマージとChrome／Edgeでの受入結果をIssueへ記録しても、IssueはOpenのまま維持します。受入済みIssueは`develop`から`main`へのリリースPRで`Closes #<番号>`として列挙し、`main`へのマージ時に自動で閉じます。ストア公開など`main`反映後にも作業が残るIssueは、完了後に手動で閉じます。
 
+Issueの進捗は拡張全体のGitHub ProjectのStatusで管理します。機能別のビューでランキングや料理の作業を表示します。`mainマージ済み`のIssueはClosedにします。詳細は[開発環境構築](docs/development.md)を参照してください。
+
 ## Pull Request
 
 - 一つのPRには一つの目的だけを含める。
