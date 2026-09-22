@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- ランキングの参照専用ボックスに、元ツールで保存した並び順と昇降順を反映。
+
 - Manifest V3のChrome／Edge最小構成を追加。
 - 機能モジュール、設定、上流adapter、UI mount基盤の責務を分離。
 - 対象ページの互換性プローブとfail-closed疎通表示を追加。

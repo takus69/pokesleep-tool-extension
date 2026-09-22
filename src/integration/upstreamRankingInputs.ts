@@ -1,5 +1,6 @@
 import { getInitialIvState } from "@upstream/ui/IvCalc/IvState";
 import PokemonBox from "@upstream/util/PokemonBox";
+import { loadBoxSortConfig } from "@upstream/util/PokemonBoxSort";
 import { loadStrengthParameter } from "@upstream/util/StrengthParameter";
 import { isUpstreamEventSupported } from "./upstreamDataPack";
 
@@ -8,6 +9,7 @@ export interface UpstreamRankingInputs {
   environmentKey: string;
   rawEvent: string | null;
   unsupportedEvent: string | null;
+  boxSortConfig: ReturnType<typeof loadBoxSortConfig>;
 }
 
 function stableValue(value: unknown): unknown {
@@ -48,6 +50,7 @@ export function loadUpstreamRankingInputs(): UpstreamRankingInputs {
   );
   return {
     state: { ...state, parameter: loadStrengthParameter(), box },
+    boxSortConfig: loadBoxSortConfig(),
     ...rawEnvironment,
     unsupportedEvent: isUpstreamEventSupported(rawEnvironment.rawEvent)
       ? null
