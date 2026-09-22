@@ -1,4 +1,5 @@
 import bundledEventJson from "../vendor/upstream-data/event.json";
+import bundledManifest from "../vendor/upstream-data/manifest.json";
 import bundledPokemonJson from "../vendor/upstream-data/pokemon.json";
 import {
   applyUpstreamDataPack,
@@ -54,7 +55,7 @@ export async function prepareUpstreamDataPack(
     const cached = decodeCachedUpstreamDataPack(
       await runtime.readCachedValue(),
     );
-    if (cached !== null) {
+    if (cached !== null && cached.bundledCommit === bundledManifest.commit) {
       const pack = validateUpstreamDataPack(cached.pokemon, cached.event);
       applyUpstreamDataPack(pack, "cached", cached.checkedAt);
     }
@@ -79,7 +80,12 @@ export async function prepareUpstreamDataPack(
   try {
     const { pokemon, event } = await runtime.fetchLatest();
     const pack = validateUpstreamDataPack(pokemon, event);
-    await runtime.writeCachedValue({ checkedAt: now, pokemon, event });
+    await runtime.writeCachedValue({
+      bundledCommit: bundledManifest.commit,
+      checkedAt: now,
+      pokemon,
+      event,
+    });
     return applyUpstreamDataPack(pack, "network", now);
   } catch (cause) {
     logger.warn(

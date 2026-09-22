@@ -18,6 +18,7 @@ describe("ChromiumUpstreamDataPackRuntime", () => {
 
     expect(await runtime.readCachedValue()).toEqual({ checkedAt: 1 });
     await runtime.writeCachedValue({
+      bundledCommit: "new-bundled-commit",
       checkedAt: 2,
       pokemon: ["pokemon"],
       event: { event: true },
@@ -27,6 +28,7 @@ describe("ChromiumUpstreamDataPackRuntime", () => {
     expect(get).toHaveBeenCalledWith("upstream-data-pack.v1");
     expect(set).toHaveBeenCalledWith({
       "upstream-data-pack.v1": {
+        bundledCommit: "new-bundled-commit",
         checkedAt: 2,
         pokemon: ["pokemon"],
         event: { event: true },

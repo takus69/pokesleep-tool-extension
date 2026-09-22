@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import eventJson from "../vendor/upstream-data/event.json";
+import bundledManifest from "../vendor/upstream-data/manifest.json";
 import pokemonJson from "../vendor/upstream-data/pokemon.json";
 import {
   applyUpstreamDataPack,
@@ -47,6 +48,7 @@ describe("prepareUpstreamDataPack", () => {
 
     expect(status.source).toBe("network");
     expect(writeCachedValue).toHaveBeenCalledWith({
+      bundledCommit: bundledManifest.commit,
       checkedAt: 1234,
       pokemon: pokemonJson,
       event: eventJson,
@@ -57,6 +59,7 @@ describe("prepareUpstreamDataPack", () => {
     const fetchLatest = vi.fn();
     const adapter = runtime({
       readCachedValue: vi.fn().mockResolvedValue({
+        bundledCommit: bundledManifest.commit,
         checkedAt: 1234,
         pokemon: pokemonJson,
         event: eventJson,
@@ -75,6 +78,7 @@ describe("prepareUpstreamDataPack", () => {
     const log = logger();
     const adapter = runtime({
       readCachedValue: vi.fn().mockResolvedValue({
+        bundledCommit: bundledManifest.commit,
         checkedAt: 1234,
         pokemon: pokemonJson,
         event: eventJson,
@@ -103,5 +107,28 @@ describe("prepareUpstreamDataPack", () => {
     expect(status.source).toBe("bundled");
     expect(fetchLatest).not.toHaveBeenCalled();
     expect(log.warn).toHaveBeenCalledOnce();
+  });
+
+  it.each([
+    undefined,
+    "aec938d72d52fe875029aae13f58ae850db2fe98",
+  ])("does not let an older extension cache replace newer bundled data: %s", async (bundledCommit) => {
+    const oldPokemon = structuredClone(pokemonJson);
+    const mewtwo = oldPokemon.find((pokemon) => pokemon.name === "Mewtwo");
+    if (!mewtwo) throw new Error("Mewtwo fixture is missing");
+    mewtwo.frequency = 0;
+    const adapter = runtime({
+      readCachedValue: vi.fn().mockResolvedValue({
+        bundledCommit,
+        checkedAt: 1234,
+        pokemon: oldPokemon,
+        event: eventJson,
+      }),
+    });
+
+    const status = await prepareUpstreamDataPack(adapter, 5678, logger());
+
+    expect(status.source).toBe("bundled");
+    expect(status.pokemonCount).toBe(pokemonJson.length);
   });
 });

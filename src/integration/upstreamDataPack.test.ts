@@ -1,4 +1,7 @@
 import PokemonIv from "@upstream/util/PokemonIv";
+import PokemonStrength, {
+  createStrengthParameter,
+} from "@upstream/util/PokemonStrength";
 import { beforeEach, describe, expect, it } from "vitest";
 import eventJson from "../vendor/upstream-data/event.json";
 import pokemonJson from "../vendor/upstream-data/pokemon.json";
@@ -16,13 +19,32 @@ describe("upstream data pack", () => {
   });
 
   it("accepts and applies the synchronized upstream data", () => {
-    expect(baseline.issues).toContainEqual({
-      kind: "pokemon",
-      name: "Mewtwo",
-      reason: "unsupported main skill",
-    });
-    expect(baseline.issues).toHaveLength(1);
-    expect(baseline.pokemon).toHaveLength(pokemonJson.length - 1);
+    expect(baseline.issues).toEqual([]);
+    expect(baseline.pokemon).toHaveLength(pokemonJson.length);
+    expect(baseline.pokemon.some((pokemon) => pokemon.name === "Mewtwo")).toBe(
+      true,
+    );
+    expect(
+      baseline.bonus.filter((event) => event.name.startsWith("pursue mewtwo")),
+    ).toHaveLength(2);
+  });
+
+  it("uses upstream big-berry and skill calculations for the new event", () => {
+    const iv = new PokemonIv({ pokemonName: "Mewtwo", level: 60 });
+    const ordinary = new PokemonStrength(
+      iv,
+      createStrengthParameter({ event: "none" }),
+    ).calculate();
+    const event = new PokemonStrength(
+      iv,
+      createStrengthParameter({ event: "pursue mewtwo 2nd week" }),
+    ).calculate();
+
+    expect(event.bigBerryStrength).toBeGreaterThan(0);
+    expect(event.berryTotalStrength).toBe(
+      event.berryStrength + event.bigBerryStrength,
+    );
+    expect(event.totalStrength).toBeGreaterThan(ordinary.totalStrength);
   });
 
   it("accepts a new Pokémon using only supported mechanics", () => {
@@ -61,6 +83,24 @@ describe("upstream data pack", () => {
       name: next.name,
       reason: "unsupported main skill",
     });
+  });
+
+  it("excludes only an event with an unknown big-berry mechanic", () => {
+    const future = structuredClone(eventJson.bonus[0]);
+    future.name = "Future Big Berry";
+    future.effects.bigBerry = "future-event";
+    const pack = validateUpstreamDataPack(pokemonJson, {
+      ...eventJson,
+      bonus: [...eventJson.bonus, future],
+    });
+
+    expect(pack.bonus.some((event) => event.name === future.name)).toBe(false);
+    expect(pack.issues).toContainEqual({
+      kind: "event",
+      name: future.name,
+      reason: "unsupported big berry event",
+    });
+    expect(pack.bonus).toHaveLength(eventJson.bonus.length);
   });
 
   it("rejects a truncated pack instead of replacing known data", () => {

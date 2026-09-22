@@ -313,6 +313,30 @@ describe("scenario candidate generation", () => {
 });
 
 describe("shared evaluation and individual independence", () => {
+  test("uses the upstream Mewtwo event mechanics in ranking comparison", () => {
+    const iv = new PokemonIv({ pokemonName: "Mewtwo", level: 60 });
+    const selected = config({
+      purpose: "berry",
+      target: "berryStrength",
+      berry: "psychic",
+    });
+    const ordinary = evaluateRankingComparison(
+      iv,
+      selected,
+      createStrengthParameter({ event: "none" }),
+    );
+    const event = evaluateRankingComparison(
+      iv,
+      selected,
+      createStrengthParameter({ event: "pursue mewtwo 2nd week" }),
+    );
+
+    expect(ordinary.status).toBe("positive");
+    expect(event.status).toBe("positive");
+    if (ordinary.status !== "positive" || event.status !== "positive") return;
+    expect(event.value).toBeGreaterThan(ordinary.value);
+  });
+
   test("comparison preserves all own properties and disables all legacy transforms", () => {
     const iv = new PokemonIv({
       pokemonName: "Gastly",
