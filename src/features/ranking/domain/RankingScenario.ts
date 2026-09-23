@@ -11,11 +11,12 @@ import {
 import Nature from "@upstream/util/Nature";
 import PokemonIv, { type IngredientSlot } from "@upstream/util/PokemonIv";
 import type { IngredientType } from "@upstream/util/PokemonRp";
-import PokemonStrength, {
+import {
   getCurrentFavoriteBerries,
   type StrengthParameter,
 } from "@upstream/util/PokemonStrength";
 import SubSkillList from "@upstream/util/SubSkillList";
+import { calculateUpstreamPokemonStrength } from "../../../domain/UpstreamPokemonCalculation";
 import {
   generateIngredientRankingSubSkillCombinations,
   generateMythicalPatterns,
@@ -214,9 +215,10 @@ export function evaluateRankingComparison(
     )
       return { status: "uncalculable", reason: "missingIngredient" };
     const parameter = createRankingEnvironment(environment);
-    const result = calculator
-      ? calculator(iv, parameter)
-      : new PokemonStrength(iv, parameter).calculate();
+    const result = (calculator ?? calculateUpstreamPokemonStrength)(
+      iv,
+      parameter,
+    );
     let value: number;
     switch (config.target) {
       case "specificIngredientCount":
