@@ -30,7 +30,7 @@ IssueがClosedであることを、原則として変更が`main`へ反映済み
 
 Issueの進捗は拡張全体で1つのGitHub Projectの`Status`で管理します。ランキング、料理、共通基盤は同じProject内のビューで分けます。機能の分類には`area:ranking`、`area:cooking`、`area:shared`ラベルを使い、複数領域に関係するIssueには複数付けられます。機能ごとにProjectとStatusを重複して作りません。
 
-Projectは「Pokémon Sleep Tool Extension」とし、全体ビューのほかに`area:ranking`、`area:shared`で絞るビューを用意します。`area:cooking`のIssueを作った時点で料理ビューを追加します。リポジトリの新規Issueを自動追加し、既存Issueは初回に手動追加します。IssueをClosedにした時にStatusを`mainマージ済み`へ更新するワークフローを使い、Status変更だけでIssueを閉じるワークフローは有効にしません。
+Projectは[Pokémon Sleep Tool Extension](https://github.com/users/takus69/projects/4)とし、全体ビューのほかに`area:ranking`、`area:shared`で絞るビューを用意します。`area:cooking`のIssueを作った時点で料理ビューを追加します。リポジトリの新規Issueを自動追加し、既存Issueは初回に手動追加します。IssueをClosedにした時にStatusを`mainマージ済み`へ更新するワークフローを使い、Status変更だけでIssueを閉じるワークフローは有効にしません。Projectは現在非公開のため、閲覧には権限が必要です。
 
 | Project Status | Issueの状態 | 更新する時点 |
 |---|---|---|
