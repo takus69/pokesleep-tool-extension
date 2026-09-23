@@ -11,28 +11,17 @@ import {
   useTheme,
 } from "@mui/material";
 import type { Theme } from "@mui/material/styles";
-import PokemonBox from "@upstream/util/PokemonBox";
 import type PokemonIv from "@upstream/util/PokemonIv";
 import type { StrengthParameter } from "@upstream/util/PokemonStrength";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { RatingView, RpView, StrengthBerryIngSkillView } from "../upstreamUi";
 import {
-  type IvAction,
-  type IvState,
-  RatingView,
-  RpView,
-  StrengthBerryIngSkillView,
-} from "../upstreamUi";
-import { cloneRankingEnvironment } from "../workspace/useRankingScenario";
+  createRankingPreviewState,
+  rankingPreviewReducer,
+} from "./RankingDetailPreviewState";
 
 type DetailTab = 0 | 1 | 2;
-
-type RankingPreviewAction =
-  | IvAction
-  | {
-      type: "resetPreview";
-      payload: { iv: PokemonIv; environment: StrengthParameter };
-    };
 
 export function createRankingDetailPaperSx(theme: Theme) {
   return {
@@ -45,56 +34,6 @@ export function createRankingDetailPaperSx(theme: Theme) {
       borderRadius: 0,
     },
   };
-}
-
-function createPreviewState(
-  iv: PokemonIv,
-  environment: StrengthParameter,
-): IvState {
-  return {
-    tabIndex: 1,
-    lowerTabIndex: 0,
-    pokemonIv: iv.clone(),
-    parameter: cloneRankingEnvironment(environment),
-    box: new PokemonBox(),
-    selectedItemId: -1,
-    energyDialogOpen: false,
-    boxItemDialogOpen: false,
-    boxItemDialogKey: "",
-    boxItemDialogIsEdit: false,
-    boxExportDialogOpen: false,
-    boxImportDialogOpen: false,
-    boxDeleteAllDialogOpen: false,
-    alertMessage: "",
-    teamMembers: [undefined, undefined, undefined, undefined, undefined],
-  };
-}
-
-/**
- * An isolated preview of the upstream ability views. It intentionally does not
- * call ivStateReducer, which persists IV, box, and environment state.
- */
-export function rankingPreviewReducer(
-  state: IvState,
-  action: RankingPreviewAction,
-): IvState {
-  switch (action.type) {
-    case "resetPreview":
-      return createPreviewState(action.payload.iv, action.payload.environment);
-    case "openEnergyDialog":
-      return { ...state, energyDialogOpen: true };
-    case "closeEnergyDialog":
-      return { ...state, energyDialogOpen: false };
-    case "changeParameter":
-      return {
-        ...state,
-        parameter: cloneRankingEnvironment(action.payload.parameter),
-      };
-    case "updateIv":
-      return { ...state, pokemonIv: action.payload.iv.clone() };
-    default:
-      return state;
-  }
 }
 
 export default function RankingPokemonDetailDialog({
@@ -117,7 +56,7 @@ export default function RankingPokemonDetailDialog({
   const [state, dispatch] = React.useReducer(
     rankingPreviewReducer,
     undefined,
-    () => createPreviewState(iv, environment),
+    () => createRankingPreviewState(iv, environment),
   );
   const contentRef = React.useRef<HTMLDivElement>(null);
   const [width, setWidth] = React.useState(0);

@@ -70,6 +70,12 @@
 
 元ツールのReact画面部品へのimportは `src/features/ranking/upstreamUi.ts`、保存処理を持つ状態reducerへのimportは `src/integration/upstreamIvState.ts` に集約します。機能コードから上流UI内部パスを直接importしないことを契約テストで検証します。DOM検出、タブ操作、表示退避、再描画監視、元ツール画面への遷移は `src/integration` に配置し、ランキングUIには型付きの操作だけを公開します。保存形式の知識もランキング条件の保存キーを除いて `src/integration` に置きます。
 
+### ランキング詳細画面の上流UI境界
+
+ランキングの個体詳細では、固定した公式版の `RpView`、`StrengthBerryIngSkillView`、`RatingView` を継続利用します。拡張側で同等の計算結果画面を複製しません。上流UIのimportは `upstreamUi.ts` を通し、個体と計算条件のスナップショットから作るプレビュー状態は `src/features/ranking/ui/RankingDetailPreviewState.ts` に閉じ込めます。プレビューは空のボックスを持ち、ボックス変更actionは受け付けません。上流の保存処理付き `ivStateReducer` はこのプレビューに接続しないため、詳細の閲覧・操作だけで元ツールの作業状態やボックスを保存しません。
+
+固定上流版の変更時は、各Viewのprops、要求する状態項目、子コンポーネントからのaction、直接または間接の保存処理を確認します。契約テストでは3画面の描画とプレビュー操作中に保存値が変わらないことを検証します。上流UIが新たな状態・action・保存処理を要求する、または画面の整合性を保てなくなった場合は、この境界を見直します。公式UIをbundleへ含めるため、上流UIの変更は拡張本体の更新で取り込みます。
+
 ## 4. 出力仕様
 
 - 元ツールの上段タブ末尾へ「ランキング」を追加する。
@@ -126,7 +132,7 @@ Manifest V3を使用し、対象サイトと検証済みJSON取得先だけにho
 | 依存 | 現在の境界 | 分類 | 上流変更時の影響・方針 |
 |---|---|---|---|
 | ポケモン・食材・スキル・イベントの型、データ、計算関数 | ranking domain、`upstream.ts`、`upstreamDataPack.ts`。計算クラスの生成は `src/domain/UpstreamPokemonCalculation.ts` に集約 | 必要なAsIs再利用 | 公式情報と計算式を二重管理しない。計算クラスの変更は共通アダプターと実計算の契約テストで確認する。候補データや上流型の変更は固定commit更新PRで型検査・計算テストにより追従する。 |
-| 元ツールのReactフォーム、アイコン、詳細画面 | `upstreamUi.ts` | 意図したAsIs再利用 | exportの変更は境界モジュールへ集約済み。ただしbundle済みコードはページ再読み込みだけでは更新されず、拡張更新が必要。 |
+| 元ツールのReactフォーム、アイコン、詳細画面 | `upstreamUi.ts`、`RankingDetailPreviewState.ts` | 意図したAsIs再利用 | exportと詳細画面のprops・state・actionを境界で監視する。プレビューは保存処理付きreducerへ接続しない。bundle済みコードはページ再読み込みだけでは更新されず、拡張更新が必要。 |
 | 上段タブ、表示退避、設定画面へのクリック | `src/integration` | 集約したDOM境界 | sticky構造、タブ位置、MUI class、再描画への依存をcontroller内に限定する。SPA再描画、タブ追加、選択状態復元をcontract testで監視する。 |
 | 計算条件・ボックスの保存値 | `upstreamRankingInputs.ts` | 非公開保存形式への依存 | 元ツールdecoderと型を利用し、保存schemaと読み取り専用の動作をcontract testで監視する。ボックスは参照専用。 |
 | 元ツールの `ivStateReducer` とその保存処理 | `upstreamIvState.ts`、`RankingWorkspaceState.ts` | 意図した作業状態の共有 | ランキング内の個体編集、下段タブ切替等は `PstIvState`、明示的な計算条件変更は `PstStrenghParam` を保存する。ボックス本体とは分離された作業状態として共有し、上流更新時は操作別のstorage差分contract testで保存対象が増えていないか監視する。比較用ボックスの選択自体は画面内状態のみを変更する。 |
