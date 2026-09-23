@@ -5,12 +5,14 @@ import pokemons, {
 import Nature from "@upstream/util/Nature";
 import PokemonIv, { type IngredientSlot } from "@upstream/util/PokemonIv";
 import { type IngredientType, IngredientTypes } from "@upstream/util/PokemonRp";
-import PokemonStrength, {
-  type IngredientStrength,
-  type StrengthParameter,
-} from "@upstream/util/PokemonStrength";
+import type { StrengthParameter } from "@upstream/util/PokemonStrength";
 import SubSkill from "@upstream/util/SubSkill";
 import SubSkillList from "@upstream/util/SubSkillList";
+import type {
+  PokemonCalculationPort,
+  PokemonCalculationResult,
+} from "../../../domain/PokemonCalculationPort";
+import { calculateUpstreamPokemonStrength } from "../../../domain/UpstreamPokemonCalculation";
 import {
   evaluateNumericRankingValue,
   groupNumericRankingEntries,
@@ -19,18 +21,9 @@ import {
 
 export type IngredientRankingLevel = number;
 
-export type IngredientRankingStrengthResult = {
-  ingredients: IngredientStrength[];
-  totalStrength?: number;
-  berryTotalStrength?: number;
-  ingStrength?: number;
-  skillCount?: number;
-};
+export type IngredientRankingStrengthResult = PokemonCalculationResult;
 
-export type IngredientRankingStrengthCalculator = (
-  iv: PokemonIv,
-  parameter: StrengthParameter,
-) => IngredientRankingStrengthResult;
+export type IngredientRankingStrengthCalculator = PokemonCalculationPort;
 
 export interface IngredientRankingCandidate {
   iv: PokemonIv;
@@ -1063,12 +1056,7 @@ function getIngredientSlots(iv: PokemonIv): IngredientSlot[] {
   return [iv.ingredient1, iv.ingredient2, iv.ingredient3];
 }
 
-function defaultStrengthCalculator(
-  iv: PokemonIv,
-  parameter: StrengthParameter,
-): IngredientRankingStrengthResult {
-  return new PokemonStrength(iv, parameter).calculate();
-}
+const defaultStrengthCalculator = calculateUpstreamPokemonStrength;
 
 const neutralNatureCache = new Map<string, Nature>();
 

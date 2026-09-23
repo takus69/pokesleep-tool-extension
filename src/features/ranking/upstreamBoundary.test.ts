@@ -37,4 +37,15 @@ describe("ranking upstream UI boundary", () => {
 
     expect(violations).toEqual([]);
   });
+
+  it("keeps direct official calculator construction out of feature code", () => {
+    const violations = sourceFiles(rankingRoot)
+      .filter((file) => !/\.test\.[jt]sx?$/.test(file))
+      .filter((file) =>
+        /\bnew\s+PokemonStrength\s*\(/.test(fs.readFileSync(file, "utf8")),
+      )
+      .map((file) => path.relative(rankingRoot, file));
+
+    expect(violations).toEqual([]);
+  });
 });

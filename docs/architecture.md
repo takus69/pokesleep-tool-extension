@@ -14,3 +14,5 @@
 各機能は `FeatureModule` を実装し、一意なID、既定の有効状態、mount/unmountを提供します。将来のSafariやブックマークレットではruntimeと保存実装を差し替え、domain、integrationの純粋変換、主要UIを再利用します。
 
 元ツールとのDOM、保存形式、計算、データ、UI部品、互換性の詳細な境界は [元ツール連携・互換性仕様](upstream-integration.md) を正本とします。
+
+公式計算の再利用は、ブラウザ非依存の狭い計算ポートと固定submoduleへの薄いアダプターを `src/domain` に置きます。domainからintegrationへの逆向きの依存を作らず、計算式や共有条件の全schemaも複製しません。具体的な境界は連携仕様を参照してください。
