@@ -53,6 +53,19 @@
 
 ランキング独自の計算と状態は `src/features/ranking` で管理します。Chromium APIとDOMへ依存しない計算をdomainへ置きます。元ツールの純粋な計算型・関数はbundleへ含めて利用します。
 
+### 共通計算境界
+
+ランキング以外にも食材構成のシミュレーションを追加する前提で、`PokemonStrength.calculate()` を呼ぶ箇所には共通の薄い計算ポートを採用します。公式の計算式は固定submoduleの実装をそのまま使い、拡張側へ複製しません。ポートはブラウザAPI、DOM、保存処理を持たない関数とし、公式クラスの生成と呼び出しを `src/integration` の実装へ集約します。ランキングの候補列挙、評価指標の選択、順位付けは引き続きランキング機能の責務です。
+
+| 観点 | 採用する境界 |
+|---|---|
+| 入力 | 既存の `PokemonIv` と `StrengthParameter` を当面は型付きで受け渡す。共有計算条件の全項目を独自DTOへ複写しない。ランキング側で行う `level: 0` などの条件調整は呼び出し側に残す。 |
+| 出力 | 利用機能に必要な食材名・個数と評価値だけを型付きで公開する。公式の巨大な `StrengthResult` 全体を共通契約にしない。 |
+| エラー | 公式計算の例外や欠落した値から推測値を作らない。計算不能として呼び出し側へ伝え、ランキングは既存の除外理由と表示を維持する。 |
+| テスト | 固定submoduleの実計算との代表ケースの一致、未知食材・未確定率などの計算不能、公式クラスへの直接importが境界外へ増えないことを確認する。 |
+
+この段階のポートは**計算クラスへの入口**を限定するもので、ポケモン候補生成や全上流型を中立化するものではありません。直接利用を続ける方が変換は少ないものの、計算クラスの変更点が各機能へ広がるため、入口のみを共通化します。一方、全計算条件・全結果の独自モデル化は公式schemaを二重管理し、更新時の不整合を増やすため採用しません。食材構成シミュレーションの具体的な入力・出力が決まった時点で、共通結果項目の追加が必要かを判断します。レシピ計算や候補列挙まで先取りして共通化しません。
+
 最新JSONのdecode、検証、適用と、同梱データ・キャッシュ・ネットワークの選択手順は `src/integration` に置きます。この手順は型付きruntime portだけを利用します。取得先URL、`fetch`、Chrome Storage、service workerとのセッション判定は `src/runtime/chromium/upstreamDataPackRuntime.ts` と `public/background.js` に限定します。
 
 元ツールのReact画面部品へのimportは `src/features/ranking/upstreamUi.ts`、保存処理を持つ状態reducerへのimportは `src/integration/upstreamIvState.ts` に集約します。機能コードから上流UI内部パスを直接importしないことを契約テストで検証します。DOM検出、タブ操作、表示退避、再描画監視、元ツール画面への遷移は `src/integration` に配置し、ランキングUIには型付きの操作だけを公開します。保存形式の知識もランキング条件の保存キーを除いて `src/integration` に置きます。
@@ -78,7 +91,7 @@
 |---|---|---|
 | URL・DOM・保存形式 | `src/integration` | 検出、decode、スナップショット、画面遷移 |
 | 上流React UI・状態 | `src/features/ranking/upstreamUi.ts`、`src/integration/upstreamIvState.ts` | 画面部品と保存処理を持つ状態reducerを別の境界から公開 |
-| 上流計算・データ | `src/features/ranking/upstream.ts`、ranking domain | 型付き計算と候補データ |
+| 上流計算・データ | `src/domain` の計算ポート、`src/integration` の公式計算実装、`src/features/ranking/upstream.ts`、ranking domain | 計算クラスの入口、型付き計算と候補データ。計算ポートの実装移行まではranking domainに直接呼び出しが残る。 |
 | Chromium実行環境 | `src/runtime/chromium` | content script、service worker、Chrome API |
 | ランキング独自実装 | `src/features/ranking` | 条件、計算、表示、機能内状態 |
 
@@ -112,7 +125,7 @@ Manifest V3を使用し、対象サイトと検証済みJSON取得先だけにho
 
 | 依存 | 現在の境界 | 分類 | 上流変更時の影響・方針 |
 |---|---|---|---|
-| ポケモン・食材・スキル・イベントの型、データ、計算関数 | ranking domain、`upstream.ts`、`upstreamDataPack.ts` | 必要なAsIs再利用 | 公式情報と計算式を二重管理しない。内部API変更は固定commit更新PRで型検査・計算テストにより追従する。 |
+| ポケモン・食材・スキル・イベントの型、データ、計算関数 | ranking domain、`upstream.ts`、`upstreamDataPack.ts`。計算クラスの呼び出しは共通ポートを経由する設計 | 必要なAsIs再利用 | 公式情報と計算式を二重管理しない。現状はranking domainに直接呼び出しが2箇所あり、ポート実装後は公式クラスの変更をintegrationで吸収する。候補データや上流型の変更は固定commit更新PRで型検査・計算テストにより追従する。 |
 | 元ツールのReactフォーム、アイコン、詳細画面 | `upstreamUi.ts` | 意図したAsIs再利用 | exportの変更は境界モジュールへ集約済み。ただしbundle済みコードはページ再読み込みだけでは更新されず、拡張更新が必要。 |
 | 上段タブ、表示退避、設定画面へのクリック | `src/integration` | 集約したDOM境界 | sticky構造、タブ位置、MUI class、再描画への依存をcontroller内に限定する。SPA再描画、タブ追加、選択状態復元をcontract testで監視する。 |
 | 計算条件・ボックスの保存値 | `upstreamRankingInputs.ts` | 非公開保存形式への依存 | 元ツールdecoderと型を利用し、保存schemaと読み取り専用の動作をcontract testで監視する。ボックスは参照専用。 |
