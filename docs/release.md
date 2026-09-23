@@ -5,7 +5,7 @@
 1. `develop`が最新で、未完了の変更がないことを確認する。
 2. リリースする版をSemantic Versioningで決める。
 3. 作業ブランチで `package.json`、`public/manifest.json`、CHANGELOGの版と内容を一致させる。
-4. 対応する公式元ツールcommit、権限、第三者通知、プライバシー方針を確認する。
+4. 対応する公式元ツールcommit、権限、第三者通知、[ライセンス監査](license-audit.md)の未解決事項、プライバシー方針を確認する。未解決の権利事項があればストア提出を進めない。
 5. `npm run release:prepare` を実行する。
 6. 生成したunpacked `dist` をChromeとEdgeの最新安定版で受入確認する。
 7. `develop`へのPRをレビュー・マージする。
@@ -19,7 +19,7 @@
 5. PRをマージし、自動クローズ対象のIssueとマージされた `main` のcommitを確認する。ProjectのStatusを`mainマージ済み`にする。
 6. 同commitへ注釈付きタグ `vX.Y.Z` を作成する。
 7. タグのcommitから依存関係をクリーンインストールし、`npm run build` を実行する。
-8. `dist` をZIP化し、ハッシュを記録してGitHub Releaseへ添付する。
+8. `dist` 内の `LICENSE` と `THIRD_PARTY_NOTICES.md` がルートの原本と一致することを確認してからZIP化し、ハッシュを記録してGitHub Releaseへ添付する。
 
 同じタグcommitから作成した同一成果物をChrome Web StoreとMicrosoft Edge Add-onsへ提出します。
 

@@ -16,7 +16,7 @@
     "react-i18next": "^16.0.0"
   },
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && node scripts/verify-dist-notices.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
     "sync:upstream-data": "node scripts/sync-upstream-data.mjs",

@@ -1,9 +1,24 @@
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import react from "@vitejs/plugin-react";
 import { defineConfig, normalizePath } from "vite";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    {
+      name: "include-license-notices",
+      generateBundle() {
+        for (const fileName of ["LICENSE", "THIRD_PARTY_NOTICES.md"]) {
+          this.emitFile({
+            type: "asset",
+            fileName,
+            source: readFileSync(path.resolve(fileName)),
+          });
+        }
+      },
+    },
+  ],
   test: {
     include: ["src/**/*.test.ts"],
   },
