@@ -22,6 +22,7 @@ Treat the pinned `vendor/pokesleep-tool` submodule as read-only official upstrea
 - Never push directly to `main` or `develop`. Branch from `develop` with `feature/`, `fix/`, `refactor/`, `docs/`, or `chore/`, then merge through a reviewed PR.
 - PRs into `develop` require automated verification. Promote `develop` to `main` only through a release PR after unpacked-extension acceptance in both Chrome and Edge.
 - Link normal PRs into `develop` with `Refs #N`; do not use automatic closing keywords. Record acceptance on the issue and keep it open until release.
+- Track issue progress in the extension-wide GitHub Project: `未着手`, `作業中`, `developマージ済み`, and `mainマージ済み`. Use feature views within the same Project. Keep acceptance results in issue comments, and close issues when their work reaches `main` (or when post-merge publication work is complete).
 - In a `develop` to `main` release PR, list accepted issues completed by that release as `Closes #N`, one per line. Use only `Refs #N` for store-publication or other work that remains after the merge, and close it manually when actually complete.
 - Treat `main` as release-ready. Create an annotated `vX.Y.Z` tag from the accepted `main` commit and use that exact commit for both browser stores.
 - Start emergency fixes from `main`, merge them to `main` through a PR, then merge the released fix back into `develop`.
