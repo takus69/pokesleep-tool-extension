@@ -10,6 +10,6 @@
 
 16px・48pxの拡張アイコンも同じスクリプトで生成し、`public/icons/`へ置きます。`npm run test:store-assets`でPNG寸法とmanifestの参照を確認します。
 
-実画面スクリーンショットはデザイン画像で代用しません。公開候補のunpacked版を対象ページで動かし、ボックス内容など利用者の個人データを映さず、ランキング画面を1280×800で撮影します。スクリーンショットは角丸・余白・装飾を付けず、`assets/store/screenshots/`に原本を置き、掲載順と説明文を[`docs/store-listing.md`](../../docs/store-listing.md)へ記録します。
+実画面スクリーンショットはデザイン画像で代用しません。`screenshots/source/01-ranking-2x.png`は利用者が対象ページで拡張を動かして撮影した2560×1600の原本です。ボックス内容は映っていません。[`scripts/resize-store-screenshot.ps1`](../../scripts/resize-store-screenshot.ps1)で縦横を正確に50%へ縮小し、1280×800の`screenshots/01-ranking.png`を生成しました。切り抜き、余白、装飾、生成AIによる画像変更は行っていません。掲載順と説明文は[`docs/store-listing.md`](../../docs/store-listing.md)で管理します。
 
 画像寸法は[Chrome Web Storeの公式ガイド](https://developer.chrome.com/docs/webstore/images)と[Microsoft Edge Add-onsの提出手順](https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/publish-extension)に基づきます。提出時には各管理画面の最新要件も確認してください。

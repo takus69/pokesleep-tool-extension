@@ -4,7 +4,7 @@
 
 ## 名称と対応言語
 
-- 名称: Pokémon Sleep Tool Extension Suite（`manifest.json`と一致）
+- 名称: Pokémon Sleep Tool Extension Suite（`_locales/ja/messages.json`と一致）
 - 初回掲載言語: 日本語
 - 対応環境: Windows／macOSのChrome、Edge
 - 対象ページ: https://nitoyon.github.io/pokesleep-tool/
@@ -15,7 +15,7 @@
 
 Pokémon Sleep Toolに、育成候補や手持ち個体を比較できるランキング機能を追加します。
 
-Edgeの短い説明はmanifestの`description`から表示されます。日本語文案とは別に、現行ZIPの英語文 `Adds optional, local-only features to Pokémon Sleep Tool.` が使われるため、提出画面で表示を確認します。
+Edgeの短い説明はmanifestが参照する日本語メッセージから表示されます。提出するZIPでも同じ文案を使用します。
 
 ## 詳細説明（日本語）
 
@@ -35,7 +35,7 @@ Pokémon Sleep Toolのページに「ランキング」タブを追加する非�
 - サポート／問題報告URL: https://github.com/takus69/pokesleep-tool-extension/issues
 - 利用者向けマニュアルURL: https://github.com/takus69/pokesleep-tool-extension/blob/main/docs/user-manual.md
 
-報告にはブラウザ名・版、拡張の版、対象URL、表示されたエラーを記載してもらいます。ボックス内容や保存値の投稿は求めません。上記URLはリポジトリが公開設定であることを確認済みですが、匿名ブラウザからの表示確認はストア提出前に行います。
+報告にはブラウザ名・版、拡張の版、対象URL、表示されたエラーを記載してもらいます。ボックス内容や保存値の投稿は求めません。上記3 URLは認証なしのHTTP GETでいずれも`200 OK`を確認済みです。提出時には匿名ブラウザで表示も再確認します。
 
 ## 権限と通信の説明
 
@@ -54,16 +54,15 @@ Pokémon Sleep Toolのページに「ランキング」タブを追加する非�
 | Chrome／Edge | 拡張アイコン | `public/icons/icon-128.png` | 作成済み |
 | Edge | 掲載ロゴ | `assets/store/edge-logo-300.png` | 作成済み |
 | Chrome／Edge | 小型紹介画像 | `assets/store/promo-small-440x280.png` | 作成済み |
-| Chrome／Edge | 1枚目: 元ツール内のランキングタブと検索条件 | `assets/store/screenshots/01-ranking.png` | 実画面撮影待ち |
-| Chrome／Edge | 2枚目: 順位・同順位条件と計算条件要約 | `assets/store/screenshots/02-results.png` | 実画面撮影待ち |
+| Chrome／Edge | 1枚目: ランキングタブ、計算条件要約、順位と候補 | `assets/store/screenshots/01-ranking.png` | 1280×800の実画面画像を作成済み |
 
-画像の作成元と撮影条件は[`assets/store/README.md`](../assets/store/README.md)を参照してください。Chromeは実画面スクリーンショットが少なくとも1枚必要です。実画面が揃うまでは本Issueを完了としません。
+画像の作成元と撮影条件は[`assets/store/README.md`](../assets/store/README.md)を参照してください。Chromeに必要な実画面スクリーンショット1枚を用意済みです。2枚目以降は任意とし、初回提出には含めません。
 
 ## 提出時の確認
 
 - [ ] 公開候補の版・画面・文案が一致し、ChromeとEdgeで受入済み
-- [ ] 実画面スクリーンショットを原本とともに登録し、個人情報を含まないことを確認
-- [ ] プライバシー方針とサポートURLを匿名ブラウザで開ける
+- [x] 実画面スクリーンショットを原本とともに登録し、ボックス内容を含まないことを確認
+- [x] プライバシー方針とサポートURLが認証なしのHTTP GETで開ける
 - [ ] 各ストア管理画面の最新必須項目、画像要件、データ利用申告を確認
 - [ ] 元ツール作者への拡張公開に関する確認とライセンス監査を別途完了
 

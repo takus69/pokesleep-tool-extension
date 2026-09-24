@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "Pokémon Sleep Tool Extension Suite",
+  "name": "__MSG_extensionName__",
   "version": "0.1.0",
-  "description": "Adds optional, local-only features to Pokémon Sleep Tool.",
+  "description": "__MSG_extensionDescription__",
+  "default_locale": "ja",
   "icons": {
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",
