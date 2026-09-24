@@ -18,7 +18,7 @@ assert.equal(
 );
 assert.equal(
   japaneseMessages.extensionDescription?.message,
-  "Pokémon Sleep Toolに、育成候補や手持ち個体を比較できるランキング機能を追加します。",
+  "「個体値計算機 for ポケモンスリープ」に、育成候補や手持ち個体を比較できるランキング機能を追加します。",
 );
 
 async function checkPng(relativePath, width, height) {
