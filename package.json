@@ -16,14 +16,15 @@
     "react-i18next": "^16.0.0"
   },
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && node scripts/verify-dist-notices.mjs",
+    "test:licenses": "node --test scripts/bundled-package-licenses.test.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
     "sync:upstream-data": "node scripts/sync-upstream-data.mjs",
     "release:prepare": "npm run sync:upstream-data && npm run verify",
     "test": "vitest run",
     "test:store-assets": "node scripts/verify-store-assets.mjs",
-    "verify": "npm run typecheck && npm run lint && npm run test && npm run test:store-assets && npm run build"
+    "verify": "npm run typecheck && npm run lint && npm run test && npm run test:licenses && npm run test:store-assets && npm run build"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.13",
