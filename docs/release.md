@@ -19,7 +19,7 @@
 5. PRをマージし、自動クローズ対象のIssueとマージされた `main` のcommitを確認する。ProjectのStatusを`mainマージ済み`にする。
 6. 同commitへ注釈付きタグ `vX.Y.Z` を作成する。
 7. タグのcommitから依存関係をクリーンインストールし、`npm run build` を実行する。
-8. `dist` 内の `LICENSE` と `THIRD_PARTY_NOTICES.md` がルートの原本と一致することを確認してからZIP化し、ハッシュを記録してGitHub Releaseへ添付する。
+8. `dist` 内の `LICENSE` と `THIRD_PARTY_NOTICES.md` がルートの原本と一致し、`THIRD_PARTY_PACKAGE_LICENSES.md` に実際のbundle内の依存が列挙されていることを確認してからZIP化し、ハッシュを記録してGitHub Releaseへ添付する。
 
 同じタグcommitから作成した同一成果物をChrome Web StoreとMicrosoft Edge Add-onsへ提出します。
 

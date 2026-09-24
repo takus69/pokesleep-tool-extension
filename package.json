@@ -17,12 +17,13 @@
   },
   "scripts": {
     "build": "vite build && node scripts/verify-dist-notices.mjs",
+    "test:licenses": "node --test scripts/bundled-package-licenses.test.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
     "sync:upstream-data": "node scripts/sync-upstream-data.mjs",
     "release:prepare": "npm run sync:upstream-data && npm run verify",
     "test": "vitest run",
-    "verify": "npm run typecheck && npm run lint && npm run test && npm run build"
+    "verify": "npm run typecheck && npm run lint && npm run test && npm run test:licenses && npm run build"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.13",

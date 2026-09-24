@@ -32,6 +32,10 @@
 > OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 > SOFTWARE.
 
+上流の `DreamShardIcon.tsx` は [UXWing Sparkle Icon](https://uxwing.com/sparkle-icon/) を元にしたとソース内で明記されています。UXWingの[利用条件](https://uxwing.com/license/)はアプリ内での利用を許す一方、素材そのものの再配布などを制限します。上記24件のMITアイコンとは別の出所として扱います。
+
+配布用bundleに含まれるnpmパッケージの名称、版、ライセンス表記と許諾本文は、ビルド時に生成する `THIRD_PARTY_PACKAGE_LICENSES.md` に収録します。開発専用パッケージは対象外です。
+
 ランキング独自実装は、MIT Licenseの旧 `takus69/pokesleep-tool` fork commit `42b0c4ae34c168ba8d6fbb3329d3426a452beb80` から本リポジトリへ移植し、その後拡張向けに変更しています。現在の正本は `src/features/ranking` であり、ビルド、テスト、実行時に旧forkのcheckoutを参照しません。
 
 - Historical source: https://github.com/takus69/pokesleep-tool
