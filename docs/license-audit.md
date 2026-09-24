@@ -13,6 +13,8 @@
 | bundle内のnpm依存 | ビルドのmodule一覧から40パッケージを特定。インストール済みの版ではMIT 38件、BSD-3-Clause 2件 | `THIRD_PARTY_PACKAGE_LICENSES.md` をビルド時に生成し、各パッケージの許諾ファイルを収録する。ライセンス表記か本文がない場合はビルドを失敗させる。更新時に再監査する。 |
 | UXWing由来アイコン | 上流の `src/ui/Resources/DreamShardIcon.tsx` が [Sparkle Icon](https://uxwing.com/sparkle-icon/) を出所として明記 | [UXWingの利用条件](https://uxwing.com/license/)をMITとは別に扱い、アプリ内での利用と素材そのものの再配布を区別する。 |
 | ポケモン風アイコンデータ | 上流の `src/ui/IvCalc/PokemonIconData.ts` と `PokemonIcon.tsx` | コード化された形状データをbundleに含める。ストア掲載画像への利用やキャラクターの権利は、上流コードのMIT表記と別に確認する。 |
+| ストア用アイコン・紹介画像 | 利用者が提示したデザイン案を画像生成ツールで調整した `assets/store/icon-master.png` と、`scripts/render-store-art.ps1` から作るPNG。作成手順は `assets/store/README.md` | 月・王冠・リングの独自図案で、元ツールやゲームの公式画像・ロゴを使わない。AI生成素材の利用条件とストアの画像ポリシーは提出時に確認する。 |
+| ストア用実画面画像 | 利用者が対象ページで撮影した `assets/store/screenshots/source/01-ranking-2x.png` と50%縮小版 | 元ツールの画面・データ由来の図形が写るため、独自アイコンとは別に権利と掲載可否を確認する。 |
 
 ビルドは上流コードを `dist/content.js` へ同梱します。配布ZIPには、ルートの `LICENSE` と `THIRD_PARTY_NOTICES.md` を同じ内容で含め、実際にbundleされたnpmパッケージの通知を `THIRD_PARTY_PACKAGE_LICENSES.md` に生成します。`npm run build` がこれらを検証します。現時点の `dist` には独立した画像ファイルはなく、画面部品・SVG形状・ポケモン風アイコンデータは `content.js` 内に含まれます。ソース公開だけをもって配布ZIP内の通知に代えません。
 
@@ -23,7 +25,7 @@
 ## 公開までの確認事項
 
 1. Discussion #23の既存回答を根拠として保持する。拡張bundle・ストア配布や正式な著作権表示・許諾本文に不明点が残る場合は、ユーザーが上流作者へ確認し、回答を通知へ反映する。
-2. ストア用アイコン・スクリーンショットとして新たに作る素材の出所と許諾を確認する。元ツールの画面から任意設定により外部URLの画像を読み込む経路と、拡張ZIPに同梱する素材を区別する。
+2. ストア用の独自アイコン・紹介画像と実画面スクリーンショットを区別し、提出前に利用条件と掲載可否を確認する。元ツールの画面から任意設定により外部URLの画像を読み込む経路と、拡張ZIPに同梱する素材も区別する。
 3. npm依存を更新した際は生成されたライセンス一覧の差分をレビューし、未知のライセンスや別条件の素材を確認する。
 4. Pokémon/Pokémon Sleepの名称、キャラクター画像、ストア用アイコン・スクリーンショットは、元ツールのMIT表記だけで利用可能とは判断しない。非公式表示と掲載素材を [Issue #12](https://github.com/takus69/pokesleep-tool-extension/issues/12) で確認する。
 5. 本文・実装・配布ZIPを照合し、残る権利上の不明点を公開判断者へ提示する。
