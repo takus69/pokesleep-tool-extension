@@ -1,9 +1,4 @@
 import {
-  normalizeStrengthParameter,
-  type StrengthParameter,
-  saveStrengthParameter,
-} from "@upstream/util/PokemonStrength";
-import {
   type IvAction,
   type IvState,
   normalizeState,
@@ -16,14 +11,9 @@ export function rankingWorkspaceReducer(
   action: IvAction,
 ): IvState {
   if (action.type === "changeParameter") {
-    // Upstream normalizes Cresselia's team using the selected IV. In this
-    // workspace the same environment evaluates many species, so only shared
-    // field/event normalization applies to an explicit environment edit.
-    const parameter = normalizeStrengthParameter(
-      cloneRankingEnvironment(action.payload.parameter),
-    );
-    saveStrengthParameter(parameter);
-    return { ...state, parameter };
+    // IvForm's frequency dialog offers temporary previews. Shared conditions
+    // are edited in upstream's own UI, not saved from the ranking workspace.
+    return state;
   }
   if (action.type === "updateIv") {
     // Keep upstream IV normalization, but do not invoke its storage-writing
@@ -41,25 +31,6 @@ export function rankingWorkspaceReducer(
   // The ranking editor is read-only with respect to the upstream box and
   // unsupported upstream actions must not acquire future storage effects.
   return state;
-}
-
-/** Preserve the shared ranking environment while editing one comparison IV. */
-export function preserveRankingIndividualSettings(
-  action: IvAction,
-  parameter: StrengthParameter,
-): IvAction {
-  if (action.type !== "changeParameter") return action;
-  return {
-    ...action,
-    payload: {
-      parameter: {
-        ...action.payload.parameter,
-        level: parameter.level,
-        evolved: parameter.evolved,
-        maxSkillLevel: parameter.maxSkillLevel,
-      },
-    },
-  };
 }
 
 export type RankingWorkspaceAction =

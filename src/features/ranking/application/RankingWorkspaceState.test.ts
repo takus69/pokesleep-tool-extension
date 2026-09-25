@@ -9,10 +9,7 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ivStateReducer } from "../../../integration/upstreamIvState";
 import { loadUpstreamRankingInputs } from "../../../integration/upstreamRankingInputs";
-import {
-  preserveRankingIndividualSettings,
-  rankingWorkspaceViewReducer,
-} from "./RankingWorkspaceState";
+import { rankingWorkspaceViewReducer } from "./RankingWorkspaceState";
 
 const environmentKey = "PstStrenghParam";
 const individualKey = "PstIvState";
@@ -77,7 +74,7 @@ describe("ranking shared-storage contract with the pinned upstream tool", () => 
     expect(write).not.toHaveBeenCalled();
   });
 
-  it("writes only the shared environment for an explicit condition change", () => {
+  it("does not save frequency-dialog condition previews", () => {
     const state = seededState();
     const before = storageSnapshot();
     const write = vi.spyOn(Storage.prototype, "setItem");
@@ -89,9 +86,9 @@ describe("ranking shared-storage contract with the pinned upstream tool", () => 
       },
     });
 
-    expect(next.parameter.fieldBonus).toBe(35);
-    expect(changedKeys(before)).toEqual([environmentKey]);
-    expect(write.mock.calls.map(([key]) => key)).toEqual([environmentKey]);
+    expect(next).toBe(state);
+    expect(changedKeys(before)).toEqual([]);
+    expect(write).not.toHaveBeenCalled();
     expect(localStorage.getItem(boxKey)).toBe(before[boxKey]);
     expect(localStorage.getItem(unrelatedKey)).toBe(before[unrelatedKey]);
   });
@@ -234,31 +231,5 @@ describe("ranking shared-storage contract with the pinned upstream tool", () => 
     ]);
     const box = JSON.parse(localStorage.getItem(boxKey) ?? "null");
     expect(box).toEqual([state.box.items[0].serialize()]);
-  });
-
-  it("keeps shared levels out of an individual edit's parameter action", () => {
-    const state = seededState();
-    const action = preserveRankingIndividualSettings(
-      {
-        type: "changeParameter",
-        payload: {
-          parameter: {
-            ...state.parameter,
-            level: 100,
-            evolved: true,
-            maxSkillLevel: true,
-          },
-        },
-      },
-      state.parameter,
-    );
-
-    expect(action.type).toBe("changeParameter");
-    if (action.type !== "changeParameter") throw new Error("wrong action");
-    expect(action.payload.parameter.level).toBe(state.parameter.level);
-    expect(action.payload.parameter.evolved).toBe(state.parameter.evolved);
-    expect(action.payload.parameter.maxSkillLevel).toBe(
-      state.parameter.maxSkillLevel,
-    );
   });
 });

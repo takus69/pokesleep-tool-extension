@@ -17,10 +17,7 @@ import {
   readUpstreamIvStorageRaw,
 } from "../../../integration/upstreamRankingInputs";
 import type { RankingScenarioStorage } from "../application/RankingScenarioPersistence";
-import {
-  preserveRankingIndividualSettings,
-  rankingWorkspaceViewReducer,
-} from "../application/RankingWorkspaceState";
+import { rankingWorkspaceViewReducer } from "../application/RankingWorkspaceState";
 import { createRankingEnvironment } from "../domain/RankingScenario";
 import { type IvAction, IvForm, RateNotFixedPanel } from "../upstreamUi";
 import RankingScenarioView from "./RankingScenarioView";
@@ -92,12 +89,9 @@ const RankingWorkspace = React.memo(
     const onPokemonIvChange = React.useCallback((value: PokemonIv) => {
       dispatch({ type: "updateIv", payload: { iv: value } });
     }, []);
-    const individualDispatch = React.useCallback(
-      (action: IvAction) => {
-        dispatch(preserveRankingIndividualSettings(action, state.parameter));
-      },
-      [state.parameter],
-    );
+    const individualDispatch = React.useCallback((action: IvAction) => {
+      dispatch(action);
+    }, []);
 
     return (
       <>
