@@ -6,10 +6,14 @@ const root = path.resolve(import.meta.dirname, "..");
 const manifest = JSON.parse(
   await readFile(path.join(root, "public/manifest.json"), "utf8"),
 );
+const packageJson = JSON.parse(
+  await readFile(path.join(root, "package.json"), "utf8"),
+);
 const japaneseMessages = JSON.parse(
   await readFile(path.join(root, "public/_locales/ja/messages.json"), "utf8"),
 );
 assert.equal(manifest.default_locale, "ja");
+assert.equal(manifest.version, packageJson.version);
 assert.equal(manifest.name, "__MSG_extensionName__");
 assert.equal(manifest.description, "__MSG_extensionDescription__");
 assert.equal(
