@@ -2,8 +2,8 @@
 
 ## 対応環境
 
-- Windows／macOS版 Google Chrome
-- Windows／macOS版 Microsoft Edge
+- デスクトップ版 Google Chrome、Microsoft Edge
+- Windowsで動作確認済み。macOSは未検証
 - 対象ページ: [Pokémon Sleep Tool](https://nitoyon.github.io/pokesleep-tool/)
 
 インストール方法は [Chrome／Edgeへのローカルインストール](local-installation.md) を参照してください。ストア公開前は開発者モードでの確認用です。

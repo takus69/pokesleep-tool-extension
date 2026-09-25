@@ -8,7 +8,7 @@
 
 ## 現在の範囲
 
-- 対象: Windows／macOS版 Google Chrome、Microsoft Edge
+- 対象: デスクトップ版 Google Chrome、Microsoft Edge（Windowsで動作確認済み。macOSは未検証）
 - 権限: 拡張設定用の `storage` と対象サイトだけのhost permission
 - 外部コード: 実行時にダウンロードしない。元ツールの非実行JSONデータだけを検証後に更新可能
 - 実装済み: 互換性プローブ、機能レジストリ、上段タブ統合、ランキング画面
