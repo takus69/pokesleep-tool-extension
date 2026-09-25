@@ -32,7 +32,7 @@
 | 区分 | 保存先・キー | 内容 | ランキングからの扱い |
 |---|---|---|---|
 | 元ツールと共有 | ページの `localStorage`: `PstStrenghParam` | フィールド、イベント、好きなきのみ、睡眠時間などの共有計算条件 | 読み取る。元ツールの画面を利用した明示的な条件変更は、元ツールと同じ保存処理で書き込む。 |
-| 元ツールと共有 | ページの `localStorage`: `PstIvState` | 作業中の個体、選択中の個体、個体値計算画面内のタブ位置 | 読み取り、ランキングでの個体編集や下段タブ操作による更新を許容する。ボックス登録とは区別し、元ツールとランキングを往復して確認できる一時的な作業状態として共有する。 |
+| 元ツールから読み取り専用 | ページの `localStorage`: `PstIvState` | 作業中の個体、選択中の個体、個体値計算画面内のタブ位置 | ランキングタブへ移動したときに個体を読み直す。ランキング内の個体編集・比較選択・下段タブ切替は元ツールの保存値へ書き込まない。元ツールとランキングの表示中の個体状態は別であり、即時同期しない。 |
 | 元ツールから読み取り専用 | ページの `localStorage`: `PstPokeBox` | 元ツールのボックス登録内容 | 最新スナップショットを読み取るだけとし、ランキングから書き込まない。 |
 | 元ツールから読み取り専用 | ページの `localStorage`: `PstPokemonBoxParam` | ボックスの並び順・昇降順など | 上流のloaderで最新設定を読み取り、ランキングから書き込まない。 |
 | 拡張機能が所有 | ページの `localStorage`: `PstForkRankingScenarios.v1` | ランキング目的別の独自条件 | 元ツールの状態と分離して読み書きする。既存利用者との互換性のため、現行キー名を維持する。 |
@@ -40,7 +40,7 @@
 | 拡張機能が所有 | `chrome.storage.local`: `upstream-data-pack.v1` | 検証済み上流データと確認時刻 | 拡張機能だけが検証後に読み書きする。元ツールの保存値として扱わない。 |
 | 拡張機能が所有 | `chrome.storage.session`: `upstream-data-refresh-claimed.v1` | ブラウザセッション内で上流確認済みかどうか | 拡張機能だけが読み書きし、セッション終了後の保持を前提にしない。 |
 
-元ツール所有の保存値については、拡張側で自動修復、削除、独自schemaへの置換を行いません。書き込みが必要な場合は元ツールの型、正規化、保存処理を利用し、対応する操作を上表で明示します。上流の保存形式が変わった場合は互換性変更として扱い、固定submodule更新時にcontract testと実ブラウザ試験で確認します。
+元ツール所有の保存値については、拡張側で自動修復、削除、独自schemaへの置換を行いません。書き込みが必要な場合は元ツールの型、正規化、保存処理を利用し、対応する操作を上表で明示します。通常の共有計算条件は元ツール自身の画面で変更するため、同じ画面内のReact状態も更新されます。ただしランキングの個体フォームにある上流の「おてつだい頻度」詳細ダイアログは、キャンプチケット・おてつだいボーナス数を共有条件へ保存できる例外で、元ツール画面への即時反映は保証しません。上流の保存形式が変わった場合は互換性変更として扱い、固定submodule更新時にcontract testと実ブラウザ試験で確認します。
 
 ### 静的データ
 
@@ -135,7 +135,7 @@ Manifest V3を使用し、対象サイトと検証済みJSON取得先だけにho
 | 元ツールのReactフォーム、アイコン、詳細画面 | `upstreamUi.ts`、`RankingDetailPreviewState.ts` | 意図したAsIs再利用 | exportと詳細画面のprops・state・actionを境界で監視する。プレビューは保存処理付きreducerへ接続しない。bundle済みコードはページ再読み込みだけでは更新されず、拡張更新が必要。 |
 | 上段タブ、表示退避、設定画面へのクリック | `src/integration` | 集約したDOM境界 | sticky構造、タブ位置、MUI class、再描画への依存をcontroller内に限定する。SPA再描画、タブ追加、選択状態復元をcontract testで監視する。 |
 | 計算条件・ボックスの保存値 | `upstreamRankingInputs.ts` | 非公開保存形式への依存 | 元ツールdecoderと型を利用し、保存schemaと読み取り専用の動作をcontract testで監視する。ボックスは参照専用。 |
-| 元ツールの `ivStateReducer` とその保存処理 | `upstreamIvState.ts`、`RankingWorkspaceState.ts` | 意図した作業状態の共有 | ランキング内の個体編集、下段タブ切替等は `PstIvState`、明示的な計算条件変更は `PstStrenghParam` を保存する。ボックス本体とは分離された作業状態として共有し、上流更新時は操作別のstorage差分contract testで保存対象が増えていないか監視する。比較用ボックスの選択自体は画面内状態のみを変更する。 |
+| 元ツールの `normalizeState` と保存処理付き `ivStateReducer` | `upstreamIvState.ts`、`RankingWorkspaceState.ts` | 個体の正規化と保存境界 | ランキング内の個体編集には上流の `normalizeState` だけを使い、保存処理付きreducerは呼ばない。比較個体の選択・下段タブ切替も `PstIvState` と `PstPokeBox` を書き込まない。明示的な計算条件変更だけは `PstStrenghParam` を保存する。操作別のstorage差分contract testで境界を監視する。 |
 | ランキング条件の保存 | `RankingScenarioPersistence.ts` / `runtime/chromium/rankingScenarioStorage.ts` | 分離済み | application層はschema変換と保存ポートだけを定義し、ページの `localStorage` と既存キーはChromium runtimeが扱う。 |
 | 最新JSONの取得、キャッシュ、セッション判定 | `upstreamDataPack.ts`、`upstreamDataPackRefresh.ts`、`runtime/chromium/upstreamDataPackRuntime.ts` | runtime portで分離済み | integrationはdecode、検証、適用、fallback順序を管理し、Chromium adapterだけが取得先URL、`fetch`、Chrome Storage、service workerメッセージを知る。境界テストで再混在を防止する。 |
 

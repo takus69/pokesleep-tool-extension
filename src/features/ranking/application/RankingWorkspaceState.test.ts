@@ -7,6 +7,7 @@ import {
   saveStrengthParameter,
 } from "@upstream/util/StrengthParameter";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ivStateReducer } from "../../../integration/upstreamIvState";
 import { loadUpstreamRankingInputs } from "../../../integration/upstreamRankingInputs";
 import {
   preserveRankingIndividualSettings,
@@ -50,17 +51,26 @@ describe("ranking shared-storage contract with the pinned upstream tool", () => 
     localStorage.clear();
   });
 
-  it("reads shared conditions and box without writing any page storage", () => {
+  it("refreshes the individual, shared conditions and box without writing storage", () => {
     const state = seededState();
+    const current = rankingWorkspaceViewReducer(state, {
+      type: "updateIv",
+      payload: { iv: new PokemonIv({ pokemonName: "Pikachu" }) },
+    });
+    ivStateReducer(state, {
+      type: "updateIv",
+      payload: { iv: new PokemonIv({ pokemonName: "Charizard" }) },
+    });
     const before = storageSnapshot();
     const write = vi.spyOn(Storage.prototype, "setItem");
 
     const latest = loadUpstreamRankingInputs();
-    const synchronized = rankingWorkspaceViewReducer(state, {
+    const synchronized = rankingWorkspaceViewReducer(current, {
       type: "syncUpstream",
       payload: latest.state,
     });
 
+    expect(synchronized.pokemonIv.pokemonName).toBe("Charizard");
     expect(synchronized.box.items[0]?.nickname).toBe("saved");
     expect(synchronized.parameter.fieldBonus).toBe(10);
     expect(changedKeys(before)).toEqual([]);
@@ -86,7 +96,7 @@ describe("ranking shared-storage contract with the pinned upstream tool", () => 
     expect(localStorage.getItem(unrelatedKey)).toBe(before[unrelatedKey]);
   });
 
-  it("writes only the working individual when editing a comparison", () => {
+  it("keeps comparison edits local without writing upstream storage", () => {
     const state = seededState();
     const before = storageSnapshot();
     const write = vi.spyOn(Storage.prototype, "setItem");
@@ -98,13 +108,13 @@ describe("ranking shared-storage contract with the pinned upstream tool", () => 
     });
 
     expect(next.pokemonIv.pokemonName).toBe("Pikachu");
-    expect(changedKeys(before)).toEqual([individualKey]);
-    expect(write.mock.calls.map(([key]) => key)).toEqual([individualKey]);
+    expect(changedKeys(before)).toEqual([]);
+    expect(write).not.toHaveBeenCalled();
     expect(localStorage.getItem(boxKey)).toBe(before[boxKey]);
     expect(localStorage.getItem(environmentKey)).toBe(before[environmentKey]);
   });
 
-  it("writes only the working-state tab index when switching the comparison dialog tab", () => {
+  it("keeps the comparison dialog tab local", () => {
     const state = seededState();
     const before = storageSnapshot();
     const write = vi.spyOn(Storage.prototype, "setItem");
@@ -115,8 +125,8 @@ describe("ranking shared-storage contract with the pinned upstream tool", () => 
     });
 
     expect(next.lowerTabIndex).toBe(1);
-    expect(changedKeys(before)).toEqual([individualKey]);
-    expect(write.mock.calls.map(([key]) => key)).toEqual([individualKey]);
+    expect(changedKeys(before)).toEqual([]);
+    expect(write).not.toHaveBeenCalled();
     expect(localStorage.getItem(boxKey)).toBe(before[boxKey]);
   });
 
@@ -137,9 +147,22 @@ describe("ranking shared-storage contract with the pinned upstream tool", () => 
     expect(write).not.toHaveBeenCalled();
   });
 
+  it("ignores box mutation actions from the ranking editor", () => {
+    const state = seededState();
+    const before = storageSnapshot();
+    const write = vi.spyOn(Storage.prototype, "setItem");
+    const next = rankingWorkspaceViewReducer(state, {
+      type: "addThis",
+      payload: { iv: new PokemonIv({ pokemonName: "Pikachu" }) },
+    });
+    expect(next).toBe(state);
+    expect(changedKeys(before)).toEqual([]);
+    expect(write).not.toHaveBeenCalled();
+  });
+
   it("tracks the pinned upstream storage schemas used at this boundary", () => {
     const state = seededState();
-    rankingWorkspaceViewReducer(state, {
+    ivStateReducer(state, {
       type: "updateIv",
       payload: { iv: state.pokemonIv },
     });
