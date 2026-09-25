@@ -12,12 +12,12 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { orderUpstreamBoxItems } from "../../../integration/upstreamBoxOrdering";
 import { getUpstreamDataStatus } from "../../../integration/upstreamDataPack";
-import { loadUpstreamRankingInputs } from "../../../integration/upstreamRankingInputs";
-import type { RankingScenarioStorage } from "../application/RankingScenarioPersistence";
 import {
-  preserveRankingIndividualSettings,
-  rankingWorkspaceViewReducer,
-} from "../application/RankingWorkspaceState";
+  loadUpstreamRankingInputs,
+  readUpstreamIvStorageRaw,
+} from "../../../integration/upstreamRankingInputs";
+import type { RankingScenarioStorage } from "../application/RankingScenarioPersistence";
+import { rankingWorkspaceViewReducer } from "../application/RankingWorkspaceState";
 import { createRankingEnvironment } from "../domain/RankingScenario";
 import { type IvAction, IvForm, RateNotFixedPanel } from "../upstreamUi";
 import RankingScenarioView from "./RankingScenarioView";
@@ -34,6 +34,8 @@ const RankingWorkspace = React.memo(
     onEditEnvironment: () => void;
   }) => {
     const initial = React.useMemo(() => loadUpstreamRankingInputs(), []);
+    const previousIvStorageRaw = React.useRef(initial.ivStorageRaw);
+    const nativeIvSaved = React.useRef(false);
     const [state, dispatch] = React.useReducer(
       rankingWorkspaceViewReducer,
       initial.state,
@@ -49,7 +51,10 @@ const RankingWorkspace = React.memo(
     );
     // biome-ignore lint/correctness/useExhaustiveDependencies: the revision explicitly requests a fresh upstream snapshot
     React.useEffect(() => {
-      const latest = loadUpstreamRankingInputs();
+      if (readUpstreamIvStorageRaw() !== previousIvStorageRaw.current)
+        nativeIvSaved.current = true;
+      const latest = loadUpstreamRankingInputs(nativeIvSaved.current);
+      previousIvStorageRaw.current = latest.ivStorageRaw;
       dispatch({ type: "syncUpstream", payload: latest.state });
       setEnvironmentKey(latest.environmentKey);
       setUnsupportedEvent(latest.unsupportedEvent);
@@ -84,12 +89,9 @@ const RankingWorkspace = React.memo(
     const onPokemonIvChange = React.useCallback((value: PokemonIv) => {
       dispatch({ type: "updateIv", payload: { iv: value } });
     }, []);
-    const individualDispatch = React.useCallback(
-      (action: IvAction) => {
-        dispatch(preserveRankingIndividualSettings(action, state.parameter));
-      },
-      [state.parameter],
-    );
+    const individualDispatch = React.useCallback((action: IvAction) => {
+      dispatch(action);
+    }, []);
 
     return (
       <>

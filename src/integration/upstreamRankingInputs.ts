@@ -1,6 +1,7 @@
 import { getInitialIvState } from "@upstream/ui/IvCalc/IvState";
 import PokemonBox from "@upstream/util/PokemonBox";
 import { loadBoxSortConfig } from "@upstream/util/PokemonBoxSort";
+import PokemonIv from "@upstream/util/PokemonIv";
 import { loadStrengthParameter } from "@upstream/util/StrengthParameter";
 import { isUpstreamEventSupported } from "./upstreamDataPack";
 
@@ -10,6 +11,11 @@ export interface UpstreamRankingInputs {
   rawEvent: string | null;
   unsupportedEvent: string | null;
   boxSortConfig: ReturnType<typeof loadBoxSortConfig>;
+  ivStorageRaw: string | null;
+}
+
+export function readUpstreamIvStorageRaw(): string | null {
+  return window.localStorage.getItem("PstIvState");
 }
 
 function stableValue(value: unknown): unknown {
@@ -41,8 +47,23 @@ export function readRawRankingEnvironment(
 }
 
 /** Load a fresh, read-only snapshot from the upstream tool's own storage. */
-export function loadUpstreamRankingInputs(): UpstreamRankingInputs {
+export function loadUpstreamRankingInputs(
+  preferStoredIv = false,
+): UpstreamRankingInputs {
   const state = getInitialIvState();
+  const ivStorageRaw = readUpstreamIvStorageRaw();
+  // Upstream applies the shared URL hash on every getInitialIvState() call.
+  // Once native UI has saved an IV, its storage value is authoritative.
+  if (preferStoredIv) {
+    const cache: unknown =
+      ivStorageRaw === null ? null : JSON.parse(ivStorageRaw);
+    if (typeof cache === "object" && cache !== null && !Array.isArray(cache)) {
+      const savedIv = (cache as Record<string, unknown>).iv;
+      if (typeof savedIv === "string" && savedIv !== "") {
+        state.pokemonIv = PokemonIv.deserialize(savedIv);
+      }
+    }
+  }
   const box = new PokemonBox();
   box.load();
   const rawEnvironment = readRawRankingEnvironment(
@@ -51,6 +72,7 @@ export function loadUpstreamRankingInputs(): UpstreamRankingInputs {
   return {
     state: { ...state, parameter: loadStrengthParameter(), box },
     boxSortConfig: loadBoxSortConfig(),
+    ivStorageRaw,
     ...rawEnvironment,
     unsupportedEvent: isUpstreamEventSupported(rawEnvironment.rawEvent)
       ? null

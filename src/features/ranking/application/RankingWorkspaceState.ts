@@ -1,12 +1,7 @@
 import {
-  normalizeStrengthParameter,
-  type StrengthParameter,
-  saveStrengthParameter,
-} from "@upstream/util/PokemonStrength";
-import {
   type IvAction,
   type IvState,
-  ivStateReducer,
+  normalizeState,
 } from "../../../integration/upstreamIvState";
 import { cloneRankingEnvironment } from "../workspace/useRankingScenario";
 
@@ -16,42 +11,26 @@ export function rankingWorkspaceReducer(
   action: IvAction,
 ): IvState {
   if (action.type === "changeParameter") {
-    // Upstream normalizes Cresselia's team using the selected IV. In this
-    // workspace the same environment evaluates many species, so only shared
-    // field/event normalization applies to an explicit environment edit.
-    const parameter = normalizeStrengthParameter(
-      cloneRankingEnvironment(action.payload.parameter),
-    );
-    saveStrengthParameter(parameter);
-    return { ...state, parameter };
+    // IvForm's frequency dialog offers temporary previews. Shared conditions
+    // are edited in upstream's own UI, not saved from the ranking workspace.
+    return state;
   }
-  // Upstream normalizeState can mutate berryBurstTeam in place. Isolate its
-  // scratch parameter, retain its IV/box/cache behavior, then restore the
-  // shared environment (and its identity) for all individual-only actions.
-  const next = ivStateReducer(
-    { ...state, parameter: cloneRankingEnvironment(state.parameter) },
-    action,
-  );
-  return { ...next, parameter: state.parameter };
-}
-
-/** Preserve the shared ranking environment while editing one comparison IV. */
-export function preserveRankingIndividualSettings(
-  action: IvAction,
-  parameter: StrengthParameter,
-): IvAction {
-  if (action.type !== "changeParameter") return action;
-  return {
-    ...action,
-    payload: {
-      parameter: {
-        ...action.payload.parameter,
-        level: parameter.level,
-        evolved: parameter.evolved,
-        maxSkillLevel: parameter.maxSkillLevel,
-      },
-    },
-  };
+  if (action.type === "updateIv") {
+    // Keep upstream IV normalization, but do not invoke its storage-writing
+    // reducer. Its parameter normalization can mutate nested team settings.
+    const next = normalizeState({
+      ...state,
+      parameter: cloneRankingEnvironment(state.parameter),
+      pokemonIv: action.payload.iv,
+    });
+    return { ...next, parameter: state.parameter };
+  }
+  if (action.type === "changeLowerTab") {
+    return { ...state, lowerTabIndex: action.payload.index };
+  }
+  // The ranking editor is read-only with respect to the upstream box and
+  // unsupported upstream actions must not acquire future storage effects.
+  return state;
 }
 
 export type RankingWorkspaceAction =
@@ -67,6 +46,7 @@ export function rankingWorkspaceViewReducer(
   if (action.type === "syncUpstream") {
     return {
       ...state,
+      pokemonIv: action.payload.pokemonIv,
       parameter: action.payload.parameter,
       box: action.payload.box,
       selectedItemId: -1,

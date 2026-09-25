@@ -13,7 +13,30 @@ import {
 } from "./upstreamRankingInputs";
 
 describe("loadUpstreamRankingInputs", () => {
-  beforeEach(() => localStorage.clear());
+  beforeEach(() => {
+    localStorage.clear();
+    window.location.hash = "";
+  });
+
+  it("uses a newer native IV save instead of a stale shared URL hash", () => {
+    const sharedIv = new PokemonIv({ pokemonName: "Venusaur" });
+    const editedIv = new PokemonIv({ pokemonName: "Pikachu" });
+    window.location.hash = `#p=${sharedIv.serialize()}`;
+
+    const initial = loadUpstreamRankingInputs();
+    expect(initial.state.pokemonIv.pokemonName).toBe("Venusaur");
+
+    localStorage.setItem(
+      "PstIvState",
+      JSON.stringify({ iv: editedIv.serialize() }),
+    );
+    const refreshed = loadUpstreamRankingInputs(true);
+    expect(refreshed.state.pokemonIv.pokemonName).toBe("Pikachu");
+    expect(refreshed.ivStorageRaw).toBe(localStorage.getItem("PstIvState"));
+    expect(loadUpstreamRankingInputs(true).state.pokemonIv.pokemonName).toBe(
+      "Pikachu",
+    );
+  });
 
   it("reads fresh upstream environment and box snapshots without writing", () => {
     saveStrengthParameter(createStrengthParameter({ fieldBonus: 10 }));
