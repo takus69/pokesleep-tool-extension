@@ -46,7 +46,7 @@ JavaScriptなどの実行コードを外部からダウンロードして実行�
 
 - Google Chrome
 - Microsoft Edge
-- Windows／macOS
+- Windowsで動作確認済み（macOSは未検証）
 - 対象サイト: [個体値計算機 for ポケモンスリープ](https://nitoyon.github.io/pokesleep-tool/iv/index.ja.html)
 
 #### 非公式プロジェクトについて
