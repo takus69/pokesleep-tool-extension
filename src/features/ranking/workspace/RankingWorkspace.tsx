@@ -12,7 +12,10 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { orderUpstreamBoxItems } from "../../../integration/upstreamBoxOrdering";
 import { getUpstreamDataStatus } from "../../../integration/upstreamDataPack";
-import { loadUpstreamRankingInputs } from "../../../integration/upstreamRankingInputs";
+import {
+  loadUpstreamRankingInputs,
+  readUpstreamIvStorageRaw,
+} from "../../../integration/upstreamRankingInputs";
 import type { RankingScenarioStorage } from "../application/RankingScenarioPersistence";
 import {
   preserveRankingIndividualSettings,
@@ -34,6 +37,8 @@ const RankingWorkspace = React.memo(
     onEditEnvironment: () => void;
   }) => {
     const initial = React.useMemo(() => loadUpstreamRankingInputs(), []);
+    const previousIvStorageRaw = React.useRef(initial.ivStorageRaw);
+    const nativeIvSaved = React.useRef(false);
     const [state, dispatch] = React.useReducer(
       rankingWorkspaceViewReducer,
       initial.state,
@@ -49,7 +54,10 @@ const RankingWorkspace = React.memo(
     );
     // biome-ignore lint/correctness/useExhaustiveDependencies: the revision explicitly requests a fresh upstream snapshot
     React.useEffect(() => {
-      const latest = loadUpstreamRankingInputs();
+      if (readUpstreamIvStorageRaw() !== previousIvStorageRaw.current)
+        nativeIvSaved.current = true;
+      const latest = loadUpstreamRankingInputs(nativeIvSaved.current);
+      previousIvStorageRaw.current = latest.ivStorageRaw;
       dispatch({ type: "syncUpstream", payload: latest.state });
       setEnvironmentKey(latest.environmentKey);
       setUnsupportedEvent(latest.unsupportedEvent);
