@@ -4,7 +4,7 @@
 
 ## 利用する
 
-現在はストア公開前の受入確認版です。[ローカルインストール手順](docs/local-installation.md)で `dist` を読み込み、[利用者向けマニュアル](docs/user-manual.md)に沿って利用できます。
+現在はストア公開前の受入確認版です。初回は`v0.1.0`のβ版として公開予定です。[ローカルインストール手順](docs/local-installation.md)で `dist` を読み込み、[利用者向けマニュアル](docs/user-manual.md)に沿って利用できます。
 
 ## 現在の範囲
 
