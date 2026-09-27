@@ -114,6 +114,6 @@ Chromeの小型紹介画像と実画面スクリーンショットは必須、Ed
 - [x] プライバシー方針とサポートURLが認証なしのHTTP GETで開ける
 - [x] 両ストアの公開ドキュメントで、画像要件と掲載・プライバシー入力欄を照合
 - [ ] 提出時の各ストア管理画面で必須項目、画像要件、データ利用申告を再確認
-- [ ] 元ツール作者への拡張公開に関する確認とライセンス監査を別途完了
+- [ ] 配布物の出典・ライセンス表示と掲載素材をライセンス監査に照らして確認
 
 画像寸法と提出項目は[Chrome Web Storeの画像ガイド](https://developer.chrome.com/docs/webstore/images)、[掲載情報ガイド](https://developer.chrome.com/docs/webstore/cws-dashboard-listing)、[Edge Add-onsの提出手順](https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/publish-extension)を参照。ストアの管理画面に更新があれば、提出時点の表示を優先します。
