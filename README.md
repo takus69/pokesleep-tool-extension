@@ -1,4 +1,4 @@
-# Pokémon Sleep Tool Extension Suite
+# 個体値計算機 for ポケモンスリープ 拡張（非公式）
 
 既存の [Pokémon Sleep Tool](https://nitoyon.github.io/pokesleep-tool/) に、ランキングなどの任意機能を追加するChrome／Edge向けManifest V3拡張です。ランキング独自実装の正本はこのリポジトリです。
 
