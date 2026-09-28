@@ -18,7 +18,7 @@ assert.equal(manifest.name, "__MSG_extensionName__");
 assert.equal(manifest.description, "__MSG_extensionDescription__");
 assert.equal(
   japaneseMessages.extensionName?.message,
-  "Pokémon Sleep Tool Extension Suite",
+  "個体値計算機 for ポケモンスリープ 拡張（非公式）",
 );
 assert.equal(
   japaneseMessages.extensionDescription?.message,
