@@ -36,9 +36,19 @@ import RankingScenarioOptions, {
 import RankingScenarioResults from "../ui/RankingScenarioResults";
 import { IngredientIcon, type IvState } from "../upstreamUi";
 import DynamicRankingPokemonSelect from "./DynamicRankingPokemonSelect";
+import {
+  getRankingResultSubjects,
+  type RankingResultSubject,
+} from "./RankingResultSubject";
 import useRankingScenario from "./useRankingScenario";
 
 const key = (value: string) => `ranking.scenario.${value}`;
+const subjectTranslationKeys: Record<RankingResultSubject["kind"], string> = {
+  pokemon: "pokemons",
+  berry: "types",
+  skill: "skills",
+  ingredient: "ingredients",
+};
 const metricKeys: Record<RankingScenarioMetric, string> = {
   specificIngredientCount: "ranking target specific ingredient count",
   ingredientStrength: "ranking target ingredient strength",
@@ -353,14 +363,15 @@ export default function RankingScenarioView({
               {t(key(`purpose ${ranking.snapshot.config.purpose}`))}
             </Typography>
             <Typography variant="body2">
-              {ranking.snapshot.config.pokemonName &&
-                t(`pokemons.${ranking.snapshot.config.pokemonName}`)}
-              {ranking.snapshot.config.berry &&
-                t(`types.${ranking.snapshot.config.berry}`)}
-              {ranking.snapshot.config.skill &&
-                t(`skills.${ranking.snapshot.config.skill}.name`)}
-              {ranking.snapshot.config.ingredient &&
-                ` · ${t(`ingredients.${ranking.snapshot.config.ingredient}`)}`}
+              {getRankingResultSubjects(ranking.snapshot.config)
+                .map(({ kind, value }) =>
+                  t(
+                    kind === "skill"
+                      ? `skills.${value}.name`
+                      : `${subjectTranslationKeys[kind]}.${value}`,
+                  ),
+                )
+                .join(" · ")}
             </Typography>
             <RankingOptionSummary config={ranking.snapshot.config} />
             <RankingEnvironmentSummary
