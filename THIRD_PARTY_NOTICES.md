@@ -3,7 +3,7 @@
 本リポジトリは `nitoyon/pokesleep-tool` を固定commitのGit submoduleとして参照し、必要な型、計算部品、データ、React/MUI画面部品を配布用bundleへ含めます。上流READMEにはライセンスがMITと記載されています。固定commitに独立したLICENSEファイルはありません。上流の著作権表示・許諾本文に関する確認状況は [ライセンス監査](docs/license-audit.md) に記載します。
 
 - Upstream: https://github.com/nitoyon/pokesleep-tool
-- Pinned commit: `ff2aaade69772789fb921462aec961deab303f8e`
+- Pinned commit: `0dc4525b09a979582e9c1c5a3e10d4d65d0ad9d4`
 - Upstream license statement: `README.md` の `## License` に `MIT`
 - Separate upstream LICENSE file: 固定commitにはなし
 

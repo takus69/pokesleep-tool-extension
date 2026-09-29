@@ -104,7 +104,9 @@ export default function RankingPokemonDetailDialog({
           <Tab label={t("rating")} value={2} />
         </Tabs>
         <Box sx={{ position: "relative", minHeight: tab === 1 ? 190 : 400 }}>
-          {tab === 0 && <RpView state={state} width={width} />}
+          {tab === 0 && (
+            <RpView state={state} width={width} dispatch={dispatch} />
+          )}
           {tab === 1 && (
             <StrengthBerryIngSkillView
               pokemonIv={state.pokemonIv}

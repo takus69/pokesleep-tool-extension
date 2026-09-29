@@ -7,7 +7,7 @@
 | 対象 | 確認できた根拠 | 現在の扱い |
 |---|---|---|
 | 拡張の独自コード・文書 | ルートの `LICENSE` | `takus69` のMITライセンス。元ツールの著作権をこの表示に含めない。 |
-| 公式元ツールのコード・データ・画面部品 | 固定commit `ff2aaade69772789fb921462aec961deab303f8e` の `README.md` は `## License` に `MIT` と記載 | `vendor/pokesleep-tool` を読み取り専用のsubmoduleとして参照し、必要な部分をbundleへ含める。固定commitに独立したLICENSE本文はない。出典と確認できたライセンス表示を `THIRD_PARTY_NOTICES.md` に記載する。 |
+| 公式元ツールのコード・データ・画面部品 | 固定commit `0dc4525b09a979582e9c1c5a3e10d4d65d0ad9d4` の `README.md` は `## License` に `MIT` と記載 | `vendor/pokesleep-tool` を読み取り専用のsubmoduleとして参照し、必要な部分をbundleへ含める。固定commitに独立したLICENSE本文はない。出典と確認できたライセンス表示を `THIRD_PARTY_NOTICES.md` に記載する。 |
 | 元ツール内の一部アイコン | `vendor/pokesleep-tool/src/ui/Resources` の24ファイルの先頭に、制作者・年とMIT本文を明記 | `THIRD_PARTY_NOTICES.md` に個別表示を収録する。 |
 | 旧forkから移した独自ランキング | 旧fork commit `42b0c4ae34c168ba8d6fbb3329d3426a452beb80` と `THIRD_PARTY_NOTICES.md` | 独自変更部分と上流由来部分の帰属を混同しない。旧forkは実行時の依存ではない。 |
 | bundle内のnpm依存 | ビルドのmodule一覧から40パッケージを特定。インストール済みの版ではMIT 38件、BSD-3-Clause 2件 | `THIRD_PARTY_PACKAGE_LICENSES.md` をビルド時に生成し、各パッケージの許諾ファイルを収録する。ライセンス表記か本文がない場合はビルドを失敗させる。更新時に再監査する。 |
