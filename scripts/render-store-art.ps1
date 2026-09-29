@@ -59,6 +59,31 @@ try {
   $background.Dispose()
   $canvas.Graphics.Dispose()
   $canvas.Bitmap.Dispose()
+
+  $canvas = New-Canvas 1400 560
+  $rect = [System.Drawing.RectangleF]::new(0, 0, 1400, 560)
+  $background = [System.Drawing.Drawing2D.LinearGradientBrush]::new(
+    $rect,
+    [System.Drawing.ColorTranslator]::FromHtml('#0b315e'),
+    [System.Drawing.ColorTranslator]::FromHtml('#0e618f'),
+    30
+  )
+  $canvas.Graphics.FillRectangle($background, $rect)
+  $canvas.Graphics.DrawImage($master, 920, 80, 400, 400)
+  $fontTitle = [System.Drawing.Font]::new('Arial', 72, [System.Drawing.FontStyle]::Bold)
+  $fontSubtitle = [System.Drawing.Font]::new('Arial', 46)
+  $white = [System.Drawing.SolidBrush]::new([System.Drawing.Color]::White)
+  $ice = [System.Drawing.SolidBrush]::new([System.Drawing.ColorTranslator]::FromHtml('#c7f0ff'))
+  $canvas.Graphics.DrawString('Sleep Tool', $fontTitle, $white, 90, 170)
+  $canvas.Graphics.DrawString('Extension Suite', $fontSubtitle, $ice, 96, 278)
+  $canvas.Bitmap.Save((Join-Path $storeAssets 'promo-large-1400x560.png'), [System.Drawing.Imaging.ImageFormat]::Png)
+  $ice.Dispose()
+  $white.Dispose()
+  $fontSubtitle.Dispose()
+  $fontTitle.Dispose()
+  $background.Dispose()
+  $canvas.Graphics.Dispose()
+  $canvas.Bitmap.Dispose()
 } finally {
   $master.Dispose()
 }

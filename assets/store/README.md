@@ -8,6 +8,7 @@
 | `../../public/icons/icon-128.png` | 拡張ZIP内のChromeアイコン | 128×128、周囲16px透明 |
 | `edge-logo-300.png` | Edge Add-ons掲載ロゴ | 300×300 |
 | `promo-small-440x280.png` | Chrome Web Storeの小型紹介画像、Edgeの任意紹介画像 | 440×280 |
+| `promo-large-1400x560.png` | Edge Add-onsの大型紹介画像 | 1400×560 |
 
 16px・48pxの拡張アイコンも同じスクリプトで生成し、`public/icons/`へ置きます。`npm run test:store-assets`でPNG寸法とmanifestの参照を確認します。生成時の指示は「提示された月・王冠・リングの正方形アイコンを単独化し、黄色い月、水色の王冠、青い背景を維持。リングを王冠の背後へ通し、小さな点を減らす。文字や追加の記号は入れない」です。
 
