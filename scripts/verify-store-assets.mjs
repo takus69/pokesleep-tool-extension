@@ -43,6 +43,7 @@ for (const size of [16, 48, 128]) {
 }
 await checkPng("assets/store/edge-logo-300.png", 300, 300);
 await checkPng("assets/store/promo-small-440x280.png", 440, 280);
+await checkPng("assets/store/promo-large-1400x560.png", 1400, 560);
 await checkPng("assets/store/screenshots/source/01-ranking-2x.png", 2560, 1600);
 await checkPng("assets/store/screenshots/01-ranking.png", 1280, 800);
 console.log("Store asset dimensions and manifest paths verified.");
