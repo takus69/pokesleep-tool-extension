@@ -1,12 +1,19 @@
+import PokemonIv from "@upstream/util/PokemonIv";
+import {
+  type StrengthParameter,
+  serializeStrengthParameter,
+} from "@upstream/util/StrengthParameter";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   loadRankingScenarioSettings,
+  type RankingScenarioStorage,
+  saveRankingScenarioSettings,
+} from "../application/RankingScenarioPersistence";
+import {
   normalizeRankingScenarioConfig,
   resetRankingScenarioSettings,
-  saveRankingScenarioSettings,
   serializeRankingScenarioConfig,
-} from "../../../../../pokesleep-tool/src/fork/RankingScenarioState";
-import PokemonIv from "../../../../../pokesleep-tool/src/util/PokemonIv";
+} from "../application/RankingScenarioState";
 import {
   calculateRankingScenarioAsync,
   createRankingEnvironment,
@@ -14,11 +21,7 @@ import {
   type RankingScenarioConfig,
   type RankingScenarioPurpose,
   type RankingScenarioResult,
-} from "../../../../../pokesleep-tool/src/util/RankingScenario";
-import {
-  type StrengthParameter,
-  serializeStrengthParameter,
-} from "../../../../../pokesleep-tool/src/util/StrengthParameter";
+} from "../domain/RankingScenario";
 
 export interface RankingScenarioSnapshot {
   config: RankingScenarioConfig;
@@ -46,11 +49,14 @@ export function cloneRankingEnvironment(
 
 /** One explicit run at a time; comparisons never share candidate fixed conditions. */
 export default function useRankingScenario(
+  storage: RankingScenarioStorage,
   environment: StrengthParameter,
   comparisonIv: PokemonIv | null,
   sourceEnvironmentKey?: string,
 ) {
-  const [settings, setSettings] = useState(loadRankingScenarioSettings);
+  const [settings, setSettings] = useState(() =>
+    loadRankingScenarioSettings(storage),
+  );
   const [result, setResult] = useState<RankingScenarioResult | null>(null);
   const [snapshot, setSnapshot] = useState<RankingScenarioSnapshot | null>(
     null,
@@ -74,8 +80,8 @@ export default function useRankingScenario(
   const runId = useRef(0);
 
   useEffect(() => {
-    saveRankingScenarioSettings(settings);
-  }, [settings]);
+    saveRankingScenarioSettings(storage, settings);
+  }, [settings, storage]);
   const cancel = useCallback(() => {
     if (activeRun.current === null) return;
     activeRun.current.controller.abort();

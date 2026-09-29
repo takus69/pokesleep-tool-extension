@@ -7,66 +7,58 @@ import {
   Tab,
   Tabs,
 } from "@mui/material";
+import type PokemonIv from "@upstream/util/PokemonIv";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { preserveRankingIndividualSettings } from "../../../../../pokesleep-tool/src/fork/RankingEnvironmentForm";
-import { rankingWorkspaceReducer } from "../../../../../pokesleep-tool/src/fork/RankingWorkspaceState";
-import IvForm from "../../../../../pokesleep-tool/src/ui/IvCalc/IvForm/IvForm";
-import type IvState from "../../../../../pokesleep-tool/src/ui/IvCalc/IvState";
-import type { IvAction } from "../../../../../pokesleep-tool/src/ui/IvCalc/IvState";
-import RateNotFixedPanel from "../../../../../pokesleep-tool/src/ui/IvCalc/RateNotFixedPanel";
-import type PokemonIv from "../../../../../pokesleep-tool/src/util/PokemonIv";
-import { createRankingEnvironment } from "../../../../../pokesleep-tool/src/util/RankingScenario";
+import { orderUpstreamBoxItems } from "../../../integration/upstreamBoxOrdering";
 import { getUpstreamDataStatus } from "../../../integration/upstreamDataPack";
-import { loadUpstreamRankingInputs } from "../../../integration/upstreamRankingInputs";
+import {
+  loadUpstreamRankingInputs,
+  readUpstreamIvStorageRaw,
+} from "../../../integration/upstreamRankingInputs";
+import type { RankingScenarioStorage } from "../application/RankingScenarioPersistence";
+import { rankingWorkspaceViewReducer } from "../application/RankingWorkspaceState";
+import { createRankingEnvironment } from "../domain/RankingScenario";
+import { type IvAction, IvForm, RateNotFixedPanel } from "../upstreamUi";
 import RankingScenarioView from "./RankingScenarioView";
 import ReadOnlyComparisonBoxPanel from "./ReadOnlyComparisonBoxPanel";
 
-type WorkspaceAction =
-  | IvAction
-  | { type: "syncUpstream"; payload: IvState }
-  | { type: "selectComparison"; payload: { id: number } };
-
-function extensionReducer(state: IvState, action: WorkspaceAction): IvState {
-  if (action.type === "syncUpstream") {
-    return {
-      ...state,
-      parameter: action.payload.parameter,
-      box: action.payload.box,
-      selectedItemId: -1,
-    };
-  }
-  if (action.type === "selectComparison") {
-    const item = state.box.getById(action.payload.id);
-    return item === null
-      ? state
-      : { ...state, pokemonIv: item.iv, selectedItemId: item.id };
-  }
-  return rankingWorkspaceReducer(state, action);
-}
-
 const RankingWorkspace = React.memo(
   ({
+    rankingScenarioStorage,
     refreshRevision,
     onEditEnvironment,
   }: {
+    rankingScenarioStorage: RankingScenarioStorage;
     refreshRevision: number;
     onEditEnvironment: () => void;
   }) => {
     const initial = React.useMemo(() => loadUpstreamRankingInputs(), []);
-    const [state, dispatch] = React.useReducer(extensionReducer, initial.state);
+    const previousIvStorageRaw = React.useRef(initial.ivStorageRaw);
+    const nativeIvSaved = React.useRef(false);
+    const [state, dispatch] = React.useReducer(
+      rankingWorkspaceViewReducer,
+      initial.state,
+    );
     const [environmentKey, setEnvironmentKey] = React.useState(
       initial.environmentKey,
     );
     const [unsupportedEvent, setUnsupportedEvent] = React.useState(
       initial.unsupportedEvent,
     );
+    const [boxSortConfig, setBoxSortConfig] = React.useState(
+      initial.boxSortConfig,
+    );
     // biome-ignore lint/correctness/useExhaustiveDependencies: the revision explicitly requests a fresh upstream snapshot
     React.useEffect(() => {
-      const latest = loadUpstreamRankingInputs();
+      if (readUpstreamIvStorageRaw() !== previousIvStorageRaw.current)
+        nativeIvSaved.current = true;
+      const latest = loadUpstreamRankingInputs(nativeIvSaved.current);
+      previousIvStorageRaw.current = latest.ivStorageRaw;
       dispatch({ type: "syncUpstream", payload: latest.state });
       setEnvironmentKey(latest.environmentKey);
       setUnsupportedEvent(latest.unsupportedEvent);
+      setBoxSortConfig(latest.boxSortConfig);
     }, [refreshRevision]);
     const [comparisonIv, setComparisonIv] = React.useState<PokemonIv | null>(
       null,
@@ -74,20 +66,37 @@ const RankingWorkspace = React.memo(
     const [comparisonEditorOpen, setComparisonEditorOpen] =
       React.useState(false);
     const { t } = useTranslation();
+    const orderedBox = React.useMemo(
+      () =>
+        comparisonEditorOpen && state.lowerTabIndex === 1
+          ? orderUpstreamBoxItems(
+              state.box.items,
+              boxSortConfig,
+              state.parameter,
+              t,
+            )
+          : { ok: true as const, items: [], emptyMessage: "" },
+      [
+        comparisonEditorOpen,
+        state.lowerTabIndex,
+        state.box.items,
+        boxSortConfig,
+        state.parameter,
+        t,
+      ],
+    );
 
     const onPokemonIvChange = React.useCallback((value: PokemonIv) => {
       dispatch({ type: "updateIv", payload: { iv: value } });
     }, []);
-    const individualDispatch = React.useCallback(
-      (action: IvAction) => {
-        dispatch(preserveRankingIndividualSettings(action, state.parameter));
-      },
-      [state.parameter],
-    );
+    const individualDispatch = React.useCallback((action: IvAction) => {
+      dispatch(action);
+    }, []);
 
     return (
       <>
         <RankingScenarioView
+          storage={rankingScenarioStorage}
           state={state}
           environmentKey={environmentKey}
           unsupportedEvent={unsupportedEvent}
@@ -128,7 +137,7 @@ const RankingWorkspace = React.memo(
           }}
         >
           <DialogTitle>
-            {t(comparisonIv ? "fork.scenario.comparison" : "pokemon")}
+            {t(comparisonIv ? "ranking.scenario.comparison" : "pokemon")}
           </DialogTitle>
           <DialogContent
             sx={
@@ -160,7 +169,7 @@ const RankingWorkspace = React.memo(
             </Tabs>
             {state.lowerTabIndex !== 1 ? (
               <>
-                <RateNotFixedPanel state={state} dispatch={dispatch} />
+                <RateNotFixedPanel state={state} />
                 <IvForm
                   parameter={createRankingEnvironment(state.parameter)}
                   pokemonIv={state.pokemonIv}
@@ -170,7 +179,10 @@ const RankingWorkspace = React.memo(
               </>
             ) : (
               <ReadOnlyComparisonBoxPanel
-                items={state.box.items}
+                items={orderedBox.ok ? orderedBox.items : []}
+                emptyMessage={
+                  orderedBox.ok ? orderedBox.emptyMessage : orderedBox.message
+                }
                 selectedId={state.selectedItemId}
                 onSelect={(id) =>
                   dispatch({ type: "selectComparison", payload: { id } })
@@ -181,12 +193,13 @@ const RankingWorkspace = React.memo(
           <DialogActions>
             <Button
               variant="contained"
+              disabled={state.lowerTabIndex === 1 && !orderedBox.ok}
               onClick={() => {
                 setComparisonIv(state.pokemonIv);
                 setComparisonEditorOpen(false);
               }}
             >
-              {t("fork.scenario.set comparison")}
+              {t("ranking.scenario.set comparison")}
             </Button>
             <Button onClick={() => setComparisonEditorOpen(false)}>
               {t("close")}

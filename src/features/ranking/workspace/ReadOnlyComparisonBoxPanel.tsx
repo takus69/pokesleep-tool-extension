@@ -1,15 +1,17 @@
 import { ButtonBase, Typography } from "@mui/material";
 import { styled } from "@mui/system";
+import type { PokemonBoxItem } from "@upstream/util/PokemonBox";
 import { useTranslation } from "react-i18next";
-import PokemonIcon from "../../../../../pokesleep-tool/src/ui/IvCalc/PokemonIcon";
-import type { PokemonBoxItem } from "../../../../../pokesleep-tool/src/util/PokemonBox";
+import { PokemonIcon } from "../upstreamUi";
 
 export default function ReadOnlyComparisonBoxPanel({
   items,
+  emptyMessage,
   selectedId,
   onSelect,
 }: {
   items: readonly PokemonBoxItem[];
+  emptyMessage: string;
   selectedId: number;
   onSelect: (id: number) => void;
 }) {
@@ -17,7 +19,7 @@ export default function ReadOnlyComparisonBoxPanel({
   if (items.length === 0) {
     return (
       <Typography color="text.secondary" sx={{ m: "5rem auto 0" }}>
-        {t("box is empty")}
+        {emptyMessage}
       </Typography>
     );
   }

@@ -1,19 +1,10 @@
-import events, {
-  BonusEventData,
-  DrowsyEventData,
-} from "../../../pokesleep-tool/src/data/events";
+import events, { BonusEventData, DrowsyEventData } from "@upstream/data/events";
 import pokemons, {
   IngredientNames,
   type PokemonData,
   PokemonTypes,
-} from "../../../pokesleep-tool/src/data/pokemons";
-import bundledEventJson from "../vendor/upstream-data/event.json";
-import bundledPokemonJson from "../vendor/upstream-data/pokemon.json";
+} from "@upstream/data/pokemons";
 
-const sourceBase =
-  "https://raw.githubusercontent.com/nitoyon/pokesleep-tool/main/src/data";
-const cacheKey = "upstream-data-pack.v1";
-const refreshClaimMessage = "claim-upstream-data-refresh";
 const bundledPokemonCount = pokemons.length;
 const supportedSkills = new Set([
   "Ingredient Magnet S",
@@ -53,6 +44,7 @@ const supportedSkills = new Set([
   "Cooking Assist S (Bulk Up)",
   "Versatile",
   "Berry Burst (Draco Meteor)",
+  "Berry Zone (Psystrike)",
 ]);
 const supportedForms = new Set([
   undefined,
@@ -105,6 +97,8 @@ const supportedEventEffectKeys = new Set([
   "potSize",
   "carryLimitAdd",
   "carryLimitMul",
+  "globalCarryLimitAdd",
+  "bigBerry",
   "fixedBerries",
   "fixedAreas",
 ]);
@@ -123,7 +117,9 @@ const supportedNumericEventEffects: Record<string, ReadonlySet<number>> = {
   potSize: new Set([1, 1.6, 2]),
   carryLimitAdd: new Set([0, 8, 15]),
   carryLimitMul: new Set([1, 1.5]),
+  globalCarryLimitAdd: new Set([0, 8, 15]),
 };
+const supportedBigBerryEvents = new Set(["", "mewtwo1", "mewtwo2"]);
 
 type JsonObject = Record<string, unknown>;
 
@@ -140,7 +136,8 @@ export interface ValidatedUpstreamDataPack {
   issues: UpstreamDataIssue[];
 }
 
-interface CachedUpstreamDataPack {
+export interface CachedUpstreamDataPack {
+  bundledCommit: string;
   checkedAt: number;
   pokemon: unknown;
   event: unknown;
@@ -288,6 +285,9 @@ function validateBonusEvent(
     } else if (key === "fixedAreas") {
       if (!Array.isArray(effect) || !effect.every(Number.isInteger))
         return "invalid fixed areas";
+    } else if (key === "bigBerry") {
+      if (!supportedBigBerryEvents.has(String(effect)))
+        return "unsupported big berry event";
     } else if (
       !finite(effect) ||
       !supportedNumericEventEffects[key]?.has(effect)
@@ -389,87 +389,17 @@ export function isUpstreamEventSupported(event: string | null): boolean {
   );
 }
 
-async function readCache(): Promise<CachedUpstreamDataPack | null> {
-  const stored = await chrome.storage.local.get(cacheKey);
-  const value = stored[cacheKey];
+export function decodeCachedUpstreamDataPack(
+  value: unknown,
+): CachedUpstreamDataPack | null {
   const candidate = object(value);
   if (
     candidate === null ||
+    typeof candidate.bundledCommit !== "string" ||
     !finite(candidate.checkedAt) ||
     candidate.pokemon === undefined ||
     candidate.event === undefined
   )
     return null;
   return candidate as unknown as CachedUpstreamDataPack;
-}
-
-async function fetchJson(file: string): Promise<unknown> {
-  const response = await fetch(`${sourceBase}/${file}`, {
-    cache: "no-cache",
-    signal: AbortSignal.timeout(5_000),
-  });
-  if (!response.ok) throw new Error(`${file}: HTTP ${response.status}`);
-  return response.json() as Promise<unknown>;
-}
-
-async function claimBrowserSessionRefresh(): Promise<boolean> {
-  try {
-    const response = await chrome.runtime.sendMessage({
-      type: refreshClaimMessage,
-    });
-    return response?.shouldRefresh === true;
-  } catch (cause) {
-    console.warn(
-      "[Pokémon Sleep Tool Extension] Could not determine browser-session refresh state",
-      cause,
-    );
-    return false;
-  }
-}
-
-export async function prepareUpstreamDataPack(
-  now = Date.now(),
-): Promise<UpstreamDataStatus> {
-  try {
-    applyUpstreamDataPack(
-      validateUpstreamDataPack(bundledPokemonJson, bundledEventJson),
-      "bundled",
-      0,
-    );
-  } catch (cause) {
-    console.error(
-      "[Pokémon Sleep Tool Extension] Bundled upstream data is invalid",
-      cause,
-    );
-  }
-  let cached: CachedUpstreamDataPack | null = null;
-  try {
-    cached = await readCache();
-    if (cached !== null) {
-      const pack = validateUpstreamDataPack(cached.pokemon, cached.event);
-      applyUpstreamDataPack(pack, "cached", cached.checkedAt);
-    }
-  } catch (cause) {
-    console.warn(
-      "[Pokémon Sleep Tool Extension] Cached data was ignored",
-      cause,
-    );
-  }
-  if (!(await claimBrowserSessionRefresh())) return currentStatus;
-  try {
-    const [pokemon, event] = await Promise.all([
-      fetchJson("pokemon.json"),
-      fetchJson("event.json"),
-    ]);
-    const pack = validateUpstreamDataPack(pokemon, event);
-    const value: CachedUpstreamDataPack = { checkedAt: now, pokemon, event };
-    await chrome.storage.local.set({ [cacheKey]: value });
-    return applyUpstreamDataPack(pack, "network", now);
-  } catch (cause) {
-    console.warn(
-      "[Pokémon Sleep Tool Extension] Latest upstream data was unavailable; bundled data remains active",
-      cause,
-    );
-    return currentStatus;
-  }
 }

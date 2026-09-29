@@ -1,10 +1,12 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import PokemonIv from "../../../pokesleep-tool/src/util/PokemonIv";
+import PokemonIv from "@upstream/util/PokemonIv";
+import PokemonStrength, {
+  createStrengthParameter,
+} from "@upstream/util/PokemonStrength";
+import { beforeEach, describe, expect, it } from "vitest";
 import eventJson from "../vendor/upstream-data/event.json";
 import pokemonJson from "../vendor/upstream-data/pokemon.json";
 import {
   applyUpstreamDataPack,
-  prepareUpstreamDataPack,
   validateUpstreamDataPack,
 } from "./upstreamDataPack";
 
@@ -16,16 +18,42 @@ describe("upstream data pack", () => {
     applyUpstreamDataPack(baseline, "bundled", 0);
   });
 
-  afterEach(() => vi.unstubAllGlobals());
-
   it("accepts and applies the synchronized upstream data", () => {
-    expect(baseline.issues).toContainEqual({
-      kind: "pokemon",
-      name: "Mewtwo",
-      reason: "unsupported main skill",
-    });
-    expect(baseline.issues).toHaveLength(1);
-    expect(baseline.pokemon).toHaveLength(pokemonJson.length - 1);
+    expect(baseline.issues).toEqual([]);
+    expect(baseline.pokemon).toHaveLength(pokemonJson.length);
+    expect(baseline.pokemon.some((pokemon) => pokemon.name === "Mewtwo")).toBe(
+      true,
+    );
+    expect(
+      baseline.bonus.filter((event) => event.name.startsWith("pursue mewtwo")),
+    ).toHaveLength(2);
+    expect(
+      baseline.bonus.find((event) => event.name === "pursue mewtwo 2nd week")
+        ?.effects.bigBerry,
+    ).toBe("mewtwo2");
+  });
+
+  it("uses upstream big-berry and skill calculations for the new event", () => {
+    const iv = new PokemonIv({ pokemonName: "Mewtwo", level: 60 });
+    const ordinary = new PokemonStrength(
+      iv,
+      createStrengthParameter({ event: "none" }),
+    ).calculate();
+    const event = new PokemonStrength(
+      iv,
+      createStrengthParameter({ event: "pursue mewtwo 2nd week" }),
+    ).calculate();
+    const firstWeek = new PokemonStrength(
+      iv,
+      createStrengthParameter({ event: "pursue mewtwo 1st week" }),
+    ).calculate();
+
+    expect(event.bigBerryStrength).toBeGreaterThan(0);
+    expect(event.bigBerryStrength).toBeGreaterThan(firstWeek.bigBerryStrength);
+    expect(event.berryTotalStrength).toBe(
+      event.berryStrength + event.bigBerryStrength,
+    );
+    expect(event.totalStrength).toBeGreaterThan(ordinary.totalStrength);
   });
 
   it("accepts a new Pokémon using only supported mechanics", () => {
@@ -66,59 +94,27 @@ describe("upstream data pack", () => {
     });
   });
 
+  it("excludes only an event with an unknown big-berry mechanic", () => {
+    const future = structuredClone(eventJson.bonus[0]);
+    future.name = "Future Big Berry";
+    future.effects.bigBerry = "future-event";
+    const pack = validateUpstreamDataPack(pokemonJson, {
+      ...eventJson,
+      bonus: [...eventJson.bonus, future],
+    });
+
+    expect(pack.bonus.some((event) => event.name === future.name)).toBe(false);
+    expect(pack.issues).toContainEqual({
+      kind: "event",
+      name: future.name,
+      reason: "unsupported big berry event",
+    });
+    expect(pack.bonus).toHaveLength(eventJson.bonus.length);
+  });
+
   it("rejects a truncated pack instead of replacing known data", () => {
     expect(() => validateUpstreamDataPack([], eventJson)).toThrow(
       "missing or truncated",
     );
-  });
-
-  it("fetches, validates, caches, and applies a network pack atomically", async () => {
-    const set = vi.fn();
-    vi.stubGlobal("chrome", {
-      runtime: {
-        sendMessage: vi.fn().mockResolvedValue({ shouldRefresh: true }),
-      },
-      storage: { local: { get: vi.fn().mockResolvedValue({}), set } },
-    });
-    vi.stubGlobal(
-      "fetch",
-      vi
-        .fn()
-        .mockResolvedValueOnce({ ok: true, json: async () => pokemonJson })
-        .mockResolvedValueOnce({ ok: true, json: async () => eventJson }),
-    );
-
-    const status = await prepareUpstreamDataPack(1234);
-
-    expect(status.source).toBe("network");
-    expect(status.pokemonCount).toBe(baseline.pokemon.length);
-    expect(set).toHaveBeenCalledOnce();
-  });
-
-  it("uses cached data without fetching again in the same browser session", async () => {
-    vi.stubGlobal("chrome", {
-      runtime: {
-        sendMessage: vi.fn().mockResolvedValue({ shouldRefresh: false }),
-      },
-      storage: {
-        local: {
-          get: vi.fn().mockResolvedValue({
-            "upstream-data-pack.v1": {
-              checkedAt: 1234,
-              pokemon: pokemonJson,
-              event: eventJson,
-            },
-          }),
-          set: vi.fn(),
-        },
-      },
-    });
-    const fetch = vi.fn();
-    vi.stubGlobal("fetch", fetch);
-
-    const status = await prepareUpstreamDataPack(5678);
-
-    expect(status.source).toBe("cached");
-    expect(fetch).not.toHaveBeenCalled();
   });
 });

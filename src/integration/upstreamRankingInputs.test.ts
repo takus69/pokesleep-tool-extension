@@ -1,18 +1,42 @@
 // @vitest-environment jsdom
-import { beforeEach, describe, expect, it } from "vitest";
-import PokemonBox from "../../../pokesleep-tool/src/util/PokemonBox";
-import PokemonIv from "../../../pokesleep-tool/src/util/PokemonIv";
+
+import PokemonBox from "@upstream/util/PokemonBox";
+import PokemonIv from "@upstream/util/PokemonIv";
 import {
   createStrengthParameter,
   saveStrengthParameter,
-} from "../../../pokesleep-tool/src/util/StrengthParameter";
+} from "@upstream/util/StrengthParameter";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
   loadUpstreamRankingInputs,
   readRawRankingEnvironment,
 } from "./upstreamRankingInputs";
 
 describe("loadUpstreamRankingInputs", () => {
-  beforeEach(() => localStorage.clear());
+  beforeEach(() => {
+    localStorage.clear();
+    window.location.hash = "";
+  });
+
+  it("uses a newer native IV save instead of a stale shared URL hash", () => {
+    const sharedIv = new PokemonIv({ pokemonName: "Venusaur" });
+    const editedIv = new PokemonIv({ pokemonName: "Pikachu" });
+    window.location.hash = `#p=${sharedIv.serialize()}`;
+
+    const initial = loadUpstreamRankingInputs();
+    expect(initial.state.pokemonIv.pokemonName).toBe("Venusaur");
+
+    localStorage.setItem(
+      "PstIvState",
+      JSON.stringify({ iv: editedIv.serialize() }),
+    );
+    const refreshed = loadUpstreamRankingInputs(true);
+    expect(refreshed.state.pokemonIv.pokemonName).toBe("Pikachu");
+    expect(refreshed.ivStorageRaw).toBe(localStorage.getItem("PstIvState"));
+    expect(loadUpstreamRankingInputs(true).state.pokemonIv.pokemonName).toBe(
+      "Pikachu",
+    );
+  });
 
   it("reads fresh upstream environment and box snapshots without writing", () => {
     saveStrengthParameter(createStrengthParameter({ fieldBonus: 10 }));
@@ -23,11 +47,16 @@ describe("loadUpstreamRankingInputs", () => {
     const first = loadUpstreamRankingInputs();
     expect(first.state.parameter.fieldBonus).toBe(10);
     expect(first.state.box.items[0]?.nickname).toBe("first");
+    expect(first.boxSortConfig.sort).toBe("level");
 
     saveStrengthParameter(createStrengthParameter({ fieldBonus: 25 }));
     const secondBox = new PokemonBox();
     secondBox.add(new PokemonIv({ pokemonName: "Pikachu" }), "latest");
     secondBox.save();
+    localStorage.setItem(
+      "PstPokemonBoxParam",
+      JSON.stringify({ sort: "name", descending: false }),
+    );
     const before = { ...localStorage };
 
     const second = loadUpstreamRankingInputs();
@@ -35,6 +64,8 @@ describe("loadUpstreamRankingInputs", () => {
     expect(second.state.parameter.fieldBonus).toBe(25);
     expect(second.state.box.items).toHaveLength(1);
     expect(second.state.box.items[0]?.nickname).toBe("latest");
+    expect(second.boxSortConfig.sort).toBe("name");
+    expect(second.boxSortConfig.descending).toBe(false);
     expect({ ...localStorage }).toEqual(before);
   });
 

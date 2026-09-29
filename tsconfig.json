@@ -10,7 +10,8 @@
       "react/*": ["./node_modules/@types/react/*"],
       "react-dom": ["./node_modules/@types/react-dom"],
       "react-dom/*": ["./node_modules/@types/react-dom/*"],
-      "react-spring": ["./node_modules/@react-spring/web"]
+      "react-spring": ["./node_modules/@react-spring/web"],
+      "@upstream/*": ["./vendor/pokesleep-tool/src/*"]
     },
     "jsx": "react-jsx",
     "resolveJsonModule": true,

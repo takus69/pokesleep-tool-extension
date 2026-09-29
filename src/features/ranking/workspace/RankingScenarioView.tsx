@@ -8,40 +8,47 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useTranslation } from "react-i18next";
 import {
   type IngredientName,
   IngredientNames,
   type PokemonType,
   PokemonTypes,
-} from "../../../../../pokesleep-tool/src/data/pokemons";
-import RankingScenarioOptions, {
-  RankingOptionSummary,
-} from "../../../../../pokesleep-tool/src/fork/RankingScenarioOptions";
-import RankingScenarioResults from "../../../../../pokesleep-tool/src/fork/RankingScenarioResults";
-import { rankingScenarioPurposes } from "../../../../../pokesleep-tool/src/fork/RankingScenarioState";
-import IngredientIcon from "../../../../../pokesleep-tool/src/ui/IvCalc/IngredientIcon";
-import type IvState from "../../../../../pokesleep-tool/src/ui/IvCalc/IvState";
-import {
-  type MainSkillName,
-  MainSkillNames,
-} from "../../../../../pokesleep-tool/src/util/MainSkill";
-import type PokemonIv from "../../../../../pokesleep-tool/src/util/PokemonIv";
+} from "@upstream/data/pokemons";
+import { type MainSkillName, MainSkillNames } from "@upstream/util/MainSkill";
+import type PokemonIv from "@upstream/util/PokemonIv";
 import {
   getCurrentFavoriteBerries,
   type StrengthParameter,
-} from "../../../../../pokesleep-tool/src/util/PokemonStrength";
+} from "@upstream/util/PokemonStrength";
+import { useTranslation } from "react-i18next";
+import type { RankingScenarioStorage } from "../application/RankingScenarioPersistence";
+import { rankingScenarioPurposes } from "../application/RankingScenarioState";
 import {
   type RankingScenarioConfig,
   type RankingScenarioMetric,
   type RankingScenarioPurpose,
   rankingScenarioMetrics,
   validateRankingScenario,
-} from "../../../../../pokesleep-tool/src/util/RankingScenario";
+} from "../domain/RankingScenario";
+import RankingScenarioOptions, {
+  RankingOptionSummary,
+} from "../ui/RankingScenarioOptions";
+import RankingScenarioResults from "../ui/RankingScenarioResults";
+import { IngredientIcon, type IvState } from "../upstreamUi";
 import DynamicRankingPokemonSelect from "./DynamicRankingPokemonSelect";
+import {
+  getRankingResultSubjects,
+  type RankingResultSubject,
+} from "./RankingResultSubject";
 import useRankingScenario from "./useRankingScenario";
 
-const key = (value: string) => `fork.scenario.${value}`;
+const key = (value: string) => `ranking.scenario.${value}`;
+const subjectTranslationKeys: Record<RankingResultSubject["kind"], string> = {
+  pokemon: "pokemons",
+  berry: "types",
+  skill: "skills",
+  ingredient: "ingredients",
+};
 const metricKeys: Record<RankingScenarioMetric, string> = {
   specificIngredientCount: "ranking target specific ingredient count",
   ingredientStrength: "ranking target ingredient strength",
@@ -91,7 +98,7 @@ export function RankingEnvironmentSummary({
         {` · ${t(key("total components"))}: ${
           ["Berries", "Ingredients", "Skills"]
             .filter((_value, index) => parameter.totalFlags[index])
-            .map((value) => t(`fork.ingredientRanking.specialty ${value}`))
+            .map((value) => t(`ranking.ingredientRanking.specialty ${value}`))
             .join(" / ") || t("none")
         }`}
       </Typography>
@@ -109,6 +116,7 @@ export function RankingEnvironmentSummary({
 }
 
 export default function RankingScenarioView({
+  storage,
   state,
   environmentKey,
   unsupportedEvent,
@@ -119,6 +127,7 @@ export default function RankingScenarioView({
   onEditComparison,
   onRemoveComparison,
 }: {
+  storage: RankingScenarioStorage;
   state: IvState;
   environmentKey: string;
   unsupportedEvent: string | null;
@@ -131,6 +140,7 @@ export default function RankingScenarioView({
 }) {
   const { t } = useTranslation();
   const ranking = useRankingScenario(
+    storage,
     state.parameter,
     comparisonIv,
     environmentKey,
@@ -141,10 +151,12 @@ export default function RankingScenarioView({
     ranking.setConfig({ ...config, ...patch });
   const validation = validateRankingScenario(config, state.parameter);
   const metricLabel = (value: RankingScenarioConfig) =>
-    `${t(`fork.ingredientRanking.${metricKeys[value.target]}`)}${value.target === "specificIngredientCount" && value.ingredient ? ` (${t(`ingredients.${value.ingredient}`)})` : ""}`;
+    `${t(`ranking.ingredientRanking.${metricKeys[value.target]}`)}${value.target === "specificIngredientCount" && value.ingredient ? ` (${t(`ingredients.${value.ingredient}`)})` : ""}`;
   return (
     <Stack gap={2} sx={{ p: 1 }}>
-      <Typography color="text.secondary">{t("fork.brand.subtitle")}</Typography>
+      <Typography color="text.secondary">
+        {t("ranking.brand.subtitle")}
+      </Typography>
       {dataIssueCount > 0 && (
         <Alert severity="warning">
           {t("extension.partialData", { count: dataIssueCount })}
@@ -239,7 +251,7 @@ export default function RankingScenarioView({
       )}
       <TextField
         select
-        label={t("fork.ingredientRanking.ranking target")}
+        label={t("ranking.ingredientRanking.ranking target")}
         value={config.target}
         size="small"
         onChange={(event) =>
@@ -248,7 +260,7 @@ export default function RankingScenarioView({
       >
         {rankingScenarioMetrics[config.purpose].map((metric) => (
           <MenuItem key={metric} value={metric}>
-            {t(`fork.ingredientRanking.${metricKeys[metric]}`)}
+            {t(`ranking.ingredientRanking.${metricKeys[metric]}`)}
           </MenuItem>
         ))}
       </TextField>
@@ -256,7 +268,7 @@ export default function RankingScenarioView({
         config.target === "specificIngredientCount") && (
         <TextField
           select
-          label={t("fork.ingredientRanking.target ingredient")}
+          label={t("ranking.ingredientRanking.target ingredient")}
           value={config.ingredient ?? ""}
           size="small"
           onChange={(event) =>
@@ -351,14 +363,15 @@ export default function RankingScenarioView({
               {t(key(`purpose ${ranking.snapshot.config.purpose}`))}
             </Typography>
             <Typography variant="body2">
-              {ranking.snapshot.config.pokemonName &&
-                t(`pokemons.${ranking.snapshot.config.pokemonName}`)}
-              {ranking.snapshot.config.berry &&
-                t(`types.${ranking.snapshot.config.berry}`)}
-              {ranking.snapshot.config.skill &&
-                t(`skills.${ranking.snapshot.config.skill}.name`)}
-              {ranking.snapshot.config.ingredient &&
-                ` · ${t(`ingredients.${ranking.snapshot.config.ingredient}`)}`}
+              {getRankingResultSubjects(ranking.snapshot.config)
+                .map(({ kind, value }) =>
+                  t(
+                    kind === "skill"
+                      ? `skills.${value}.name`
+                      : `${subjectTranslationKeys[kind]}.${value}`,
+                  ),
+                )
+                .join(" · ")}
             </Typography>
             <RankingOptionSummary config={ranking.snapshot.config} />
             <RankingEnvironmentSummary

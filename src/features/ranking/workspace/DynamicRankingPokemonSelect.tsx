@@ -1,10 +1,9 @@
 import { TextField } from "@mui/material";
+import pokemons from "@upstream/data/pokemons";
+import PokemonIv from "@upstream/util/PokemonIv";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import pokemons from "../../../../../pokesleep-tool/src/data/pokemons";
-import PokemonSelectDialog from "../../../../../pokesleep-tool/src/ui/IvCalc/IvForm/PokemonSelectDialog";
-import type { PokemonOption } from "../../../../../pokesleep-tool/src/ui/IvCalc/IvForm/PokemonTextField";
-import PokemonIv from "../../../../../pokesleep-tool/src/util/PokemonIv";
+import { type PokemonOption, PokemonSelectDialog } from "../upstreamUi";
 
 /** Upstream picker adapted so data-only additions retain a readable name. */
 export default function DynamicRankingPokemonSelect({
@@ -47,7 +46,7 @@ export default function DynamicRankingPokemonSelect({
       <TextField
         label={t("pokemon")}
         value={selected?.localName ?? ""}
-        placeholder={t("fork.scenario.select condition")}
+        placeholder={t("ranking.scenario.select condition")}
         fullWidth
         size="small"
         onClick={() => setOpen(true)}
