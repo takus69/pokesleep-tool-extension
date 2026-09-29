@@ -27,6 +27,10 @@ describe("upstream data pack", () => {
     expect(
       baseline.bonus.filter((event) => event.name.startsWith("pursue mewtwo")),
     ).toHaveLength(2);
+    expect(
+      baseline.bonus.find((event) => event.name === "pursue mewtwo 2nd week")
+        ?.effects.bigBerry,
+    ).toBe("mewtwo2");
   });
 
   it("uses upstream big-berry and skill calculations for the new event", () => {
@@ -39,8 +43,13 @@ describe("upstream data pack", () => {
       iv,
       createStrengthParameter({ event: "pursue mewtwo 2nd week" }),
     ).calculate();
+    const firstWeek = new PokemonStrength(
+      iv,
+      createStrengthParameter({ event: "pursue mewtwo 1st week" }),
+    ).calculate();
 
     expect(event.bigBerryStrength).toBeGreaterThan(0);
+    expect(event.bigBerryStrength).toBeGreaterThan(firstWeek.bigBerryStrength);
     expect(event.berryTotalStrength).toBe(
       event.berryStrength + event.bigBerryStrength,
     );

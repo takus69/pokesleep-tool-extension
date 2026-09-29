@@ -119,7 +119,7 @@ const supportedNumericEventEffects: Record<string, ReadonlySet<number>> = {
   carryLimitMul: new Set([1, 1.5]),
   globalCarryLimitAdd: new Set([0, 8, 15]),
 };
-const supportedBigBerryEvents = new Set(["", "mewtwo1"]);
+const supportedBigBerryEvents = new Set(["", "mewtwo1", "mewtwo2"]);
 
 type JsonObject = Record<string, unknown>;
 

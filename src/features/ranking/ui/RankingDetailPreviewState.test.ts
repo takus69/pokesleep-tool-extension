@@ -81,7 +81,7 @@ describe("ranking detail preview contract with upstream UI", () => {
     const state = createRankingPreviewState(iv, environment);
     const dispatch = () => {};
     const views = [
-      React.createElement(RpView, { state, width: 640 }),
+      React.createElement(RpView, { state, width: 640, dispatch }),
       React.createElement(StrengthBerryIngSkillView, {
         pokemonIv: state.pokemonIv,
         settings: state.parameter,
