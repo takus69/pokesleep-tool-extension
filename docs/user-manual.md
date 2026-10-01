@@ -6,7 +6,7 @@
 
 ## 使い始める
 
-ストア公開後は、Chrome Web StoreまたはMicrosoft Edge Add-onsからインストールしてください。公開前に手元で試す場合は、[確認用のインストール手順](local-installation.md)を参照してください。
+利用するブラウザに合わせて[Chrome Web Store](https://chromewebstore.google.com/detail/mpipkmcenpcfekbpjlhepmflnbjhgpfh)または[Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/fajkddnhbedmajmmnljclpjnfjopanhl)からインストールしてください。開発用のビルドを試す場合は[ローカルインストール手順](local-installation.md)を参照してください。
 
 1. [個体値計算機のページ](https://nitoyon.github.io/pokesleep-tool/iv/index.ja.html)を開きます。
 2. 画面上部の「ランキング」タブを押します。SP、エナジー、個体評価、チームのタブへ戻ることもできます。

@@ -6,6 +6,13 @@ This repository is a Manifest V3 browser-extension suite for Pokémon Sleep Tool
 
 Treat the pinned `vendor/pokesleep-tool` submodule as read-only official upstream source and update its commit only through a reviewed compatibility PR.
 
+## Starting a new task
+
+- Begin with `git status`, the current `develop`/`main` refs, and the relevant GitHub Issue. Do not assume a previous chat's checkout, release, or Issue state is still current.
+- Use `README.md` for the current public store links, `docs/README.md` for the document map, `docs/upstream-integration.md` for the upstream boundary, and `docs/release.md` for release steps.
+- Changes to the distributed extension require a new version and store submission; merging a documentation-only PR to `main` does not change an already submitted ZIP. Keep existing release tags immutable.
+- Keep future work in the same repository. A new conversation may start from an Issue and this documentation; the old fork is not a development dependency.
+
 ## Architecture rules
 
 - Keep browser-independent logic in `src/domain`.

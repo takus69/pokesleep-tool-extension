@@ -1,13 +1,10 @@
 # ストア公開・リリース手順
 
-## 初回β公開の準備
+## 初回β公開の記録
 
-初回ストア公開候補は`0.2.0`、Gitタグは`v0.2.0`とします。`v0.1.0`は開発ベースラインの既存タグであり、再利用しません。β版の運用と`1.0.0`への移行基準は[開発ルール](development.md#バージョン)に従います。
+初回β版`0.2.0`は[Chrome Web Store](https://chromewebstore.google.com/detail/mpipkmcenpcfekbpjlhepmflnbjhgpfh)と[Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/fajkddnhbedmajmmnljclpjnfjopanhl)で公開済みです。Gitタグは`v0.2.0`です。`v0.1.0`は開発ベースラインのタグであり、再利用しません。β版の運用と`1.0.0`への移行基準は[開発ルール](development.md#バージョン)に従います。
 
-- 候補の検証、掲載文・素材の照合と、ストア開発者登録・管理画面の下書き準備を並行して進めます。
-- WindowsのChrome・Edgeは利用者による受入確認済みです。候補生成後に実装・同梱データを変更した場合は、その候補を再確認します。macOSは未検証として掲載します。
-- README・ストア掲載文・リリースノートへ初回β版である旨を記載し、公開範囲と既知の制限を明示します。
-- `develop`で準備PRをマージした後、受入結果とライセンス監査を確認し、受入済み候補を`main`へ昇格します。タグと配布ZIPは昇格後のcommitから作り、準備段階の`dist`を最終提出物に流用しません。
+WindowsのChrome・Edgeは利用者による受入確認済みです。macOSは未検証として掲載しています。次回以降は、以下の手順で新しい候補を検証して公開します。
 
 ## リリース候補を作る
 
