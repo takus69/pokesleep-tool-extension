@@ -4,7 +4,12 @@
 
 ## 利用する
 
-現在はストア公開前の受入確認版です。初回は`v0.2.0`のβ版として公開予定です。[ローカルインストール手順](docs/local-installation.md)で `dist` を読み込み、[利用者向けマニュアル](docs/user-manual.md)に沿って利用できます。
+β版の`0.2.0`を公開中です。お使いのブラウザのストアからインストールしてください。
+
+- [Chrome Web Store](https://chromewebstore.google.com/detail/mpipkmcenpcfekbpjlhepmflnbjhgpfh)
+- [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/fajkddnhbedmajmmnljclpjnfjopanhl)
+
+操作方法は[利用者向けマニュアル](docs/user-manual.md)を参照してください。ソースから動作確認する場合は[ローカルインストール手順](docs/local-installation.md)を使用します。
 
 ## 現在の範囲
 
