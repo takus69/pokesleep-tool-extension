@@ -1,9 +1,11 @@
+import pokemons from "@upstream/data/pokemons";
 import PokemonIv from "@upstream/util/PokemonIv";
 import {
   type StrengthParameter,
   serializeStrengthParameter,
 } from "@upstream/util/StrengthParameter";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { retainUpstreamCalculationData } from "../../../integration/upstreamDataRefreshState";
 import {
   loadRankingScenarioSettings,
   type RankingScenarioStorage,
@@ -22,11 +24,13 @@ import {
   type RankingScenarioPurpose,
   type RankingScenarioResult,
 } from "../domain/RankingScenario";
+import { useUpstreamDataRefresh } from "./useUpstreamDataRefresh";
 
 export interface RankingScenarioSnapshot {
   config: RankingScenarioConfig;
   environment: StrengthParameter;
   key: string;
+  dataRevision: number;
 }
 
 export type RankingScenarioStatus =
@@ -54,6 +58,7 @@ export default function useRankingScenario(
   comparisonIv: PokemonIv | null,
   sourceEnvironmentKey?: string,
 ) {
+  const data = useUpstreamDataRefresh();
   const [settings, setSettings] = useState(() =>
     loadRankingScenarioSettings(storage),
   );
@@ -72,7 +77,7 @@ export default function useRankingScenario(
       ...createRankingEnvironment(environment),
       teamMember: environment.teamMember.toProps(),
     });
-  const key = `${configKey}\n${environmentKey}`;
+  const key = `${configKey}\n${environmentKey}\n${data.revision}`;
   const activeRun = useRef<{
     id: number;
     controller: AbortController;
@@ -131,6 +136,7 @@ export default function useRankingScenario(
         createRankingEnvironment(environment),
       ),
       key,
+      dataRevision: data.revision,
     };
     setStatus("running");
     setError(null);
@@ -141,6 +147,7 @@ export default function useRankingScenario(
     // explicit replacement, cancellation, or unmount invalidates the run.
     const isCurrent = () =>
       isRankingRunCurrent(id, runId.current, controller.signal);
+    const releaseData = retainUpstreamCalculationData();
     try {
       const value = await calculateRankingScenarioAsync(
         calculationSnapshot.config,
@@ -166,15 +173,22 @@ export default function useRankingScenario(
       setError(cause instanceof Error ? cause.message : "calculationFailed");
       setStatus("error");
     } finally {
+      releaseData();
       if (activeRun.current?.id === id) activeRun.current = null;
     }
-  }, [currentConfig.purpose, configKey, environment, key]);
+  }, [currentConfig.purpose, configKey, environment, key, data.revision]);
 
   const stale = snapshot !== null && snapshot.key !== key;
   const comparison = useMemo(() => {
-    if (comparisonIv === null || snapshot === null || stale) return null;
+    if (
+      comparisonIv === null ||
+      snapshot === null ||
+      stale ||
+      !pokemons.some((pokemon) => pokemon.name === comparisonIv.pokemonName)
+    )
+      return null;
     return evaluateRankingComparison(
-      comparisonIv,
+      new PokemonIv(comparisonIv.toProps()),
       snapshot.config,
       snapshot.environment,
     );
@@ -190,6 +204,7 @@ export default function useRankingScenario(
     snapshot,
     status,
     stale,
+    dataStale: snapshot !== null && snapshot.dataRevision !== data.revision,
     error,
     progress,
     calculate,

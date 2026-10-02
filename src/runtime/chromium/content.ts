@@ -1,13 +1,17 @@
 import { createRankingFeature } from "../../features/ranking";
 import { readToolSnapshot } from "../../integration/upstreamAdapter";
-import { prepareUpstreamDataPack } from "../../integration/upstreamDataPackRefresh";
+import {
+  prepareUpstreamDataPack,
+  refreshUpstreamDataPack,
+} from "../../integration/upstreamDataPackRefresh";
 import { ChromeSettingsStore } from "../../settings/chromeSettingsStore";
 import { mountSuite } from "../../ui/mountSuite";
 import { ChromiumRankingScenarioStorage } from "./rankingScenarioStorage";
 import { ChromiumUpstreamDataPackRuntime } from "./upstreamDataPackRuntime";
 
 async function start(): Promise<void> {
-  await prepareUpstreamDataPack(new ChromiumUpstreamDataPackRuntime());
+  const dataRuntime = new ChromiumUpstreamDataPackRuntime();
+  await prepareUpstreamDataPack(dataRuntime);
   const snapshot = readToolSnapshot({
     url: new URL(window.location.href),
     rootExists: document.getElementById("root") !== null,
@@ -26,6 +30,7 @@ async function start(): Promise<void> {
     (feature) => settings.enabledFeatures[feature.id] ?? feature.defaultEnabled,
   );
   mountSuite(features);
+  void refreshUpstreamDataPack(dataRuntime);
 }
 
 void start();
