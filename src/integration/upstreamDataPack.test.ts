@@ -73,6 +73,100 @@ describe("upstream data pack", () => {
     );
   });
 
+  it("accepts the cooking event's 1.5 multiplier and applies upstream rounding to skill ingredients", () => {
+    const cooking = {
+      name: "packed portion cooking week 3",
+      start: "2026-10-05T04:00:00",
+      end: "2026-10-12T04:00:00",
+      target: { specialty: "Ingredients" },
+      effects: {
+        ingredient: 1,
+        skillIngredient: 1.5,
+        dish: 1.25,
+        energyFromDish: 5,
+        potSize: 2,
+      },
+    };
+    const reference = {
+      ...cooking,
+      name: "supported ingredient magnet reference",
+      effects: {
+        ...cooking.effects,
+        skillIngredient: 1,
+        ingredientMagnet: 1.5,
+      },
+    };
+    const pack = validateUpstreamDataPack(pokemonJson, {
+      ...eventJson,
+      bonus: [...eventJson.bonus, cooking, reference],
+    });
+    expect(pack.issues).toEqual([]);
+    applyUpstreamDataPack(pack, "network", 1);
+    const iv = new PokemonIv({
+      pokemonName: "Venusaur",
+      level: 60,
+      skillLevel: 3,
+    });
+    const calculate = (event: string) =>
+      new PokemonStrength(iv, createStrengthParameter({ event })).calculate();
+    const ordinary = calculate("none");
+    const result = calculate(cooking.name);
+    const expected = calculate(reference.name);
+    expect(result.skillValuePerTrigger).toBe(expected.skillValuePerTrigger);
+    expect(result.skillStrength).toBe(expected.skillStrength);
+    expect(result.totalStrength).toBe(expected.totalStrength);
+    expect(result.skillValuePerTrigger).toBe(
+      Math.floor(ordinary.skillValuePerTrigger * 1.5),
+    );
+    expect(result.skillStrength).toBeGreaterThan(ordinary.skillStrength);
+  });
+
+  it("excludes only two pending Pokémon when the 1.5 cooking event is available", () => {
+    const pending = ["Foongus", "Amoonguss"].map((name, index) => ({
+      ...pokemonJson[0],
+      id: 590 + index,
+      name,
+      specialty: "unknown",
+      skill: "unknown",
+      frequency: 0,
+    }));
+    const pack = validateUpstreamDataPack([...pokemonJson, ...pending], {
+      ...eventJson,
+      bonus: [
+        ...eventJson.bonus,
+        {
+          name: "packed portion cooking week 3",
+          start: "2026-10-05T04:00:00",
+          end: "2026-10-12T04:00:00",
+          target: { specialty: "Ingredients" },
+          effects: { skillIngredient: 1.5 },
+        },
+      ],
+    });
+    expect(pack.issues.map((issue) => [issue.kind, issue.name])).toEqual([
+      ["pokemon", "Foongus"],
+      ["pokemon", "Amoonguss"],
+    ]);
+    const unsupported = validateUpstreamDataPack(pokemonJson, {
+      ...eventJson,
+      bonus: [
+        ...eventJson.bonus,
+        {
+          name: "unsupported multiplier",
+          start: "2026-10-05",
+          end: "2026-10-12",
+          target: {},
+          effects: { skillIngredient: 1.75 },
+        },
+      ],
+    });
+    expect(unsupported.issues).toContainEqual({
+      kind: "event",
+      name: "unsupported multiplier",
+      reason: "unsupported effect value skillIngredient",
+    });
+  });
+
   it("excludes only a Pokémon that requires an unknown mechanic", () => {
     const template = structuredClone(pokemonJson[0]);
     const next = {
