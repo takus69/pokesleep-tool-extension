@@ -77,7 +77,7 @@ Pokémon Sleep、関係各社、およびPokémon Sleep Tool作者による提�
 | --- | --- |
 | `storage` | 拡張の機能設定、検証済み公開JSONのキャッシュと確認状態を端末内に保存する。 |
 | `https://nitoyon.github.io/pokesleep-tool/*` | このページだけにランキングタブを追加し、元ツールの計算条件とボックスを端末内で参照する。 |
-| `https://raw.githubusercontent.com/nitoyon/pokesleep-tool/*` | 元ツールが公開するポケモン・イベントの非実行JSONを、ブラウザセッションの最初の対象ページ表示時に確認する。 |
+| `https://raw.githubusercontent.com/nitoyon/pokesleep-tool/*` | 元ツールが公開するポケモン・イベントの非実行JSONを、対象ページの起動・再読み込みごとに確認する。 |
 
 提出時のデータ利用申告は[`docs/privacy.md`](privacy.md)と一致させます。
 
