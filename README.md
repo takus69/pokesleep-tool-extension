@@ -4,7 +4,7 @@
 
 ## 利用する
 
-β版の`0.2.0`を公開中です。お使いのブラウザのストアからインストールしてください。
+β版の`0.3.0`を公開中です。お使いのブラウザのストアからインストールしてください。
 
 - [Chrome Web Store](https://chromewebstore.google.com/detail/mpipkmcenpcfekbpjlhepmflnbjhgpfh)
 - [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/fajkddnhbedmajmmnljclpjnfjopanhl)

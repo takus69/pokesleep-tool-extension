@@ -1,5 +1,16 @@
 # ストア公開・リリース手順
 
+## 0.3.0公開の記録
+
+2026-10-03、利用者からChrome Web StoreとMicrosoft Edge Add-onsの両方で`0.3.0`が公開されたとの報告を受けました。ストア公開日・版の記録はこの報告に基づきます。ストア版での起動と既存インストールへの自動更新の実機確認は未記録です。
+
+- リリースPR: [#60](https://github.com/takus69/pokesleep-tool-extension/pull/60)、対応Issue: [#54](https://github.com/takus69/pokesleep-tool-extension/issues/54)
+- 注釈付きタグ: `v0.3.0`、リリースcommit: `3e4d545765d8b6e69bec2528ee538c256bfe2194`
+- 固定上流commit: `0dc4525b09a979582e9c1c5a3e10d4d65d0ad9d4`
+- 共通申請ZIP: `pokesleep-tool-extension-v0.3.0.zip`（542137 bytes）
+- ZIP SHA-256: `423b77a98859fe1b24fd3843b75b90f0d311c5328ea7cd14146d1a45e7900cf1`
+- 受入候補の`release:prepare`成功（213テスト）。タグcommitから`npm ci`・`npm run build`成功。ZIP全10ファイルとアップロード後のハッシュを照合済み。
+
 ## 初回β公開の記録
 
 初回β版`0.2.0`は[Chrome Web Store](https://chromewebstore.google.com/detail/mpipkmcenpcfekbpjlhepmflnbjhgpfh)と[Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/fajkddnhbedmajmmnljclpjnfjopanhl)で公開済みです。Gitタグは`v0.2.0`です。`v0.1.0`は開発ベースラインのタグであり、再利用しません。β版の運用と`1.0.0`への移行基準は[開発ルール](development.md#バージョン)に従います。
