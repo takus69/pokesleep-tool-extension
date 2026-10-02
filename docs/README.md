@@ -13,12 +13,14 @@
 - [ランキング機能の外部仕様](design/ranking-feature.md)
 - [上流データのページ起動時更新](design/upstream-data-refresh.md)
 - [機能設計テンプレート](design/feature-design-template.md)
-- [Safari／Android将来対応](platform-roadmap.md)
+- [スマホ対応の実現性と優先順位](platform-roadmap.md)
+- [スマホPoCの設計](design/mobile-poc.md)
 
 ## 開発・公開
 
 - [開発環境構築とブランチ運用](development.md)
 - [テスト手順](testing.md)
+- [スマホPoCの検証・結果記録](testing/mobile-poc.md)
 - [ストア公開・リリース手順](release.md)
 - [ストア掲載情報](store-listing.md)
 

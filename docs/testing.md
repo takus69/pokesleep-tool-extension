@@ -6,6 +6,7 @@
 - 本番ビルド: `npm run build`
 - 全体: `npm run verify`
 - 上流データ同期を含むリリース検証: `npm run release:prepare`
+- スマホPoCのビルド・生成コード検証: `npm run test:mobile-poc`（[実機手順](testing/mobile-poc.md)）
 
 ローカル導入後、対象ページで「接続済み」表示、対象外URLで非起動、破損した検証対象保存値で安全停止、コンソールに予期しない例外がないことを確認します。ランキングでは計算結果、キャンセル、古い結果の競合に加え、元ツールの個体変更をランキングタブへの移動時に読み直すこと、ランキングの個体操作で `PstIvState` と `PstPokeBox` が変更されないこと、共有計算条件 `PstStrenghParam` の変更が従来どおり反映されることを検証します。`RankingWorkspaceState.test.ts` は固定した元ツールの保存処理も使い、操作別の書き込みキーと保存schemaを検証します。
 
