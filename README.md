@@ -19,6 +19,8 @@
 - 実装済み: 互換性プローブ、機能レジストリ、上段タブ統合、ランキング画面
 - 未実装: Safari、Androidブックマークレット
 
+スマホ対応は[実現性調査とPoC](docs/platform-roadmap.md)を進めています。普段のブラウザに保存されたボックスを使うことを優先し、ブラウザ別の導入方式を比較しています。公開版のスマホ対応は未確認です。
+
 ## 開発
 
 submoduleを含めてcloneし、Node.js 20以上で `npm install` 後、`npm run verify` を実行してください。成果物は `dist/` に生成されます。リリース前は `npm run release:prepare` で上流データ同期を含めて検証します。詳細は [開発手順](docs/development.md) と [テスト手順](docs/testing.md) を参照してください。
