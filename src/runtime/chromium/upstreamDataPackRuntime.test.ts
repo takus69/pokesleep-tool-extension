@@ -9,7 +9,9 @@ describe("ChromiumUpstreamDataPackRuntime", () => {
       "upstream-data-pack.v1": { checkedAt: 1 },
     });
     const set = vi.fn().mockResolvedValue(undefined);
-    const sendMessage = vi.fn().mockResolvedValue({ shouldRefresh: true });
+    const sendMessage = vi
+      .fn()
+      .mockResolvedValue({ ok: true, pokemon: [], event: {} });
     vi.stubGlobal("chrome", {
       storage: { local: { get, set } },
       runtime: { sendMessage },
@@ -23,7 +25,7 @@ describe("ChromiumUpstreamDataPackRuntime", () => {
       pokemon: ["pokemon"],
       event: { event: true },
     });
-    expect(await runtime.claimSessionRefresh()).toBe(true);
+    expect(await runtime.fetchLatest()).toEqual({ pokemon: [], event: {} });
 
     expect(get).toHaveBeenCalledWith("upstream-data-pack.v1");
     expect(set).toHaveBeenCalledWith({
@@ -35,26 +37,15 @@ describe("ChromiumUpstreamDataPackRuntime", () => {
       },
     });
     expect(sendMessage).toHaveBeenCalledWith({
-      type: "claim-upstream-data-refresh",
+      type: "fetch-latest-upstream-data",
     });
   });
 
-  it("fetches only the two non-executable upstream JSON files", async () => {
-    const fetch = vi
-      .fn()
-      .mockResolvedValueOnce({ ok: true, json: async () => ["pokemon"] })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ event: true }) });
-    vi.stubGlobal("fetch", fetch);
-    const runtime = new ChromiumUpstreamDataPackRuntime();
-
-    await expect(runtime.fetchLatest()).resolves.toEqual({
-      pokemon: ["pokemon"],
-      event: { event: true },
+  it("fails closed when the worker cannot fetch data", async () => {
+    vi.stubGlobal("chrome", {
+      runtime: { sendMessage: vi.fn().mockResolvedValue({ ok: false }) },
     });
-    expect(fetch).toHaveBeenCalledTimes(2);
-    expect(fetch.mock.calls.map(([url]) => url)).toEqual([
-      "https://raw.githubusercontent.com/nitoyon/pokesleep-tool/main/src/data/pokemon.json",
-      "https://raw.githubusercontent.com/nitoyon/pokesleep-tool/main/src/data/event.json",
-    ]);
+    const runtime = new ChromiumUpstreamDataPackRuntime();
+    await expect(runtime.fetchLatest()).rejects.toThrow("unavailable");
   });
 });

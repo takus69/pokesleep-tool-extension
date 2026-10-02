@@ -9,6 +9,11 @@ import {
   type UpstreamDataStatus,
   validateUpstreamDataPack,
 } from "./upstreamDataPack";
+import {
+  acceptUpstreamDataRefresh,
+  initializeUpstreamDataRefresh,
+  setUpstreamDataRefreshPhase,
+} from "./upstreamDataRefreshState";
 
 export interface LatestUpstreamDataPack {
   readonly pokemon: unknown;
@@ -18,7 +23,6 @@ export interface LatestUpstreamDataPack {
 export interface UpstreamDataPackRuntime {
   readCachedValue(): Promise<unknown>;
   writeCachedValue(value: CachedUpstreamDataPack): Promise<void>;
-  claimSessionRefresh(): Promise<boolean>;
   fetchLatest(): Promise<LatestUpstreamDataPack>;
 }
 
@@ -32,24 +36,16 @@ const consoleLogger: UpstreamDataPackLogger = {
   warn: (message, cause) => console.warn(message, cause),
 };
 
-/** Apply bundled and cached data, then refresh once when the runtime allows it. */
+/** Load local data without blocking startup on a network request. */
 export async function prepareUpstreamDataPack(
   runtime: UpstreamDataPackRuntime,
-  now = Date.now(),
   logger: UpstreamDataPackLogger = consoleLogger,
 ): Promise<UpstreamDataStatus> {
-  try {
-    applyUpstreamDataPack(
-      validateUpstreamDataPack(bundledPokemonJson, bundledEventJson),
-      "bundled",
-      0,
-    );
-  } catch (cause) {
-    logger.error(
-      "[Pokémon Sleep Tool Extension] Bundled upstream data is invalid",
-      cause,
-    );
-  }
+  let initialPack = validateUpstreamDataPack(
+    bundledPokemonJson,
+    bundledEventJson,
+  );
+  applyUpstreamDataPack(initialPack, "bundled", 0);
 
   try {
     const cached = decodeCachedUpstreamDataPack(
@@ -58,6 +54,7 @@ export async function prepareUpstreamDataPack(
     if (cached !== null && cached.bundledCommit === bundledManifest.commit) {
       const pack = validateUpstreamDataPack(cached.pokemon, cached.event);
       applyUpstreamDataPack(pack, "cached", cached.checkedAt);
+      initialPack = pack;
     }
   } catch (cause) {
     logger.warn(
@@ -66,16 +63,17 @@ export async function prepareUpstreamDataPack(
     );
   }
 
-  let shouldRefresh = false;
-  try {
-    shouldRefresh = await runtime.claimSessionRefresh();
-  } catch (cause) {
-    logger.warn(
-      "[Pokémon Sleep Tool Extension] Could not determine browser-session refresh state",
-      cause,
-    );
-  }
-  if (!shouldRefresh) return getUpstreamDataStatus();
+  initializeUpstreamDataRefresh(initialPack);
+  return getUpstreamDataStatus();
+}
+
+/** Each page load requests fresh data; the runtime shares concurrent requests. */
+export async function refreshUpstreamDataPack(
+  runtime: UpstreamDataPackRuntime,
+  now = Date.now(),
+  logger: UpstreamDataPackLogger = consoleLogger,
+): Promise<void> {
+  setUpstreamDataRefreshPhase("checking");
 
   try {
     const { pokemon, event } = await runtime.fetchLatest();
@@ -86,12 +84,12 @@ export async function prepareUpstreamDataPack(
       pokemon,
       event,
     });
-    return applyUpstreamDataPack(pack, "network", now);
+    acceptUpstreamDataRefresh(pack, now);
   } catch (cause) {
     logger.warn(
       "[Pokémon Sleep Tool Extension] Latest upstream data was unavailable; bundled or cached data remains active",
       cause,
     );
-    return getUpstreamDataStatus();
+    setUpstreamDataRefreshPhase("failed");
   }
 }

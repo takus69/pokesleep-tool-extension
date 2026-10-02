@@ -6,6 +6,8 @@
 
 ## 使い始める
 
+対象ページを開く・再読み込みするたびに、ポケモンとイベントの最新データを確認します。画面は保存済みデータ（なければ同梱データ）で先に表示します。確認中も計算できますが、更新前に計算した結果には更新後に再計算の案内が表示されます。計算中の更新は終了まで待機し、結果を自動で変更しません。通信に失敗しても既存データを使え、再読み込みで再試行できます。未対応のスキル・効果を含む項目は従来どおり警告して除外します。
+
 利用するブラウザに合わせて[Chrome Web Store](https://chromewebstore.google.com/detail/mpipkmcenpcfekbpjlhepmflnbjhgpfh)または[Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/fajkddnhbedmajmmnljclpjnfjopanhl)からインストールしてください。開発用のビルドを試す場合は[ローカルインストール手順](local-installation.md)を参照してください。
 
 1. [個体値計算機のページ](https://nitoyon.github.io/pokesleep-tool/iv/index.ja.html)を開きます。

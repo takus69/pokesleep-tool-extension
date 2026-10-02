@@ -4,8 +4,12 @@ import { describe, expect, it } from "vitest";
 
 describe("upstream data pack runtime boundary", () => {
   it("keeps browser APIs and network locations out of integration", () => {
-    const sources = ["upstreamDataPack.ts", "upstreamDataPackRefresh.ts"].map(
-      (file) => fs.readFileSync(path.resolve("src/integration", file), "utf8"),
+    const sources = [
+      "upstreamDataPack.ts",
+      "upstreamDataPackRefresh.ts",
+      "upstreamDataRefreshState.ts",
+    ].map((file) =>
+      fs.readFileSync(path.resolve("src/integration", file), "utf8"),
     );
 
     for (const source of sources) {

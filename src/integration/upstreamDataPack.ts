@@ -110,7 +110,7 @@ const supportedNumericEventEffects: Record<string, ReadonlySet<number>> = {
   dreamShard: new Set([1, 1.5, 2]),
   ingredientMagnet: new Set([1, 1.5]),
   ingredientDraw: new Set([1, 1.5]),
-  skillIngredient: new Set([1, 1.25]),
+  skillIngredient: new Set([1, 1.25, 1.5]),
   berryBurst: new Set([1, 1.4]),
   dish: new Set([1, 1.1, 1.25, 1.5]),
   energyFromDish: new Set([0, 5]),

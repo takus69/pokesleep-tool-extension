@@ -74,6 +74,23 @@ describe("ranking shared-storage contract with the pinned upstream tool", () => 
     expect(write).not.toHaveBeenCalled();
   });
 
+  it("preserves the ranking editor selection when only upstream data is refreshed", () => {
+    const state = seededState();
+    const current = rankingWorkspaceViewReducer(state, {
+      type: "updateIv",
+      payload: { iv: new PokemonIv({ pokemonName: "Pikachu", level: 30 }) },
+    });
+    const before = storageSnapshot();
+    const refreshed = rankingWorkspaceViewReducer(current, {
+      type: "refreshData",
+      payload: loadUpstreamRankingInputs().state,
+    });
+    expect(refreshed.pokemonIv.pokemonName).toBe("Pikachu");
+    expect(refreshed.pokemonIv.level).toBe(30);
+    expect(refreshed.pokemonIv).not.toBe(current.pokemonIv);
+    expect(changedKeys(before)).toEqual([]);
+  });
+
   it("does not save frequency-dialog condition previews", () => {
     const state = seededState();
     const before = storageSnapshot();

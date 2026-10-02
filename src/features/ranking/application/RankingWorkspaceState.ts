@@ -1,3 +1,5 @@
+import pokemons from "@upstream/data/pokemons";
+import PokemonIv from "@upstream/util/PokemonIv";
 import {
   type IvAction,
   type IvState,
@@ -36,6 +38,7 @@ export function rankingWorkspaceReducer(
 export type RankingWorkspaceAction =
   | IvAction
   | { type: "syncUpstream"; payload: IvState }
+  | { type: "refreshData"; payload: IvState }
   | { type: "selectComparison"; payload: { id: number } };
 
 /** Ranking-only selections never dispatch upstream box mutations. */
@@ -43,6 +46,18 @@ export function rankingWorkspaceViewReducer(
   state: IvState,
   action: RankingWorkspaceAction,
 ): IvState {
+  if (action.type === "refreshData") {
+    return {
+      ...state,
+      parameter: action.payload.parameter,
+      box: action.payload.box,
+      pokemonIv: pokemons.some(
+        (pokemon) => pokemon.name === state.pokemonIv.pokemonName,
+      )
+        ? new PokemonIv(state.pokemonIv.toProps())
+        : state.pokemonIv,
+    };
+  }
   if (action.type === "syncUpstream") {
     return {
       ...state,

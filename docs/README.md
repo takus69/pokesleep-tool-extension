@@ -11,6 +11,7 @@
 - [アーキテクチャ](architecture.md)
 - [元ツール連携・互換性仕様](upstream-integration.md)
 - [ランキング機能の外部仕様](design/ranking-feature.md)
+- [上流データのページ起動時更新](design/upstream-data-refresh.md)
 - [機能設計テンプレート](design/feature-design-template.md)
 - [Safari／Android将来対応](platform-roadmap.md)
 

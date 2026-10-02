@@ -38,6 +38,7 @@ interface RankingScenarioResultsProps {
   comparison: RankingScenarioEvaluation | null;
   comparisonIv: PokemonIv | null;
   stale: boolean;
+  dataStale?: boolean;
   metricLabel: string;
   environment: StrengthParameter;
   isPartial?: boolean;
@@ -138,6 +139,7 @@ function RankingScenarioResults({
   comparison,
   comparisonIv,
   stale,
+  dataStale = false,
   metricLabel,
   environment,
   isPartial = false,
@@ -153,9 +155,13 @@ function RankingScenarioResults({
   const [detailPage, setDetailPage] = React.useState(1);
   const [abilityIv, setAbilityIv] = React.useState<PokemonIv | null>(null);
   const openAbility = (iv: PokemonIv) => {
+    if (dataStale) return;
     setDetailEntries(null);
     setAbilityIv(iv);
   };
+  React.useEffect(() => {
+    if (dataStale) setAbilityIv(null);
+  }, [dataStale]);
   const merged = React.useMemo(
     () => locateScenarioComparison(result.groups, comparison),
     [result.groups, comparison],
@@ -328,7 +334,9 @@ function RankingScenarioResults({
               <ScenarioIvSummary
                 iv={group.entries[0].iv}
                 neutralSubSkillCount={group.entries[0].neutralSubSkillCount}
-                onClick={() => openAbility(group.entries[0].iv)}
+                onClick={
+                  dataStale ? undefined : () => openAbility(group.entries[0].iv)
+                }
               />
             )}
             {group.entries.length > 0 && (
@@ -375,7 +383,7 @@ function RankingScenarioResults({
                 <ScenarioIvSummary
                   iv={entry.iv}
                   neutralSubSkillCount={entry.neutralSubSkillCount}
-                  onClick={() => openAbility(entry.iv)}
+                  onClick={dataStale ? undefined : () => openAbility(entry.iv)}
                 />
               </Box>
             ))}

@@ -4,10 +4,12 @@ import bundledManifest from "../vendor/upstream-data/manifest.json";
 import pokemonJson from "../vendor/upstream-data/pokemon.json";
 import {
   applyUpstreamDataPack,
+  getUpstreamDataStatus,
   validateUpstreamDataPack,
 } from "./upstreamDataPack";
 import {
   prepareUpstreamDataPack,
+  refreshUpstreamDataPack,
   type UpstreamDataPackLogger,
   type UpstreamDataPackRuntime,
 } from "./upstreamDataPackRefresh";
@@ -18,7 +20,6 @@ function runtime(
   return {
     readCachedValue: vi.fn().mockResolvedValue(undefined),
     writeCachedValue: vi.fn().mockResolvedValue(undefined),
-    claimSessionRefresh: vi.fn().mockResolvedValue(false),
     fetchLatest: vi.fn().mockResolvedValue({
       pokemon: pokemonJson,
       event: eventJson,
@@ -40,13 +41,14 @@ describe("prepareUpstreamDataPack", () => {
   it("fetches, validates, caches, and applies a network pack atomically", async () => {
     const writeCachedValue = vi.fn().mockResolvedValue(undefined);
     const adapter = runtime({
-      claimSessionRefresh: vi.fn().mockResolvedValue(true),
       writeCachedValue,
     });
 
-    const status = await prepareUpstreamDataPack(adapter, 1234, logger());
+    await prepareUpstreamDataPack(adapter, logger());
+    await refreshUpstreamDataPack(adapter, 1234, logger());
+    const status = getUpstreamDataStatus();
 
-    expect(status.source).toBe("network");
+    expect(status.source).toBe("bundled");
     expect(writeCachedValue).toHaveBeenCalledWith({
       bundledCommit: bundledManifest.commit,
       checkedAt: 1234,
@@ -55,7 +57,7 @@ describe("prepareUpstreamDataPack", () => {
     });
   });
 
-  it("uses cached data without fetching again in the same browser session", async () => {
+  it("loads cached data without waiting for network during startup", async () => {
     const fetchLatest = vi.fn();
     const adapter = runtime({
       readCachedValue: vi.fn().mockResolvedValue({
@@ -67,11 +69,28 @@ describe("prepareUpstreamDataPack", () => {
       fetchLatest,
     });
 
-    const status = await prepareUpstreamDataPack(adapter, 5678, logger());
+    const status = await prepareUpstreamDataPack(adapter, logger());
 
     expect(status.source).toBe("cached");
     expect(status.checkedAt).toBe(1234);
     expect(fetchLatest).not.toHaveBeenCalled();
+  });
+
+  it("checks on every page startup and recovers from a failed request", async () => {
+    const changed = structuredClone(pokemonJson);
+    changed[0].frequency += 1;
+    const fetchLatest = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("offline"))
+      .mockResolvedValue({ pokemon: changed, event: eventJson });
+    const adapter = runtime({ fetchLatest });
+    await prepareUpstreamDataPack(adapter, logger());
+    await refreshUpstreamDataPack(adapter, 1, logger());
+    expect(getUpstreamDataStatus().source).toBe("bundled");
+    await prepareUpstreamDataPack(adapter, logger());
+    await refreshUpstreamDataPack(adapter, 2, logger());
+    expect(fetchLatest).toHaveBeenCalledTimes(2);
+    expect(getUpstreamDataStatus().source).toBe("network");
   });
 
   it("keeps the validated cache when a network pack is invalid", async () => {
@@ -83,29 +102,15 @@ describe("prepareUpstreamDataPack", () => {
         pokemon: pokemonJson,
         event: eventJson,
       }),
-      claimSessionRefresh: vi.fn().mockResolvedValue(true),
       fetchLatest: vi.fn().mockResolvedValue({ pokemon: [], event: {} }),
     });
 
-    const status = await prepareUpstreamDataPack(adapter, 5678, log);
+    await prepareUpstreamDataPack(adapter, log);
+    await refreshUpstreamDataPack(adapter, 5678, log);
+    const status = getUpstreamDataStatus();
 
     expect(status.source).toBe("cached");
     expect(status.checkedAt).toBe(1234);
-    expect(log.warn).toHaveBeenCalledOnce();
-  });
-
-  it("does not fetch when the session refresh claim fails", async () => {
-    const fetchLatest = vi.fn();
-    const log = logger();
-    const adapter = runtime({
-      claimSessionRefresh: vi.fn().mockRejectedValue(new Error("unavailable")),
-      fetchLatest,
-    });
-
-    const status = await prepareUpstreamDataPack(adapter, 5678, log);
-
-    expect(status.source).toBe("bundled");
-    expect(fetchLatest).not.toHaveBeenCalled();
     expect(log.warn).toHaveBeenCalledOnce();
   });
 
@@ -126,7 +131,7 @@ describe("prepareUpstreamDataPack", () => {
       }),
     });
 
-    const status = await prepareUpstreamDataPack(adapter, 5678, logger());
+    const status = await prepareUpstreamDataPack(adapter, logger());
 
     expect(status.source).toBe("bundled");
     expect(status.pokemonCount).toBe(pokemonJson.length);

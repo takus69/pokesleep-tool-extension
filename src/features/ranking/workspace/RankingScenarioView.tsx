@@ -41,6 +41,7 @@ import {
   type RankingResultSubject,
 } from "./RankingResultSubject";
 import useRankingScenario from "./useRankingScenario";
+import { useUpstreamDataRefresh } from "./useUpstreamDataRefresh";
 
 const key = (value: string) => `ranking.scenario.${value}`;
 const subjectTranslationKeys: Record<RankingResultSubject["kind"], string> = {
@@ -145,6 +146,7 @@ export default function RankingScenarioView({
     comparisonIv,
     environmentKey,
   );
+  const data = useUpstreamDataRefresh();
   const config = ranking.currentConfig;
   const metricNoteKey = metricNoteKeys[config.target];
   const update = (patch: Partial<RankingScenarioConfig>) =>
@@ -157,6 +159,11 @@ export default function RankingScenarioView({
       <Typography color="text.secondary">
         {t("ranking.brand.subtitle")}
       </Typography>
+      {["checking", "updated", "pending", "failed"].includes(data.phase) && (
+        <Alert severity={data.phase === "failed" ? "warning" : "info"}>
+          {t(`extension.dataRefresh.${data.phase}`)}
+        </Alert>
+      )}
       {dataIssueCount > 0 && (
         <Alert severity="warning">
           {t("extension.partialData", { count: dataIssueCount })}
@@ -356,7 +363,15 @@ export default function RankingScenarioView({
           {ranking.status === "running" && (
             <Alert severity="info">{t(key("partial result"))}</Alert>
           )}
-          {ranking.stale && <Alert severity="warning">{t(key("stale"))}</Alert>}
+          {ranking.stale && (
+            <Alert severity="warning">
+              {t(
+                ranking.dataStale
+                  ? "extension.dataRefresh.stale"
+                  : key("stale"),
+              )}
+            </Alert>
+          )}
           <Box>
             <Typography variant="subtitle2">
               {t(key("result conditions"))}:{" "}
@@ -383,6 +398,7 @@ export default function RankingScenarioView({
             comparison={ranking.comparison}
             comparisonIv={comparisonIv}
             stale={ranking.stale}
+            dataStale={ranking.dataStale}
             metricLabel={metricLabel(ranking.snapshot.config)}
             environment={ranking.snapshot.environment}
             isPartial={ranking.status === "running"}
