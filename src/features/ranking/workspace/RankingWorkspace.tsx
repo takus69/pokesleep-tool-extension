@@ -19,9 +19,11 @@ import {
 import type { RankingScenarioStorage } from "../application/RankingScenarioPersistence";
 import { rankingWorkspaceViewReducer } from "../application/RankingWorkspaceState";
 import { createRankingEnvironment } from "../domain/RankingScenario";
+import { registerExtensionTranslations } from "../i18n";
 import { type IvAction, IvForm, RateNotFixedPanel } from "../upstreamUi";
 import RankingScenarioView from "./RankingScenarioView";
 import ReadOnlyComparisonBoxPanel from "./ReadOnlyComparisonBoxPanel";
+import { useUpstreamDataRefresh } from "./useUpstreamDataRefresh";
 
 const RankingWorkspace = React.memo(
   ({
@@ -33,9 +35,12 @@ const RankingWorkspace = React.memo(
     refreshRevision: number;
     onEditEnvironment: () => void;
   }) => {
+    const data = useUpstreamDataRefresh();
+    const { t, i18n } = useTranslation();
     const initial = React.useMemo(() => loadUpstreamRankingInputs(), []);
     const previousIvStorageRaw = React.useRef(initial.ivStorageRaw);
     const nativeIvSaved = React.useRef(false);
+    const previousRefreshRevision = React.useRef(refreshRevision);
     const [state, dispatch] = React.useReducer(
       rankingWorkspaceViewReducer,
       initial.state,
@@ -49,23 +54,33 @@ const RankingWorkspace = React.memo(
     const [boxSortConfig, setBoxSortConfig] = React.useState(
       initial.boxSortConfig,
     );
-    // biome-ignore lint/correctness/useExhaustiveDependencies: the revision explicitly requests a fresh upstream snapshot
     React.useEffect(() => {
       if (readUpstreamIvStorageRaw() !== previousIvStorageRaw.current)
         nativeIvSaved.current = true;
       const latest = loadUpstreamRankingInputs(nativeIvSaved.current);
       previousIvStorageRaw.current = latest.ivStorageRaw;
-      dispatch({ type: "syncUpstream", payload: latest.state });
+      dispatch({
+        type:
+          previousRefreshRevision.current === refreshRevision &&
+          data.revision > 0
+            ? "refreshData"
+            : "syncUpstream",
+        payload: latest.state,
+      });
+      previousRefreshRevision.current = refreshRevision;
       setEnvironmentKey(latest.environmentKey);
       setUnsupportedEvent(latest.unsupportedEvent);
       setBoxSortConfig(latest.boxSortConfig);
-    }, [refreshRevision]);
+    }, [refreshRevision, data.revision]);
+    // biome-ignore lint/correctness/useExhaustiveDependencies: refreshed data needs translation fallbacks
+    React.useEffect(() => {
+      registerExtensionTranslations(i18n.language);
+    }, [data.revision, i18n.language]);
     const [comparisonIv, setComparisonIv] = React.useState<PokemonIv | null>(
       null,
     );
     const [comparisonEditorOpen, setComparisonEditorOpen] =
       React.useState(false);
-    const { t } = useTranslation();
     const orderedBox = React.useMemo(
       () =>
         comparisonEditorOpen && state.lowerTabIndex === 1

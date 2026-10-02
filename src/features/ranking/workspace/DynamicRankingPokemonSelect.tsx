@@ -4,6 +4,7 @@ import PokemonIv from "@upstream/util/PokemonIv";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { type PokemonOption, PokemonSelectDialog } from "../upstreamUi";
+import { useUpstreamDataRefresh } from "./useUpstreamDataRefresh";
 
 /** Upstream picker adapted so data-only additions retain a readable name. */
 export default function DynamicRankingPokemonSelect({
@@ -14,7 +15,9 @@ export default function DynamicRankingPokemonSelect({
   onChange: (pokemonName: string) => void;
 }) {
   const { t } = useTranslation();
+  const { revision } = useUpstreamDataRefresh();
   const [open, setOpen] = React.useState(false);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: data revision invalidates the upstream singleton snapshot
   const options = React.useMemo<PokemonOption[]>(
     () =>
       pokemons.map((pokemon) => ({
@@ -29,7 +32,7 @@ export default function DynamicRankingPokemonSelect({
         ing2Name: pokemon.ing2.name,
         ing3Name: pokemon.ing3?.name,
       })),
-    [t],
+    [t, revision],
   );
   const selected = options.find((pokemon) => pokemon.name === value);
   const unselected = {
