@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>料理プランナー UC-1 画面モック</title>
+  <style>
+    :root { font-family: system-ui, sans-serif; color: #253747; background: #f5f7fa; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    header { background: #fff; border-bottom: 1px solid #dbe2ea; padding: 16px max(20px, calc((100% - 1080px) / 2)); }
+    .tabs { display: flex; gap: 24px; margin-top: 16px; color: #647586; }
+    .active { color: #226854; font-weight: 700; border-bottom: 3px solid #226854; padding-bottom: 8px; }
+    main { max-width: 1120px; padding: 24px 20px 60px; margin: auto; }
+    h1 { font-size: 26px; margin: 0 0 6px; } h2 { font-size: 18px; margin: 0 0 16px; }
+    p { line-height: 1.65; margin: 8px 0; } .muted { color: #657586; font-size: 13px; }
+    .notice { padding: 12px 16px; background: #eaf1f8; border-radius: 8px; margin: 16px 0; }
+    section { background: #fff; border: 1px solid #dbe2ea; border-radius: 12px; padding: 20px; margin-top: 16px; }
+    .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+    label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+    input, select, button { font: inherit; border-radius: 6px; border: 1px solid #c5d0da; padding: 9px 10px; background: #fff; color: inherit; }
+    input, select { width: 100%; min-width: 0; } button { cursor: pointer; } button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #72b7e0; }
+    .primary { background: #226854; color: #fff; border-color: #226854; font-weight: 700; padding: 12px 22px; }
+    .row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .scroll { overflow-x: auto; } table { border-collapse: collapse; width: 100%; text-align: left; font-size: 14px; }
+    th { color: #657586; font-size: 12px; font-weight: 600; } td, th { padding: 12px 10px; border-bottom: 1px solid #e8edf2; }
+    td input { width: 86px; } .pill { display: inline-block; padding: 4px 8px; border-radius: 12px; background: #eef4f2; color: #226854; font-size: 12px; }
+    .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .metric { background: #f5f8fa; padding: 16px; border-radius: 8px; } .value { display: block; font-size: 24px; font-weight: 700; margin-top: 8px; }
+    .ok { color: #226854; } .error { color: #a53d32; background: #fff1ef; }
+    #state { padding: 14px; border-radius: 8px; margin: 14px 0; background: #edf4f0; }
+    #state.error { background: #fff1ef; } #state.stale { background: #fff5dc; color: #765b13; }
+    details { margin-top: 16px; } summary { cursor: pointer; }
+    .demo { border: 1px dashed #9eacba; padding: 14px; margin-top: 24px; border-radius: 8px; }
+    @media (max-width: 700px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .metrics { grid-template-columns: 1fr; } main { padding: 16px 12px 40px; } section { padding: 16px; } .tabs { gap: 16px; } table { min-width: 600px; } }
+    @media (max-width: 380px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header><strong>Pokémon Sleep Tool</strong><nav class="tabs" aria-label="表示位置の例"><span>SP</span><span>エナジー</span><span>ランキング</span><span class="active">料理</span></nav></header>
+  <main>
+    <div class="row"><div><h1>料理エナジープランナー</h1><p class="muted">備蓄と編成から、目標の料理回数を評価します。</p></div><span class="pill">1面待ち</span></div>
+    <div class="notice">画面構成のレビュー用モックです。個体・食材・数値は例示で、公式計算は実行しません。<a href="cooking-planner.md">設計文書</a></div>
+    <section><h2>1. 目標と計算条件</h2><div class="grid">
+      <label>開始曜日<select><option>月曜日</option><option>火曜日</option><option>水曜日</option><option>木曜日</option><option>金曜日</option><option>土曜日</option><option>日曜日</option></select></label>
+      <label>期間（日）<input type="number" min="1" value="7"></label><label>編成枠<input type="number" min="1" max="5" value="5"></label><label>目標料理回数<input type="number" min="0" value="21"></label>
+      <label>カテゴリ<select><option>カレー・シチュー</option><option>サラダ</option><option>デザート・ドリンク</option></select></label><label>レシピ<select><option>例示レシピA</option></select></label><label>レシピレベル<input type="number" min="1" value="60"></label><label>うち日曜の料理回数<input type="number" min="0" value="3"></label>
+    </div><details><summary>元ツールの計算環境</summary><p>現在の個体能力・24時間の取得期待値を使用。フィールド、イベント、睡眠、回復、キャンプ等の環境条件を全担当に適用します。</p><p class="muted">元ツールの条件を変更した場合は、戻った後に再読込します。</p><button type="button" class="reload">条件を再読込（例）</button></details></section>
+    <section><div class="row"><h2>2. 初期備蓄</h2><label>バッグ上限<input type="number" value="700" min="0"></label></div><div class="grid"><label>食材A（個）<input type="number" value="200" min="0"></label><label>食材B（個）<input type="number" value="100" min="0"></label><label>食材C（個）<input type="number" value="0" min="0"></label><label>その他の備蓄（個）<input type="number" value="100" min="0"></label></div><p class="muted">例示：400 / 700個。レシピに使わない備蓄もバッグ容量に含めます。</p></section>
+    <section><h2>3. 担当の編成</h2><p class="muted">1個体を1日編成すると1枠日。同じ個体が役割を兼ねても、編成日数は一度だけ数えます。</p><div class="scroll"><table><thead><tr><th>ボックスの個体</th><th>役割</th><th>日次食材 / 発動期待値</th><th>基本日数</th><th>チャンス追加日数</th></tr></thead><tbody>
+      <tr><td>個体A・現在Lv60</td><td><span class="pill">食材</span></td><td>食材A 40 / B 20個</td><td><input aria-label="個体Aの基本日数" type="number" value="6" min="0" step="0.1"></td><td>—</td></tr>
+      <tr><td>個体B・現在Lv50</td><td><span class="pill">食材・鍋</span></td><td>食材C 30個 / 2.0回</td><td><input aria-label="個体Bの基本日数" type="number" value="5" min="0" step="0.1"></td><td>—</td></tr>
+      <tr><td>個体C・現在Lv60</td><td><span class="pill">料理チャンス</span></td><td>発動 4.0回</td><td>0</td><td><input aria-label="個体Cの追加日数" type="number" value="7" min="0" step="0.1"></td></tr>
+      <tr><td>個体D・現在Lv50</td><td><span class="pill">料理チャンス</span></td><td>発動 3.0回</td><td>0</td><td><input aria-label="個体Dの追加日数" type="number" value="7" min="0" step="0.1"></td></tr>
+    </tbody></table></div><p>例示：25 / 35枠日　<span class="pill">未配分 10枠日</span></p><p class="muted">担当ごとの上限は期間日数。選択した担当に配分できない残りも表示します。</p><details><summary>鍋・追加投入・料理チャンスの条件</summary><div class="grid"><label>基本鍋容量<input type="number" value="60" min="0"></label><label>必要鍋拡張回数<input type="number" value="10" min="0"></label><label>平均食材エナジー<input type="number" value="150" min="0"></label><label>料理チャンス配分<select><option>再充填方式</option><option>毎食発動方式</option></select></label></div><p class="muted">空いた鍋を満たせる食材がある前提。拡張容量の配分と大成功計算は別途仕様を合意します。</p></details></section>
+    <div class="row" style="margin-top:20px"><button class="primary" id="calculate" type="button">計画を計算</button><p class="muted">計画はこのページ内で編集中。再読込すると消える案です。</p></div>
+    <section><h2>4. 計算結果</h2><div id="state" role="status" aria-live="polite">例示結果：食材条件は成立。鍋・大成功・エナジーは仕様確定後に計算します。</div><div class="metrics"><div class="metric">目標料理回数<span class="value">21回</span><span class="muted">期間合計の食材期待量で評価</span></div><div class="metric">料理チャンス発動期待値<span class="value">49.0回</span><span class="muted">個体C 28.0 ＋ 個体D 21.0</span></div><div class="metric">料理期待エナジー<span class="value">未計算</span><span class="muted">大成功回数・通常分・追加分を表示予定</span></div></div><div class="scroll"><table><thead><tr><th>材料</th><th>必要</th><th>備蓄</th><th>取得期待量</th><th>過不足</th></tr></thead><tbody><tr><td>食材A</td><td>420</td><td>200</td><td>240</td><td class="ok">+20</td></tr><tr><td>食材B</td><td>210</td><td>100</td><td>120</td><td class="ok">+10</td></tr><tr><td>食材C</td><td>105</td><td>0</td><td>150</td><td class="ok">+45</td></tr></tbody></table></div><p class="muted">例示レシピA：一食A20・B10・C5個。期待値での成立であり、各食時点で作れることを保証しません。</p><details><summary>必要日数の参考値（例）</summary><p>個体A：不足分を単独で埋めるなら5.5日。個体B：3.5日。ほかの個体の設定を固定した参考値で、自動編成ではありません。</p></details></section>
+    <section><h2>鍋・大成功・エナジーの内訳</h2><div class="metrics"><div class="metric">鍋の条件<span class="value">未判定</span><p class="muted">レシピ35個 / 基本容量60個（例）<br>必要拡張10回 / 発動期待10回<br>各料理への容量割当は別途合意</p></div><div class="metric">期待大成功回数<span class="value">未計算</span><p class="muted">方式・通常食と日曜食の内訳<br>スキル効果量が違う担当を区別</p></div><div class="metric">料理エナジー内訳<span class="value">未計算</span><p class="muted">レシピ通常分<br>追加投入通常分<br>大成功による増分</p></div></div></section>
+    <div class="demo"><div class="row"><strong>レビュー用：表示状態を切り替える</strong><label>状態<select id="demo-state"><option value="example">例示結果</option><option value="empty">未計算</option><option value="loading">読込中</option><option value="error">編成上限エラー</option><option value="unknown">未対応データ</option></select></label></div></div>
+  </main>
+  <script>
+    const state = document.getElementById('state');
+    const messages = {
+      example: '例示結果：食材条件は成立。鍋・大成功・エナジーは仕様確定後に計算します。',
+      empty: '未計算：目標・備蓄・担当を設定して計算してください。',
+      loading: '元ツールのボックスと計算条件を読み込んでいます。',
+      error: '編成上限を超えています。各個体の期間上限と総編成量を確認してください。',
+      unknown: '対象個体の食材獲得スキルが未対応です。成立とエナジーを確定できません。'
+    };
+    function display(mode) {
+      state.textContent = messages[mode];
+      state.className = ['error', 'unknown'].includes(mode) ? 'error' : '';
+    }
+    document.getElementById('demo-state').addEventListener('change', event => display(event.target.value));
+    document.querySelectorAll('section input, section select').forEach(input => {
+      input.addEventListener('input', () => {
+        state.textContent = '条件が変更されています。表示中の数値は前の例示結果です。再計算してください。';
+        state.className = 'stale';
+      });
+    });
+    document.getElementById('calculate').addEventListener('click', () => {
+      state.textContent = 'このモックは計算を実行しません。例示値を表示しています。実際の条件では実装後に算出します。';
+      state.className = '';
+    });
+    document.querySelector('.reload').addEventListener('click', () => {
+      state.textContent = 'モックの条件再読込操作です。元ツールへの読み書きは行いません。';
+      state.className = 'stale';
+    });
+  </script>
+</body>
+</html>
