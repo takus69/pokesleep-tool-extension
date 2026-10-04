@@ -12,6 +12,8 @@
 - Copyright (c) 2024 ちゃんりわ: `AppleIcon`, `CacaoIcon`, `CoffeeIcon`, `CookingAssistIcon`, `CornIcon`, `EggIcon`, `GingerIcon`, `HerbIcon`, `HoneyIcon`, `HyperCutterIcon`, `IngredientDrawIcon`, `IngredientsIcon`, `LeekIcon`, `MilkIcon`, `MushroomIcon`, `OilIcon`, `PotatoIcon`, `SausageIcon`, `SoyIcon`, `SuperLuckIcon`, `TailIcon`, `TomatoIcon`
 - Copyright (c) 2025 ちゃんりわ: `AvocadoIcon`, `PumpkinIcon`
 
+料理プランナーの設計モックにも、同じ固定commitの `src/ui/Resources/EggIcon.tsx`、`TomatoIcon.tsx`、`HoneyIcon.tsx`、`PumpkinIcon.tsx` を使用します。`docs/design/cooking-mock-assets` にReact/MUIラッパーを除いた静的SVGとして収録し、JSX属性名をSVG属性名へ変換しています。形状・パス・色は保持し、元のMIT表示を各ファイルに収録しています。詳細は同ディレクトリのREADMEを参照してください。
+
 上記のアイコンに適用される許諾本文は次のとおりです。
 
 > Permission is hereby granted, free of charge, to any person obtaining a copy
