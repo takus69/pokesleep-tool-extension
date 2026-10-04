@@ -139,3 +139,11 @@ Manifest V3を使用し、対象サイトと検証済みJSON取得先だけにho
 | 最新JSONの取得、キャッシュ、同時取得共有 | `upstreamDataPack.ts`、`upstreamDataPackRefresh.ts`、`runtime/chromium/upstreamDataPackRuntime.ts` | runtime portで分離済み | integrationはdecode、検証、適用、fallback順序を管理し、Chromium adapterだけが取得先URL、`fetch`、Chrome Storage、service workerメッセージを知る。境界テストで再混在を防止する。 |
 
 監査で確認した改善課題と設計判断の内容、優先度、完了条件は[GitHub Issues](https://github.com/takus69/pokesleep-tool-extension/issues)で管理します。本書には現在有効な境界仕様と、上流更新時に継続して確認する依存関係を記載します。
+
+## 11. 料理プランナーの予定境界（#74・未実装）
+
+[UC-1設計案](design/cooking-planner.md)を参照。料理用adapterはボックスと計算環境を読み取り、現在の個体能力・24時間条件のコピーを公式計算へ渡す。元ツールの保存値を変更しない。
+
+現在の `PokemonCalculationPort` の食材出力は通常のおてつだい由来で、食材獲得スキルの出力を含まない。料理計算では公式の数量と対象食材を使う型付き出力境界が必要。食材エナジーから数量を逆算せず、未対応効果を無言で省略しない。鍋拡張・料理チャンスの効果量も現行portにないため、追加時には契約テストを設ける。
+
+レシピ材料・基礎エナジーの一覧は現行のデータ同期対象にない。出典・更新手順・ライセンスは #75/#76 の前に確定する。上段タブはランキングと料理で退避・復元の所有権を共有し、排他的に表示する。料理側に上流DOM・保存形式の知識を複製しない。
