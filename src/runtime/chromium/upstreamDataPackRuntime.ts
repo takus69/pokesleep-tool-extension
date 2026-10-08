@@ -26,6 +26,7 @@ export class ChromiumUpstreamDataPackRuntime
     return {
       pokemon: response.pokemon,
       event: response.event,
+      pokemonIconSource: response.pokemonIconSource,
       ...(response.pokemonNames !== undefined
         ? { pokemonNames: response.pokemonNames }
         : {}),

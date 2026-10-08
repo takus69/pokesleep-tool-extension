@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import icons from "@upstream/ui/IvCalc/PokemonIconData";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import eventJson from "../vendor/upstream-data/event.json";
 import bundledManifest from "../vendor/upstream-data/manifest.json";
@@ -36,6 +38,36 @@ describe("prepareUpstreamDataPack", () => {
   beforeEach(() => {
     const baseline = validateUpstreamDataPack(pokemonJson, eventJson);
     applyUpstreamDataPack(baseline, "bundled", 0);
+  });
+
+  it("caches icon-only updates, restores offline, and retains them after invalid source", async () => {
+    const source = fs
+      .readFileSync(
+        "vendor/pokesleep-tool/src/ui/IvCalc/PokemonIconData.ts",
+        "utf8",
+      )
+      .replaceAll("#84c886", "#123456");
+    const writeCachedValue = vi.fn().mockResolvedValue(undefined);
+    const adapter = runtime({
+      writeCachedValue,
+      fetchLatest: vi.fn().mockResolvedValue({
+        pokemon: pokemonJson,
+        event: eventJson,
+        pokemonIconSource: source,
+      }),
+    });
+    await prepareUpstreamDataPack(adapter, logger());
+    await refreshUpstreamDataPack(adapter, 1, logger());
+    expect(icons[1].normalPallet[0]).toBe("#123456");
+    const cached = writeCachedValue.mock.calls[0][0];
+    expect(cached.pokemonIcons[590]).toEqual(icons[590]);
+    const offline = runtime({
+      readCachedValue: vi.fn().mockResolvedValue(cached),
+    });
+    await prepareUpstreamDataPack(offline, logger());
+    expect(icons[1].normalPallet[0]).toBe("#123456");
+    await refreshUpstreamDataPack(offline, 2, logger());
+    expect(icons[1].normalPallet[0]).toBe("#123456");
   });
 
   it("fetches, validates, caches, and applies a network pack atomically", async () => {
@@ -139,7 +171,9 @@ describe("prepareUpstreamDataPack", () => {
 
   it("caches new names, restores them offline, and preserves them after translation failure", async () => {
     const changed = [
-      ...pokemonJson,
+      ...pokemonJson.filter(
+        (item) => !["Foongus", "Amoonguss"].includes(item.name),
+      ),
       ...["Foongus", "Amoonguss"].map((name, index) => ({
         ...pokemonJson[0],
         id: 590 + index,

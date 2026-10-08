@@ -130,19 +130,27 @@ describe("upstream data pack", () => {
       skill: "unknown",
       frequency: 0,
     }));
-    const pack = validateUpstreamDataPack([...pokemonJson, ...pending], {
-      ...eventJson,
-      bonus: [
-        ...eventJson.bonus,
-        {
-          name: "packed portion cooking week 3",
-          start: "2026-10-05T04:00:00",
-          end: "2026-10-12T04:00:00",
-          target: { specialty: "Ingredients" },
-          effects: { skillIngredient: 1.5 },
-        },
+    const pack = validateUpstreamDataPack(
+      [
+        ...pokemonJson.filter(
+          (item) => !["Foongus", "Amoonguss"].includes(item.name),
+        ),
+        ...pending,
       ],
-    });
+      {
+        ...eventJson,
+        bonus: [
+          ...eventJson.bonus,
+          {
+            name: "packed portion cooking week 3",
+            start: "2026-10-05T04:00:00",
+            end: "2026-10-12T04:00:00",
+            target: { specialty: "Ingredients" },
+            effects: { skillIngredient: 1.5 },
+          },
+        ],
+      },
+    );
     expect(pack.issues.map((issue) => [issue.kind, issue.name])).toEqual([
       ["pokemon", "Foongus"],
       ["pokemon", "Amoonguss"],

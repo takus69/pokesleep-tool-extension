@@ -198,6 +198,7 @@ describe("ranking shared-storage contract with the pinned upstream tool", () => 
     expect(Object.keys(environment).sort()).toEqual([
       "addHelpingBonusEffect",
       "berryBurstTeam",
+      "berryZone",
       "customEventBonus",
       "e4eCount",
       "e4eEnergy",

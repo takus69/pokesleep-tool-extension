@@ -18,7 +18,7 @@ import { registerExtensionTranslations } from "./i18n";
 import { i18n, loadLanguage } from "./upstreamUi";
 
 const updatedPokemon = [
-  ...pokemon,
+  ...pokemon.filter((item) => !["Foongus", "Amoonguss"].includes(item.name)),
   ...["Foongus", "Amoonguss"].map((name, index) => ({
     ...pokemon[0],
     id: 590 + index,

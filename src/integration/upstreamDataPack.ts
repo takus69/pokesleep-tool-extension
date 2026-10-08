@@ -5,6 +5,11 @@ import pokemons, {
   PokemonTypes,
 } from "@upstream/data/pokemons";
 import {
+  applyUpstreamPokemonIcons,
+  type UpstreamPokemonIcons,
+  validateUpstreamPokemonIcons,
+} from "./upstreamPokemonIcons";
+import {
   type UpstreamPokemonNames,
   validateUpstreamPokemonNames,
 } from "./upstreamPokemonNames";
@@ -134,6 +139,7 @@ export interface UpstreamDataIssue {
 }
 
 export interface ValidatedUpstreamDataPack {
+  pokemonIcons: UpstreamPokemonIcons;
   pokemon: PokemonData[];
   drowsy: ConstructorParameters<typeof DrowsyEventData>[0][];
   bonus: ConstructorParameters<typeof BonusEventData>[0][];
@@ -142,6 +148,7 @@ export interface ValidatedUpstreamDataPack {
 }
 
 export interface CachedUpstreamDataPack {
+  pokemonIcons?: unknown;
   bundledCommit: string;
   checkedAt: number;
   pokemon: unknown;
@@ -150,6 +157,7 @@ export interface CachedUpstreamDataPack {
 }
 
 export interface UpstreamDataStatus {
+  pokemonIcons: UpstreamPokemonIcons;
   source: "bundled" | "cached" | "network";
   checkedAt: number | null;
   pokemonCount: number;
@@ -159,6 +167,7 @@ export interface UpstreamDataStatus {
 }
 
 let currentStatus: UpstreamDataStatus = {
+  pokemonIcons: {},
   source: "bundled",
   checkedAt: null,
   pokemonCount: pokemons.length,
@@ -309,6 +318,7 @@ export function validateUpstreamDataPack(
   pokemonJson: unknown,
   eventJson: unknown,
   pokemonNames?: unknown,
+  pokemonIcons?: unknown,
 ): ValidatedUpstreamDataPack {
   if (
     !Array.isArray(pokemonJson) ||
@@ -358,6 +368,7 @@ export function validateUpstreamDataPack(
   }
   return {
     pokemon,
+    pokemonIcons: validateUpstreamPokemonIcons(pokemonIcons, pokemon),
     drowsy,
     bonus,
     issues,
@@ -373,6 +384,7 @@ export function applyUpstreamDataPack(
   source: UpstreamDataStatus["source"],
   checkedAt: number,
 ): UpstreamDataStatus {
+  applyUpstreamPokemonIcons(pack.pokemonIcons);
   pokemons.splice(0, pokemons.length, ...pack.pokemon);
   events.drowsy.splice(
     0,
@@ -385,6 +397,7 @@ export function applyUpstreamDataPack(
     ...pack.bonus.map((event) => new BonusEventData(event)),
   );
   currentStatus = {
+    pokemonIcons: pack.pokemonIcons,
     source,
     checkedAt,
     pokemonCount: pack.pokemon.length,
