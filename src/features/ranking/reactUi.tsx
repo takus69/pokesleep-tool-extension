@@ -1,6 +1,7 @@
 import { createTheme, ThemeProvider } from "@mui/material";
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
+import { readUpstreamLanguage } from "../../integration/upstreamLanguage";
 import {
   createUpstreamRankingTabController,
   type UpstreamRankingTabController,
@@ -19,14 +20,7 @@ const theme = createTheme({
 });
 
 function browserLanguage(): string {
-  const stored = loadConfig("en").language;
-  if (["en", "ja", "ko", "zh-CN", "zh-TW"].includes(stored)) return stored;
-  const language = navigator.language;
-  if (/ja/i.test(language)) return "ja";
-  if (/ko/i.test(language)) return "ko";
-  if (/^zh-hant/i.test(language)) return "zh-TW";
-  if (/^zh/i.test(language)) return "zh-CN";
-  return "en";
+  return readUpstreamLanguage(navigator.language);
 }
 
 export function mountRankingWorkspace(

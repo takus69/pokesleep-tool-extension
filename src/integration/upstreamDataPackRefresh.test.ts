@@ -136,4 +136,69 @@ describe("prepareUpstreamDataPack", () => {
     expect(status.source).toBe("bundled");
     expect(status.pokemonCount).toBe(pokemonJson.length);
   });
+
+  it("caches new names, restores them offline, and preserves them after translation failure", async () => {
+    const changed = [
+      ...pokemonJson,
+      ...["Foongus", "Amoonguss"].map((name, index) => ({
+        ...pokemonJson[0],
+        id: 590 + index,
+        name,
+      })),
+    ];
+    const pokemonNames = {
+      ja: { pokemons: { Foongus: "タマゲタケ", Amoonguss: "モロバレル" } },
+    };
+    const writeCachedValue = vi.fn().mockResolvedValue(undefined);
+    const adapter = runtime({
+      writeCachedValue,
+      fetchLatest: vi.fn().mockResolvedValue({
+        pokemon: changed,
+        event: eventJson,
+        pokemonNames,
+      }),
+    });
+    await prepareUpstreamDataPack(adapter, logger());
+    await refreshUpstreamDataPack(adapter, 10, logger());
+    expect(getUpstreamDataStatus().pokemonNames).toEqual(pokemonNames);
+    const cached = writeCachedValue.mock.calls[0][0];
+    expect(cached.pokemonNames).toEqual(pokemonNames);
+
+    const offline = runtime({
+      readCachedValue: vi.fn().mockResolvedValue(cached),
+      fetchLatest: vi.fn().mockRejectedValue(new Error("offline")),
+    });
+    await prepareUpstreamDataPack(offline, logger());
+    await refreshUpstreamDataPack(offline, 11, logger());
+    expect(getUpstreamDataStatus().source).toBe("cached");
+    expect(getUpstreamDataStatus().pokemonNames).toEqual(pokemonNames);
+
+    const partial = runtime({
+      fetchLatest: vi.fn().mockResolvedValue({
+        pokemon: changed,
+        event: eventJson,
+        pokemonNames: { ja: { pokemons: { Foongus: "{{invalid}}" } } },
+      }),
+    });
+    await refreshUpstreamDataPack(partial, 12, logger());
+    expect(getUpstreamDataStatus().pokemonNames).toEqual(pokemonNames);
+    expect(partial.writeCachedValue).toHaveBeenCalledWith(
+      expect.objectContaining({ pokemonNames }),
+    );
+  });
+
+  it("applies a later translation even when calculation data is unchanged", async () => {
+    const pokemonNames = { ja: { pokemons: { Bulbasaur: "フシギダネ" } } };
+    const adapter = runtime({
+      fetchLatest: vi.fn().mockResolvedValue({
+        pokemon: pokemonJson,
+        event: eventJson,
+        pokemonNames,
+      }),
+    });
+    await prepareUpstreamDataPack(adapter, logger());
+    await refreshUpstreamDataPack(adapter, 13, logger());
+    expect(getUpstreamDataStatus().pokemonNames).toEqual(pokemonNames);
+    expect(getUpstreamDataStatus().source).toBe("network");
+  });
 });

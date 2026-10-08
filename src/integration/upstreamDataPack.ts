@@ -4,6 +4,10 @@ import pokemons, {
   type PokemonData,
   PokemonTypes,
 } from "@upstream/data/pokemons";
+import {
+  type UpstreamPokemonNames,
+  validateUpstreamPokemonNames,
+} from "./upstreamPokemonNames";
 
 const bundledPokemonCount = pokemons.length;
 const supportedSkills = new Set([
@@ -134,6 +138,7 @@ export interface ValidatedUpstreamDataPack {
   drowsy: ConstructorParameters<typeof DrowsyEventData>[0][];
   bonus: ConstructorParameters<typeof BonusEventData>[0][];
   issues: UpstreamDataIssue[];
+  pokemonNames: UpstreamPokemonNames;
 }
 
 export interface CachedUpstreamDataPack {
@@ -141,6 +146,7 @@ export interface CachedUpstreamDataPack {
   checkedAt: number;
   pokemon: unknown;
   event: unknown;
+  pokemonNames?: unknown;
 }
 
 export interface UpstreamDataStatus {
@@ -149,6 +155,7 @@ export interface UpstreamDataStatus {
   pokemonCount: number;
   issues: UpstreamDataIssue[];
   fallbackPokemonNames: string[];
+  pokemonNames: UpstreamPokemonNames;
 }
 
 let currentStatus: UpstreamDataStatus = {
@@ -157,6 +164,7 @@ let currentStatus: UpstreamDataStatus = {
   pokemonCount: pokemons.length,
   issues: [],
   fallbackPokemonNames: [],
+  pokemonNames: {},
 };
 
 function object(value: unknown): JsonObject | null {
@@ -300,6 +308,7 @@ function validateBonusEvent(
 export function validateUpstreamDataPack(
   pokemonJson: unknown,
   eventJson: unknown,
+  pokemonNames?: unknown,
 ): ValidatedUpstreamDataPack {
   if (
     !Array.isArray(pokemonJson) ||
@@ -347,7 +356,16 @@ export function validateUpstreamDataPack(
       });
     } else bonus.push(validated);
   }
-  return { pokemon, drowsy, bonus, issues };
+  return {
+    pokemon,
+    drowsy,
+    bonus,
+    issues,
+    pokemonNames: validateUpstreamPokemonNames(
+      pokemonNames,
+      pokemon.map((item) => item.name),
+    ),
+  };
 }
 
 export function applyUpstreamDataPack(
@@ -372,6 +390,7 @@ export function applyUpstreamDataPack(
     pokemonCount: pack.pokemon.length,
     issues: pack.issues,
     fallbackPokemonNames: pack.pokemon.map((pokemon) => pokemon.name),
+    pokemonNames: pack.pokemonNames,
   };
   return currentStatus;
 }

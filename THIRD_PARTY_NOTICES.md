@@ -47,3 +47,5 @@
 `src/vendor/upstream-data` は `scripts/sync-upstream-data.mjs` が公式元ツールの指定checkoutから取得した非実行JSONのスナップショットです。同期元commitとファイルハッシュは同ディレクトリのmanifestに記録します。元ツールREADMEのMIT表記がデータJSONへ適用される範囲は公開前に確認します。計算コードはViteが自己完結したcontent scriptへbundleし、実行時には取得しません。
 
 PokémonおよびPokémon Sleepは各権利者の商標・著作物であり、本プロジェクトは公式提供物ではありません。
+
+新ポケモン名の自動補完は同じ公式リポジトリの `main/src/i18n/{en,ja,ko,zh-CN,zh-TW}/pokemons.json` を実行時に読み取ります。取得元は固定URLで、固定submoduleや同梱コードのcommitは変更しません。取得時のmainに追従するため、この実行時データには固定commitを割り当てません。変更内容は検証済みポケモン名のプレーンテキスト訳だけを抽出し、同梱翻訳に不足する名称を補うことです。計算データと同じ上流READMEのMIT表記を参照し、JSONをコードとして評価しません。
