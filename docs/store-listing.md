@@ -122,3 +122,9 @@ Chromeの小型紹介画像と実画面スクリーンショットは必須で�
 - [ ] 配布物の出典・ライセンス表示と掲載素材をライセンス監査に照らして確認
 
 画像寸法と提出項目は[Chrome Web Storeの画像ガイド](https://developer.chrome.com/docs/webstore/images)、[掲載情報ガイド](https://developer.chrome.com/docs/webstore/cws-dashboard-listing)、[Edge Add-onsの提出手順](https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/publish-extension)を参照。ストアの管理画面に更新があれば、提出時点の表示を優先します。
+
+## 0.3.1の更新説明（提出用）
+
+新しいポケモンの名称やアイコンが正しく表示されない問題を修正しました。ポケモン名と通常色・色違いアイコンを公式元ツールの公開データから自動補完し、通信できない場合は保存済みデータを使用します。元ツールの言語設定が未保存の場合はブラウザの言語を使用します。最新のポケモン・イベント情報と公式計算処理にも対応しました。
+
+提出版は0.3.1。既存の独自アイコン・掲載スクリーンショットを継続使用し、詳細説明・権限用途・データ利用申告は本書とprivacy.mdの最新版を使用します。名称・権限の追加変更はありません。提出・公開はIssue #91で別途記録します。
