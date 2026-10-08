@@ -18,6 +18,7 @@ import {
 export interface LatestUpstreamDataPack {
   readonly pokemon: unknown;
   readonly event: unknown;
+  readonly pokemonNames?: unknown;
 }
 
 export interface UpstreamDataPackRuntime {
@@ -52,7 +53,11 @@ export async function prepareUpstreamDataPack(
       await runtime.readCachedValue(),
     );
     if (cached !== null && cached.bundledCommit === bundledManifest.commit) {
-      const pack = validateUpstreamDataPack(cached.pokemon, cached.event);
+      const pack = validateUpstreamDataPack(
+        cached.pokemon,
+        cached.event,
+        cached.pokemonNames,
+      );
       applyUpstreamDataPack(pack, "cached", cached.checkedAt);
       initialPack = pack;
     }
@@ -76,13 +81,25 @@ export async function refreshUpstreamDataPack(
   setUpstreamDataRefreshPhase("checking");
 
   try {
-    const { pokemon, event } = await runtime.fetchLatest();
-    const pack = validateUpstreamDataPack(pokemon, event);
+    const { pokemon, event, pokemonNames } = await runtime.fetchLatest();
+    const latest = validateUpstreamDataPack(pokemon, event, pokemonNames);
+    // Keep previously validated names when a language is unavailable or partial.
+    const merged = { ...getUpstreamDataStatus().pokemonNames };
+    for (const [language, resource] of Object.entries(latest.pokemonNames)) {
+      const key = language as keyof typeof merged;
+      merged[key] = {
+        pokemons: { ...merged[key]?.pokemons, ...resource.pokemons },
+      };
+    }
+    const pack = validateUpstreamDataPack(pokemon, event, merged);
     await runtime.writeCachedValue({
       bundledCommit: bundledManifest.commit,
       checkedAt: now,
       pokemon,
       event,
+      ...(Object.keys(pack.pokemonNames).length > 0
+        ? { pokemonNames: pack.pokemonNames }
+        : {}),
     });
     acceptUpstreamDataRefresh(pack, now);
   } catch (cause) {

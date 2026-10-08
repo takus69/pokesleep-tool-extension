@@ -1,6 +1,6 @@
 let latestRequest;
 const sourceBase =
-  "https://raw.githubusercontent.com/nitoyon/pokesleep-tool/main/src/data";
+  "https://raw.githubusercontent.com/nitoyon/pokesleep-tool/main/src";
 
 async function fetchJson(file) {
   const response = await fetch(`${sourceBase}/${file}`, {
@@ -21,10 +21,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   )
     return;
   latestRequest ??= Promise.all([
-    fetchJson("pokemon.json"),
-    fetchJson("event.json"),
+    fetchJson("data/pokemon.json"),
+    fetchJson("data/event.json"),
+    Promise.all(
+      ["en", "ja", "ko", "zh-CN", "zh-TW"].map(async (language) => {
+        try {
+          return [language, await fetchJson(`i18n/${language}/pokemons.json`)];
+        } catch {
+          return [language, null];
+        }
+      }),
+    ).then(Object.fromEntries),
   ])
-    .then(([pokemon, event]) => ({ ok: true, pokemon, event }))
+    .then(([pokemon, event, pokemonNames]) => ({
+      ok: true,
+      pokemon,
+      event,
+      pokemonNames,
+    }))
     .catch(() => ({ ok: false }))
     .finally(() => {
       latestRequest = undefined;

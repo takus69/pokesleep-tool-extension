@@ -47,7 +47,25 @@ export function registerExtensionTranslations(language: string): void {
       true,
       true,
     );
-  for (const name of getUpstreamDataStatus().fallbackPokemonNames)
-    if (!i18n.exists(`pokemons.${name}`, { lng: language }))
-      i18n.addResource(language, "translation", `pokemons.${name}`, name);
+  const status = getUpstreamDataStatus();
+  let namesAdded = false;
+  // Do not create partial bundles for languages loadLanguage has not loaded yet.
+  for (const lng of new Set(["en", language])) {
+    const resource =
+      status.pokemonNames[lng as keyof typeof status.pokemonNames];
+    if (resource === undefined) continue;
+    for (const [name, text] of Object.entries(resource.pokemons))
+      if (
+        i18n.getResource(lng, "translation", `pokemons.${name}`) === undefined
+      ) {
+        i18n.addResource(lng, "translation", `pokemons.${name}`, text);
+        namesAdded = true;
+      }
+  }
+  for (const name of status.fallbackPokemonNames)
+    if (!i18n.exists(`pokemons.${name}`, { lng: "en" })) {
+      i18n.addResource("en", "translation", `pokemons.${name}`, name);
+      namesAdded = true;
+    }
+  if (namesAdded) i18n.emit("languageChanged", i18n.language);
 }

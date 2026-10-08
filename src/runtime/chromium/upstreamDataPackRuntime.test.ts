@@ -48,4 +48,22 @@ describe("ChromiumUpstreamDataPackRuntime", () => {
     const runtime = new ChromiumUpstreamDataPackRuntime();
     await expect(runtime.fetchLatest()).rejects.toThrow("unavailable");
   });
+  it("passes optional name JSON through to the integration validator", async () => {
+    const pokemonNames = { ja: { pokemons: { Foongus: "タマゲタケ" } } };
+    vi.stubGlobal("chrome", {
+      runtime: {
+        sendMessage: vi.fn().mockResolvedValue({
+          ok: true,
+          pokemon: [],
+          event: {},
+          pokemonNames,
+        }),
+      },
+    });
+    expect(await new ChromiumUpstreamDataPackRuntime().fetchLatest()).toEqual({
+      pokemon: [],
+      event: {},
+      pokemonNames,
+    });
+  });
 });
