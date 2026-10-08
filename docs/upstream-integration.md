@@ -126,7 +126,7 @@ Manifest V3を使用し、対象サイトと検証済みJSON取得先だけにho
 
 ## 10. 疎結合監査
 
-現行コードの固定上流commitは `0dc4525b09a979582e9c1c5a3e10d4d65d0ad9d4` です。次の境界は、固定commit更新時にも継続して監視します。
+現行コードの固定上流commitは `06569f6aeb1d3b9207208b45b27616e5a1f66d95` です。次の境界は、固定commit更新時にも継続して監視します。
 
 | 依存 | 現在の境界 | 分類 | 上流変更時の影響・方針 |
 |---|---|---|---|
@@ -139,3 +139,6 @@ Manifest V3を使用し、対象サイトと検証済みJSON取得先だけにho
 | 最新JSONの取得、キャッシュ、同時取得共有 | `upstreamDataPack.ts`、`upstreamDataPackRefresh.ts`、`runtime/chromium/upstreamDataPackRuntime.ts` | runtime portで分離済み | integrationはdecode、検証、適用、fallback順序を管理し、Chromium adapterだけが取得先URL、`fetch`、Chrome Storage、service workerメッセージを知る。境界テストで再混在を防止する。 |
 
 監査で確認した改善課題と設計判断の内容、優先度、完了条件は[GitHub Issues](https://github.com/takus69/pokesleep-tool-extension/issues)で管理します。本書には現在有効な境界仕様と、上流更新時に継続して確認する依存関係を記載します。
+
+
+公開前更新 #89: 固定commit 06569f6aで新ポケモンの翻訳・アイコン、料理イベント、きのみゾーン設定・計算、料理アシスト倍率修正を確認する。アイコン定義は非実行データとして読み取り、図形・配色だけを検証してキャッシュし、自動反映する。

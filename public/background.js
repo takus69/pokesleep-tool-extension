@@ -11,6 +11,20 @@ async function fetchJson(file) {
   return response.json();
 }
 
+async function fetchIconSource() {
+  try {
+    const response = await fetch(`${sourceBase}/ui/IvCalc/PokemonIconData.ts`, {
+      cache: "no-cache",
+      signal: AbortSignal.timeout(5_000),
+    });
+    if (!response.ok) return null;
+    const source = await response.text();
+    return source.length <= 500_000 ? source : null;
+  } catch {
+    return null;
+  }
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message?.type !== "fetch-latest-upstream-data") return;
   if (sender.id !== chrome.runtime.id || !sender.url) return;
@@ -32,12 +46,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }
       }),
     ).then(Object.fromEntries),
+    fetchIconSource(),
   ])
-    .then(([pokemon, event, pokemonNames]) => ({
+    .then(([pokemon, event, pokemonNames, pokemonIconSource]) => ({
       ok: true,
       pokemon,
       event,
       pokemonNames,
+      pokemonIconSource,
     }))
     .catch(() => ({ ok: false }))
     .finally(() => {

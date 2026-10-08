@@ -9,6 +9,7 @@ describe("upstream data pack runtime boundary", () => {
       "upstreamDataPackRefresh.ts",
       "upstreamDataRefreshState.ts",
       "upstreamPokemonNames.ts",
+      "upstreamPokemonIcons.ts",
     ].map((file) =>
       fs.readFileSync(path.resolve("src/integration", file), "utf8"),
     );
