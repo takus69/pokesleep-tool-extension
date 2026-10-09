@@ -1,6 +1,6 @@
 let latestRequest;
 const sourceBase =
-  "https://raw.githubusercontent.com/nitoyon/pokesleep-tool/main/src/data";
+  "https://raw.githubusercontent.com/nitoyon/pokesleep-tool/main/src";
 
 async function fetchJson(file) {
   const response = await fetch(`${sourceBase}/${file}`, {
@@ -9,6 +9,20 @@ async function fetchJson(file) {
   });
   if (!response.ok) throw new Error(`${file}: HTTP ${response.status}`);
   return response.json();
+}
+
+async function fetchIconSource() {
+  try {
+    const response = await fetch(`${sourceBase}/ui/IvCalc/PokemonIconData.ts`, {
+      cache: "no-cache",
+      signal: AbortSignal.timeout(5_000),
+    });
+    if (!response.ok) return null;
+    const source = await response.text();
+    return source.length <= 500_000 ? source : null;
+  } catch {
+    return null;
+  }
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -21,10 +35,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   )
     return;
   latestRequest ??= Promise.all([
-    fetchJson("pokemon.json"),
-    fetchJson("event.json"),
+    fetchJson("data/pokemon.json"),
+    fetchJson("data/event.json"),
+    Promise.all(
+      ["en", "ja", "ko", "zh-CN", "zh-TW"].map(async (language) => {
+        try {
+          return [language, await fetchJson(`i18n/${language}/pokemons.json`)];
+        } catch {
+          return [language, null];
+        }
+      }),
+    ).then(Object.fromEntries),
+    fetchIconSource(),
   ])
-    .then(([pokemon, event]) => ({ ok: true, pokemon, event }))
+    .then(([pokemon, event, pokemonNames, pokemonIconSource]) => ({
+      ok: true,
+      pokemon,
+      event,
+      pokemonNames,
+      pokemonIconSource,
+    }))
     .catch(() => ({ ok: false }))
     .finally(() => {
       latestRequest = undefined;

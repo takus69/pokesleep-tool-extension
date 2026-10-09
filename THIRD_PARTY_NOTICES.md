@@ -3,7 +3,7 @@
 本リポジトリは `nitoyon/pokesleep-tool` を固定commitのGit submoduleとして参照し、必要な型、計算部品、データ、React/MUI画面部品を配布用bundleへ含めます。上流READMEにはライセンスがMITと記載されています。固定commitに独立したLICENSEファイルはありません。上流の著作権表示・許諾本文に関する確認状況は [ライセンス監査](docs/license-audit.md) に記載します。
 
 - Upstream: https://github.com/nitoyon/pokesleep-tool
-- Pinned commit: `0dc4525b09a979582e9c1c5a3e10d4d65d0ad9d4`
+- Pinned commit: `06569f6aeb1d3b9207208b45b27616e5a1f66d95`
 - Upstream license statement: `README.md` の `## License` に `MIT`
 - Separate upstream LICENSE file: 固定commitにはなし
 
@@ -47,3 +47,7 @@
 `src/vendor/upstream-data` は `scripts/sync-upstream-data.mjs` が公式元ツールの指定checkoutから取得した非実行JSONのスナップショットです。同期元commitとファイルハッシュは同ディレクトリのmanifestに記録します。元ツールREADMEのMIT表記がデータJSONへ適用される範囲は公開前に確認します。計算コードはViteが自己完結したcontent scriptへbundleし、実行時には取得しません。
 
 PokémonおよびPokémon Sleepは各権利者の商標・著作物であり、本プロジェクトは公式提供物ではありません。
+
+新ポケモン名の自動補完は同じ公式リポジトリの `main/src/i18n/{en,ja,ko,zh-CN,zh-TW}/pokemons.json` を実行時に読み取ります。取得元は固定URLで、固定submoduleや同梱コードのcommitは変更しません。取得時のmainに追従するため、この実行時データには固定commitを割り当てません。変更内容は検証済みポケモン名のプレーンテキスト訳だけを抽出し、同梱翻訳に不足する名称を補うことです。計算データと同じ上流READMEのMIT表記を参照し、JSONをコードとして評価しません。
+
+自動取込アイコンの出所: 上記公式リポジトリの src/ui/IvCalc/PokemonIconData.ts（main）。同梱版は上記固定commit。MIT表記を継承し、図形・配色のみを非実行データとして抽出・検証する。上流ファイルへの変更はない。

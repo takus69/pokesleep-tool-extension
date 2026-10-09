@@ -49,10 +49,14 @@ describe("ranking detail preview contract with upstream UI", () => {
     const before = storageSnapshot();
     const iv = new PokemonIv({ pokemonName: "Venusaur", level: 30 });
     const environment = createStrengthParameter({ fieldBonus: 10 });
+    environment.berryZone.psychic = 12;
     const state = createRankingPreviewState(iv, environment);
 
     expect(state.pokemonIv).not.toBe(iv);
     expect(state.parameter).not.toBe(environment);
+    expect(state.parameter.berryZone).toEqual({ psychic: 12 });
+    state.parameter.berryZone.psychic = 24;
+    expect(environment.berryZone.psychic).toBe(12);
     expect(state.box.items).toEqual([]);
     expect(state.selectedItemId).toBe(-1);
     expect(

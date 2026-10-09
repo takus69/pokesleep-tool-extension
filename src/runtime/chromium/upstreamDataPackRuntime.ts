@@ -23,6 +23,13 @@ export class ChromiumUpstreamDataPackRuntime
       type: "fetch-latest-upstream-data",
     });
     if (response?.ok !== true) throw new Error("Upstream data unavailable");
-    return { pokemon: response.pokemon, event: response.event };
+    return {
+      pokemon: response.pokemon,
+      event: response.event,
+      pokemonIconSource: response.pokemonIconSource,
+      ...(response.pokemonNames !== undefined
+        ? { pokemonNames: response.pokemonNames }
+        : {}),
+    };
   }
 }
