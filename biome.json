@@ -4,6 +4,7 @@
     "includes": [
       "**",
       "!dist",
+      "!dist-mobile-poc",
       "!coverage",
       "!src/vendor/upstream-data",
       "!vendor/pokesleep-tool",
