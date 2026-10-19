@@ -1,0 +1,4 @@
+{
+  "extends": "../../tsconfig.json",
+  "include": ["cooking-mock-pokemon.tsx", "cooking-mock.vite.config.ts"]
+}

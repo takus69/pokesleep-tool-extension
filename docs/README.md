@@ -13,6 +13,7 @@
 - [ランキング機能の外部仕様](design/ranking-feature.md)
 - [料理エナジープランナー UC-1 設計案](design/cooking-planner.md)
 - [料理エナジープランナー 画面モック](design/cooking-planner-mock.html)
+- [料理モックの起動方法](design/cooking-mock-preview.md)
 - [上流データのページ起動時更新](design/upstream-data-refresh.md)
 - [機能設計テンプレート](design/feature-design-template.md)
 - [Safari／Android将来対応](platform-roadmap.md)
