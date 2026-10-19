@@ -11,6 +11,8 @@
 - [アーキテクチャ](architecture.md)
 - [元ツール連携・互換性仕様](upstream-integration.md)
 - [ランキング機能の外部仕様](design/ranking-feature.md)
+- [料理プランナーのユースケース・Issue対応](design/cooking-use-cases.md)
+- [料理プランナーの計算ロジック仕様](design/cooking-calculation.md)
 - [料理エナジープランナー UC-1 設計案](design/cooking-planner.md)
 - [料理エナジープランナー 画面モック](design/cooking-planner-mock.html)
 - [料理モックの起動方法](design/cooking-mock-preview.md)
