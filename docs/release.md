@@ -1,14 +1,17 @@
 # ストア公開・リリース手順
 
-## 0.3.1提出準備の記録
+## 0.3.1公開の記録
 
-2026-10-09、利用者からChrome・Edgeでの画面確認OKと、マージ・ストア準備の指示を受領しました。ストア提出・公開は未実施で、進捗と最終commit・ZIPハッシュは [Issue #91](https://github.com/takus69/pokesleep-tool-extension/issues/91) に記録します。
+2026-10-23、利用者からChrome Web Store・Microsoft Edge Add-onsの両方で0.3.1の提出・公開確認済みとの報告を受領し、[Issue #91](https://github.com/takus69/pokesleep-tool-extension/issues/91)を完了としてクローズしました。この日付は報告受領日であり、実際の公開日は未記録です。個別の起動・更新配信の確認結果も未記録です。
 
 - 収録: 日本語名・初期言語修正 #87、公式上流更新・アイコン自動反映 #89
-- 修正PR: #88 / #90（developマージ済み）
+- 修正PR: #88 / #90、提出準備PR: #92、リリースPR: [#93](https://github.com/takus69/pokesleep-tool-extension/pull/93)（mainマージ済み）
 - 固定上流commit: `06569f6aeb1d3b9207208b45b27616e5a1f66d95`
-- リリースタグ: `v0.3.1`（受入済みmainのcommitから新規作成）
-- 共通申請ZIP: `pokesleep-tool-extension-v0.3.1.zip`
+- 注釈付きタグ: `v0.3.1`、リリースcommit: `78e79151c270f40cfc4b21de39c4ceabb0a99919`
+- 共通申請ZIP: `pokesleep-tool-extension-v0.3.1.zip`（543526 bytes）
+- ZIP SHA-256: `7a5645f5a4fc253981cca46ee292a469e6baedc94c3918c28143955813442133`
+- GitHub Release: [v0.3.1](https://github.com/takus69/pokesleep-tool-extension/releases/tag/v0.3.1)
+- release:prepare成功（260テスト）、CI成功、タグcommitからnpm ci/build成功。ZIP全10ファイルとアップロード後のハッシュを照合済み。
 - 追加権限なし。計算・翻訳JSONと公式アイコンの図形・配色を取得し、取得ファイルを実行しない。
 - 自動テストで同梱/ネットワーク/キャッシュ、通常色・色違い、取得後の再描画を確認。利用者による画面確認だけでは評価時の取得元を特定できない点は説明済み。
 ## 0.3.0公開の記録
