@@ -1,6 +1,6 @@
 import { getInitialIvState } from "@upstream/ui/IvCalc/IvState";
-import PokemonBox from "@upstream/util/PokemonBox";
-import { loadBoxSortConfig } from "@upstream/util/PokemonBoxSort";
+import PokemonBox, { deserializeBoxItem } from "@upstream/util/Box/PokemonBox";
+import { loadBoxSortConfig } from "@upstream/util/Box/PokemonBoxSort";
 import PokemonIv from "@upstream/util/PokemonIv";
 import { loadStrengthParameter } from "@upstream/util/StrengthParameter";
 import { isUpstreamEventSupported } from "./upstreamDataPack";
@@ -64,13 +64,30 @@ export function loadUpstreamRankingInputs(
       }
     }
   }
-  const box = new PokemonBox();
-  box.load();
+  // The upstream box class no longer loads storage. Keep this snapshot
+  // synchronous and read-only, using upstream's item decoder (including attrs).
+  const rawBox: unknown = JSON.parse(
+    window.localStorage.getItem("PstPokeBox") ?? "[]",
+  );
+  if (!Array.isArray(rawBox))
+    throw new TypeError("PstPokeBox must be an array");
+  const box = new PokemonBox(
+    rawBox
+      .filter((entry): entry is string => typeof entry === "string")
+      .map(deserializeBoxItem)
+      .filter((item) => item !== null)
+      .slice(0, PokemonBox.maxEntryCount),
+  );
   const rawEnvironment = readRawRankingEnvironment(
     window.localStorage.getItem("PstStrenghParam"),
   );
   return {
-    state: { ...state, parameter: loadStrengthParameter(), box },
+    state: {
+      ...state,
+      parameter: loadStrengthParameter(),
+      box,
+      boxStatus: "ready",
+    },
     boxSortConfig: loadBoxSortConfig(),
     ivStorageRaw,
     ...rawEnvironment,

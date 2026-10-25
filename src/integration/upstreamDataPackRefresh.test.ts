@@ -166,7 +166,9 @@ describe("prepareUpstreamDataPack", () => {
     const status = await prepareUpstreamDataPack(adapter, logger());
 
     expect(status.source).toBe("bundled");
-    expect(status.pokemonCount).toBe(pokemonJson.length);
+    expect(status.pokemonCount).toBe(
+      validateUpstreamDataPack(pokemonJson, eventJson).pokemon.length,
+    );
   });
 
   it("caches new names, restores them offline, and preserves them after translation failure", async () => {

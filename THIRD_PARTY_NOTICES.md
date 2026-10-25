@@ -3,9 +3,10 @@
 本リポジトリは `nitoyon/pokesleep-tool` を固定commitのGit submoduleとして参照し、必要な型、計算部品、データ、React/MUI画面部品を配布用bundleへ含めます。上流READMEにはライセンスがMITと記載されています。固定commitに独立したLICENSEファイルはありません。上流の著作権表示・許諾本文に関する確認状況は [ライセンス監査](docs/license-audit.md) に記載します。
 
 - Upstream: https://github.com/nitoyon/pokesleep-tool
-- Pinned commit: `06569f6aeb1d3b9207208b45b27616e5a1f66d95`
+- Pinned commit: `8fecd4877a219c6073d9cd930d0441a804e94867`
 - Upstream license statement: `README.md` の `## License` に `MIT`
 - Separate upstream LICENSE file: 固定commitにはなし
+- Imported paths: `src/data`、`src/i18n`、`src/util`、`src/ui/IvCalc`、`src/ui/common`、`src/ui/Resources` の利用部分。上流ファイル自体への変更なし。拡張のbuild設定で未使用の `src/util/Firebase/Auth.ts` の副作用を除去し、認証SDKを配布bundleへ含めない。
 
 上流の `src/ui/Resources` には、次の個別のMITライセンス表示があります。ランキングで利用する元ツール部品はこれらのアイコンを参照するため、制作者の表示を保持します。
 

@@ -1,11 +1,13 @@
 // @vitest-environment jsdom
 
-import type { PokemonBoxItem } from "@upstream/util/PokemonBox";
-import PokemonBox from "@upstream/util/PokemonBox";
+import type { PokemonBoxItem } from "@upstream/util/Box/PokemonBox";
+import PokemonBox, {
+  PokemonBoxItem as BoxItem,
+} from "@upstream/util/Box/PokemonBox";
 import {
   loadBoxSortConfig,
   sortPokemonItems,
-} from "@upstream/util/PokemonBoxSort";
+} from "@upstream/util/Box/PokemonBoxSort";
 import PokemonIv from "@upstream/util/PokemonIv";
 import { createStrengthParameter } from "@upstream/util/StrengthParameter";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -27,8 +29,12 @@ describe("upstream box ordering", () => {
     "skill",
   ] as const)("matches BoxView's %s ordering in both directions", (sort) => {
     const box = new PokemonBox();
-    box.add(new PokemonIv({ pokemonName: "Venusaur", level: 30 }), "z");
-    box.add(new PokemonIv({ pokemonName: "Pikachu", level: 10 }), "a");
+    box.add(
+      new BoxItem(new PokemonIv({ pokemonName: "Venusaur", level: 30 }), "z"),
+    );
+    box.add(
+      new BoxItem(new PokemonIv({ pokemonName: "Pikachu", level: 10 }), "a"),
+    );
     const parameter = createStrengthParameter({});
     for (const descending of [true, false]) {
       const config = { ...loadBoxSortConfig(), sort, descending };

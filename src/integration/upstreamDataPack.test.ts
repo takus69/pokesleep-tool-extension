@@ -1,14 +1,22 @@
+import { readFileSync } from "node:fs";
 import PokemonIv from "@upstream/util/PokemonIv";
 import PokemonStrength, {
   createStrengthParameter,
 } from "@upstream/util/PokemonStrength";
 import { beforeEach, describe, expect, it } from "vitest";
 import eventJson from "../vendor/upstream-data/event.json";
-import pokemonJson from "../vendor/upstream-data/pokemon.json";
+import synchronizedPokemonJson from "../vendor/upstream-data/pokemon.json";
 import {
   applyUpstreamDataPack,
   validateUpstreamDataPack,
 } from "./upstreamDataPack";
+
+// Most cases exercise supported mechanics independently of upstream's pending
+// announcements. The complete synchronized snapshot has its own contract below.
+const pendingNames = ["Pikachu (Low Key)", "Misdreavus", "Mismagius"];
+const pokemonJson = synchronizedPokemonJson.filter(
+  (pokemon) => !pendingNames.includes(pokemon.name),
+);
 
 describe("upstream data pack", () => {
   let baseline: ReturnType<typeof validateUpstreamDataPack>;
@@ -31,6 +39,53 @@ describe("upstream data pack", () => {
       baseline.bonus.find((event) => event.name === "pursue mewtwo 2nd week")
         ?.effects.bigBerry,
     ).toBe("mewtwo2");
+  });
+
+  it("keeps pending announcements out while accepting the rest of the snapshot", () => {
+    // Read the pinned source directly: the synced JSON is deliberately allowed
+    // to evolve independently, and announcements may become confirmed later.
+    const pinnedPokemon = JSON.parse(
+      readFileSync("vendor/pokesleep-tool/src/data/pokemon.json", "utf8"),
+    );
+    const pack = validateUpstreamDataPack(pinnedPokemon, eventJson);
+    expect(pack.issues).toEqual([
+      {
+        kind: "pokemon",
+        name: "Pikachu (Low Key)",
+        reason: "unsupported main skill",
+      },
+      { kind: "pokemon", name: "Misdreavus", reason: "unsupported specialty" },
+      { kind: "pokemon", name: "Mismagius", reason: "unsupported specialty" },
+    ]);
+    expect(pack.pokemon).toHaveLength(pinnedPokemon.length - 3);
+    expect(
+      pack.pokemon.some((pokemon) => pendingNames.includes(pokemon.name)),
+    ).toBe(false);
+    expect(
+      pack.pokemon.find((pokemon) => pokemon.name === "Gengar")?.ingRate,
+    ).toBe(16.6);
+    expect(pack.bonus.some((event) => event.name === "halloween 2026")).toBe(
+      true,
+    );
+  });
+
+  it("does not enable provisional Mystical Fire when only Pokémon stats arrive", () => {
+    const confirmedStats = {
+      ...pokemonJson[0],
+      id: 429,
+      name: "Mismagius",
+      skill: "Cooking Advance S (Mystical Fire)",
+    };
+    const pack = validateUpstreamDataPack(
+      [...pokemonJson, confirmedStats],
+      eventJson,
+    );
+    expect(pack.issues).toEqual([
+      { kind: "pokemon", name: "Mismagius", reason: "unsupported main skill" },
+    ]);
+    expect(pack.pokemon.some((pokemon) => pokemon.name === "Mismagius")).toBe(
+      false,
+    );
   });
 
   it("uses upstream big-berry and skill calculations for the new event", () => {

@@ -23,4 +23,5 @@ export { default as RateNotFixedPanel } from "@upstream/ui/IvCalc/RateNotFixedPa
 export { default as RatingView } from "@upstream/ui/IvCalc/RatingView";
 export { default as RpView } from "@upstream/ui/IvCalc/Rp/RpView";
 export { default as StrengthBerryIngSkillView } from "@upstream/ui/IvCalc/Strength/StrengthBerryIngSkillView";
+export { createInitialTeams } from "@upstream/util/Team/Team";
 export type { IvAction, IvState } from "../../integration/upstreamIvState";

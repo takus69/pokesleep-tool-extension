@@ -579,6 +579,41 @@
 	},
 	{
 		"id": 25,
+		"name": "Pikachu (Low Key)",
+		"arrival": "2023-07-17",
+		"sleepType": "snoozing",
+		"exp": 600,
+		"type": "electric",
+		"specialty": "Berries",
+		"skill": "unknown",
+		"fp": 0,
+		"frequency": 0,
+		"ingRate": 0,
+		"skillRate": 0,
+		"ancestor": null,
+		"evolutionCount": -1,
+		"evolutionLeft": 0,
+		"isFullyEvolved": true,
+		"carryLimit": 0,
+		"ing1": {
+			"name": "apple",
+			"c1": 2,
+			"c2": 2,
+			"c3": 2
+		},
+		"ing2": {
+			"name": "cacao",
+			"c2": 2,
+			"c3": 2
+		},
+		"ing3": {
+			"name": "honey",
+			"c3": 2
+		},
+		"form": "Low Key"
+	},
+	{
+		"id": 25,
 		"name": "Pikachu (Holiday)",
 		"arrival": "2023-12-18",
 		"sleepType": "snoozing",
@@ -1903,7 +1938,7 @@
 		"skill": "Charge Strength S (Random)",
 		"fp": 22,
 		"frequency": 2200,
-		"ingRate": 16.1,
+		"ingRate": 16.6,
 		"skillRate": 2.4,
 		"ancestor": 92,
 		"evolutionCount": 2,
@@ -3469,6 +3504,40 @@
 		"ing3": {
 			"name": "tomato",
 			"c3": 5
+		}
+	},
+	{
+		"id": 200,
+		"name": "Misdreavus",
+		"arrival": "2026-10-26",
+		"sleepType": "dozing",
+		"exp": 600,
+		"type": "ghost",
+		"specialty": "unknown",
+		"skill": "unknown",
+		"fp": 16,
+		"frequency": 0,
+		"ingRate": 0,
+		"skillRate": 0,
+		"ancestor": 200,
+		"evolutionCount": 0,
+		"evolutionLeft": 1,
+		"isFullyEvolved": false,
+		"carryLimit": 0,
+		"ing1": {
+			"name": "unknown1",
+			"c1": 1,
+			"c2": 2,
+			"c3": 4
+		},
+		"ing2": {
+			"name": "unknown2",
+			"c2": 0,
+			"c3": 0
+		},
+		"ing3": {
+			"name": "unknown3",
+			"c3": 0
 		}
 	},
 	{
@@ -5884,6 +5953,40 @@
 		"ing3": {
 			"name": "potato",
 			"c3": 4
+		}
+	},
+	{
+		"id": 429,
+		"name": "Mismagius",
+		"arrival": "2026-10-26",
+		"sleepType": "dozing",
+		"exp": 600,
+		"type": "ghost",
+		"specialty": "unknown",
+		"skill": "Cooking Advance S (Mystical Fire)",
+		"fp": 20,
+		"frequency": 0,
+		"ingRate": 0,
+		"skillRate": 0,
+		"ancestor": 200,
+		"evolutionCount": 1,
+		"evolutionLeft": 0,
+		"isFullyEvolved": true,
+		"carryLimit": 0,
+		"ing1": {
+			"name": "unknown1",
+			"c1": 1,
+			"c2": 2,
+			"c3": 4
+		},
+		"ing2": {
+			"name": "unknown2",
+			"c2": 0,
+			"c3": 0
+		},
+		"ing3": {
+			"name": "unknown3",
+			"c3": 0
 		}
 	},
 	{

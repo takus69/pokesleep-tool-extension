@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import PokemonBox from "@upstream/util/PokemonBox";
+import { PokemonBoxItem } from "@upstream/util/Box/PokemonBox";
 import PokemonIv from "@upstream/util/PokemonIv";
 import {
   createStrengthParameter,
@@ -35,9 +35,11 @@ function changedKeys(before: Record<string, string>): string[] {
 
 function seededState() {
   saveStrengthParameter(createStrengthParameter({ fieldBonus: 10 }));
-  const box = new PokemonBox();
-  box.add(new PokemonIv({ pokemonName: "Venusaur" }), "saved");
-  box.save();
+  const item = new PokemonBoxItem(
+    new PokemonIv({ pokemonName: "Venusaur" }),
+    "saved",
+  );
+  localStorage.setItem(boxKey, JSON.stringify([item.serialize()]));
   localStorage.setItem(unrelatedKey, "untouched");
   return loadUpstreamRankingInputs().state;
 }
@@ -185,6 +187,8 @@ describe("ranking shared-storage contract with the pinned upstream tool", () => 
       localStorage.getItem(individualKey) ?? "null",
     );
     expect(Object.keys(individual).sort()).toEqual([
+      "boxDrawerFull",
+      "boxDrawerHeight",
       "iv",
       "lowerTabIndex",
       "selectedIv",
@@ -216,6 +220,9 @@ describe("ranking shared-storage contract with the pinned upstream tool", () => 
       "latiTwins",
       "level",
       "maxSkillLevel",
+      "ncp",
+      "ncpLevel",
+      "ncpSpin",
       "period",
       "pityProc",
       "recipeBonus",

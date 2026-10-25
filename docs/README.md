@@ -12,6 +12,7 @@
 - [元ツール連携・互換性仕様](upstream-integration.md)
 - [ランキング機能の外部仕様](design/ranking-feature.md)
 - [上流データの自動反映](design/upstream-data-refresh.md)
+- [上流互換性更新 #95](design/upstream-compatibility-95.md)
 - [機能設計テンプレート](design/feature-design-template.md)
 - [Safari／Android将来対応](platform-roadmap.md)
 

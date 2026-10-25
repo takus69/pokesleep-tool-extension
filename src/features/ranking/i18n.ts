@@ -3,6 +3,8 @@ import { i18n } from "./upstreamUi";
 
 const resources: Record<string, Record<string, string>> = {
   en: {
+    localBoxOnly:
+      "Comparison uses the local box saved on this device. Cloud boxes are not supported.",
     "dataRefresh.checking": "Checking for the latest data.",
     "dataRefresh.updated": "The latest data has been applied.",
     "dataRefresh.pending":
@@ -16,6 +18,8 @@ const resources: Record<string, Record<string, string>> = {
       "{{count}} latest-data item(s) use unsupported mechanics and are excluded only from affected rankings.",
   },
   ja: {
+    localBoxOnly:
+      "比較には端末内のローカルボックスを使います。クラウドボックスには対応していません。",
     "dataRefresh.checking": "最新データを確認中です。",
     "dataRefresh.updated": "最新データを反映しました。",
     "dataRefresh.pending":
