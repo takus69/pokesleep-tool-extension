@@ -54,6 +54,7 @@ const supportedSkills = new Set([
   "Versatile",
   "Berry Burst (Draco Meteor)",
   "Berry Zone (Psystrike)",
+  "Cooking Advance S (Mystical Fire)",
 ]);
 const supportedForms = new Set([
   undefined,

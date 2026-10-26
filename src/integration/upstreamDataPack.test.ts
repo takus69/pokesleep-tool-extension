@@ -1,5 +1,9 @@
 import { readFileSync } from "node:fs";
-import { getSkillSubValue, getSkillValue } from "@upstream/util/MainSkill";
+import {
+  getMaxSkillLevel,
+  getSkillSubValue,
+  getSkillValue,
+} from "@upstream/util/MainSkill";
 import PokemonIv from "@upstream/util/PokemonIv";
 import PokemonStrength, {
   createStrengthParameter,
@@ -16,7 +20,7 @@ import {
 
 // Most cases exercise supported mechanics independently of upstream's pending
 // announcements. The complete synchronized snapshot has its own contract below.
-const pendingNames = ["Pikachu (Low Key)", "Mismagius"];
+const pendingNames = ["Pikachu (Low Key)"];
 const pokemonJson = synchronizedPokemonJson.filter(
   (pokemon) => !pendingNames.includes(pokemon.name),
 );
@@ -57,9 +61,18 @@ describe("upstream data pack", () => {
         name: "Pikachu (Low Key)",
         reason: "unsupported main skill",
       },
-      { kind: "pokemon", name: "Mismagius", reason: "unsupported main skill" },
     ]);
-    expect(pack.pokemon).toHaveLength(pinnedPokemon.length - 2);
+    expect(pack.pokemon).toHaveLength(pinnedPokemon.length - 1);
+    expect(
+      pack.pokemon.find((pokemon) => pokemon.name === "Mismagius"),
+    ).toMatchObject({
+      skill: "Cooking Advance S (Mystical Fire)",
+      specialty: "Skills",
+      frequency: 2400,
+      ingRate: 14.2,
+      skillRate: 3.6,
+      carryLimit: 17,
+    });
     expect(
       pack.pokemon.find((pokemon) => pokemon.name === "Misdreavus"),
     ).toMatchObject({
@@ -84,10 +97,13 @@ describe("upstream data pack", () => {
     );
   });
 
-  it("ranks confirmed Misdreavus with the official ingredient and skill calculations", async () => {
+  it.each([
+    "Misdreavus",
+    "Mismagius",
+  ])("ranks confirmed %s with the official ingredient and skill calculations", async (pokemonName) => {
     const config = {
       ...createRankingScenarioConfig("ingredients"),
-      pokemonName: "Misdreavus",
+      pokemonName,
     };
     const parameter = createStrengthParameter({ event: "none", level: 0 });
     const result = await calculateRankingScenarioAsync(config, parameter);
@@ -99,6 +115,8 @@ describe("upstream data pack", () => {
       expect(entry.value).toBeGreaterThan(0);
       expect(official.skillCount).toBeGreaterThan(0);
       expect(official.skillValuePerTrigger).toBe(31);
+      if (pokemonName === "Mismagius")
+        expect(official.skillValuePerTrigger2).toBe(5);
     }
   });
 
@@ -109,72 +127,55 @@ describe("upstream data pack", () => {
     [4, 17, 3],
     [5, 22, 3],
     [6, 27, 4],
-  ])("retains the official Mystical Fire level %s effect tables without enabling its unfinished calculation", (level, potSize, chance) => {
+    [7, 31, 5],
+  ])("applies both official Mystical Fire effects at level %s", (level, potSize, chance) => {
     expect(getSkillValue("Cooking Advance S (Mystical Fire)", level)).toBe(
       potSize,
     );
     expect(getSkillSubValue("Cooking Advance S (Mystical Fire)", level)).toBe(
       chance,
     );
+    expect(getMaxSkillLevel("Cooking Advance S (Mystical Fire)")).toBe(7);
+    const iv = new PokemonIv({
+      pokemonName: "Mismagius",
+      level: 60,
+      skillLevel: level,
+    });
+    const parameter = createStrengthParameter({
+      event: "none",
+      level: 0,
+      maxSkillLevel: false,
+    });
+    const official = new PokemonStrength(iv, parameter).calculate();
+    expect(official.skillCount).toBeGreaterThan(0);
+    expect(official.skillValuePerTrigger).toBe(potSize);
+    expect(official.skillValuePerTrigger2).toBe(chance);
+    expect(official.skillValue2).toBe(chance * official.skillCount);
   });
 
-  it("does not enable provisional Mystical Fire when only Pokémon stats arrive", () => {
-    const confirmedStats = {
-      ...pokemonJson[0],
-      id: 429,
-      name: "Mismagius",
-      skill: "Cooking Advance S (Mystical Fire)",
-    };
-    const pack = validateUpstreamDataPack(
-      [...pokemonJson, confirmedStats],
-      eventJson,
+  it.each([
+    "Cooking Advance S",
+    "Cooking Advance S (Mystical Fire)",
+  ] as const)("finds Mismagius in %s skill rankings at the corrected maximum level", async (skill) => {
+    const parameter = createStrengthParameter({ event: "none", level: 0 });
+    const result = await calculateRankingScenarioAsync(
+      {
+        ...createRankingScenarioConfig("skill"),
+        skill,
+      },
+      parameter,
     );
-    expect(pack.issues).toEqual([
-      { kind: "pokemon", name: "Mismagius", reason: "unsupported main skill" },
-    ]);
-    expect(pack.pokemon.some((pokemon) => pokemon.name === "Mismagius")).toBe(
-      false,
+    const entry = result.entries.find(
+      (item) => item.iv.pokemonName === "Mismagius",
     );
-  });
-
-  it("excludes Mystical Fire while the official calculator still drops its secondary effect", () => {
-    const pinnedPokemon = JSON.parse(
-      readFileSync("vendor/pokesleep-tool/src/data/pokemon.json", "utf8"),
+    expect(entry).toBeDefined();
+    if (!entry) throw new Error("Mismagius is missing from skill rankings");
+    expect(entry.iv.skillLevel).toBe(7);
+    expect(entry.value).toBeGreaterThan(0);
+    expect(entry.value).toBe(
+      new PokemonStrength(entry.iv, parameter).calculate().skillCount,
     );
-    // Inspect the official calculator with its own complete source snapshot.
-    // Production always goes through validation and excludes Mismagius.
-    applyUpstreamDataPack(
-      { ...baseline, pokemon: pinnedPokemon },
-      "bundled",
-      0,
-    );
-    try {
-      const iv = new PokemonIv({
-        pokemonName: "Mismagius",
-        level: 60,
-        skillLevel: 6,
-      });
-      const parameter = createStrengthParameter({
-        event: "none",
-        level: 0,
-        maxSkillLevel: false,
-      });
-      const official = new PokemonStrength(iv, parameter).calculate();
-      expect(getSkillSubValue(iv.pokemon.skill, iv.skillLevel)).toBe(4);
-      expect(official.skillCount).toBeGreaterThan(0);
-      expect(official.skillValuePerTrigger).toBe(27);
-      expect(official.skillValuePerTrigger2).toBe(0);
-      expect(official.skillValue2).toBe(0);
-      expect(
-        validateUpstreamDataPack(pinnedPokemon, eventJson).issues,
-      ).toContainEqual({
-        kind: "pokemon",
-        name: "Mismagius",
-        reason: "unsupported main skill",
-      });
-    } finally {
-      applyUpstreamDataPack(baseline, "bundled", 0);
-    }
+    expect(result.exclusions).toEqual([]);
   });
 
   it("uses upstream big-berry and skill calculations for the new event", () => {
