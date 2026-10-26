@@ -18,12 +18,7 @@ import {
   validateUpstreamDataPack,
 } from "./upstreamDataPack";
 
-// Most cases exercise supported mechanics independently of upstream's pending
-// announcements. The complete synchronized snapshot has its own contract below.
-const pendingNames = ["Pikachu (Low Key)"];
-const pokemonJson = synchronizedPokemonJson.filter(
-  (pokemon) => !pendingNames.includes(pokemon.name),
-);
+const pokemonJson = synchronizedPokemonJson;
 
 describe("upstream data pack", () => {
   let baseline: ReturnType<typeof validateUpstreamDataPack>;
@@ -35,7 +30,7 @@ describe("upstream data pack", () => {
 
   it("accepts and applies the synchronized upstream data", () => {
     expect(baseline.issues).toEqual([]);
-    expect(baseline.pokemon).toHaveLength(pokemonJson.length);
+    expect(baseline.pokemon).toHaveLength(pokemonJson.length - 1);
     expect(baseline.pokemon.some((pokemon) => pokemon.name === "Mewtwo")).toBe(
       true,
     );
@@ -48,20 +43,14 @@ describe("upstream data pack", () => {
     ).toBe("mewtwo2");
   });
 
-  it("keeps pending announcements out while accepting the rest of the snapshot", () => {
+  it("omits the Night Cap identity without warnings and accepts ordinary forms", () => {
     // Read the pinned source directly: the synced JSON is deliberately allowed
     // to evolve independently, and announcements may become confirmed later.
     const pinnedPokemon = JSON.parse(
       readFileSync("vendor/pokesleep-tool/src/data/pokemon.json", "utf8"),
     );
     const pack = validateUpstreamDataPack(pinnedPokemon, eventJson);
-    expect(pack.issues).toEqual([
-      {
-        kind: "pokemon",
-        name: "Pikachu (Low Key)",
-        reason: "unsupported main skill",
-      },
-    ]);
+    expect(pack.issues).toEqual([]);
     expect(pack.pokemon).toHaveLength(pinnedPokemon.length - 1);
     expect(
       pack.pokemon.find((pokemon) => pokemon.name === "Mismagius"),
@@ -87,8 +76,14 @@ describe("upstream data pack", () => {
       ing3: { name: "tomato" },
     });
     expect(
-      pack.pokemon.some((pokemon) => pendingNames.includes(pokemon.name)),
+      pack.pokemon.some((pokemon) => pokemon.name === "Pikachu (Low Key)"),
     ).toBe(false);
+    expect(
+      pack.pokemon.some((pokemon) => pokemon.name === "Pikachu (Halloween)"),
+    ).toBe(true);
+    expect(pack.pokemon.some((pokemon) => pokemon.name === "Pikachu")).toBe(
+      true,
+    );
     expect(
       pack.pokemon.find((pokemon) => pokemon.name === "Gengar")?.ingRate,
     ).toBe(16.6);
@@ -118,6 +113,54 @@ describe("upstream data pack", () => {
       if (pokemonName === "Mismagius")
         expect(official.skillValuePerTrigger2).toBe(5);
     }
+  });
+
+  it.each([
+    { id: 26 },
+    { name: "Future Pikachu" },
+    { form: "Halloween" },
+    { specialty: "Future Specialty" },
+    { skill: "Future Skill" },
+    { frequency: 1 },
+  ])("still warns when the auxiliary identity has unknown or changed semantics: %j", (patch) => {
+    const auxiliary = pokemonJson.find(
+      (pokemon) => pokemon.name === "Pikachu (Low Key)",
+    );
+    if (!auxiliary) throw new Error("Night Cap identity fixture is missing");
+    const changed = { ...auxiliary, ...patch };
+    const pack = validateUpstreamDataPack(
+      [
+        ...pokemonJson.filter((pokemon) => pokemon.name !== auxiliary.name),
+        changed,
+      ],
+      eventJson,
+    );
+    expect(pack.pokemon.some((pokemon) => pokemon.name === changed.name)).toBe(
+      false,
+    );
+    expect(pack.issues).toEqual([
+      expect.objectContaining({ kind: "pokemon", name: changed.name }),
+    ]);
+  });
+
+  it("keeps Halloween Pikachu calculable when the Night Cap identity is present", async () => {
+    const parameter = createStrengthParameter({ event: "none", level: 0 });
+    const result = await calculateRankingScenarioAsync(
+      {
+        ...createRankingScenarioConfig("ingredients"),
+        pokemonName: "Pikachu (Halloween)",
+      },
+      parameter,
+    );
+    expect(result.entries.length).toBeGreaterThan(0);
+    expect(result.exclusions).toEqual([]);
+    expect(
+      result.entries.every(
+        (entry) =>
+          entry.iv.pokemonName === "Pikachu (Halloween)" && entry.value > 0,
+      ),
+    ).toBe(true);
+    expect(baseline.issues).toEqual([]);
   });
 
   it.each([
