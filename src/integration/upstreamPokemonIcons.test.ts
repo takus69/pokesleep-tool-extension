@@ -2,7 +2,9 @@ import fs from "node:fs";
 import icons from "@upstream/ui/IvCalc/PokemonIconData";
 import PokemonIv from "@upstream/util/PokemonIv";
 import { afterEach, expect, it } from "vitest";
+import event from "../vendor/upstream-data/event.json";
 import pokemon from "../vendor/upstream-data/pokemon.json";
+import { validateUpstreamDataPack } from "./upstreamDataPack";
 import {
   applyUpstreamPokemonIcons,
   decodeUpstreamPokemonIconSource,
@@ -25,10 +27,14 @@ it("decodes the pinned source as data, including both new Pokémon and forms", (
   expect(validated[591]).toEqual(icons[591]);
   expect(Object.keys(validated).length).toBeGreaterThan(100);
   expect(validated[25 + (1 << 12)]).toEqual(icons[25 + (1 << 12)]);
-  for (const item of pokemon) {
+  for (const item of validateUpstreamDataPack(pokemon, event).pokemon) {
     const idForm = new PokemonIv({ pokemonName: item.name }).idForm;
     const id = icons[idForm] ? idForm : item.id;
-    if (icons[id]) expect(validated[id], item.name).toEqual(icons[id]);
+    // Pending forms may have no shiny palette. They keep the bundled icon,
+    // rather than weakening the downloaded-icon palette contract.
+    if (icons[id]?.shinyPallet.length)
+      expect(validated[id], item.name).toEqual(icons[id]);
+    else expect(validated[id], item.name).toBeUndefined();
   }
 });
 

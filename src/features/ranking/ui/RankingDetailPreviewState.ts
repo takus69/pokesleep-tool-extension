@@ -1,7 +1,7 @@
-import PokemonBox from "@upstream/util/PokemonBox";
+import PokemonBox from "@upstream/util/Box/PokemonBox";
 import type PokemonIv from "@upstream/util/PokemonIv";
 import type { StrengthParameter } from "@upstream/util/PokemonStrength";
-import type { IvAction, IvState } from "../upstreamUi";
+import { createInitialTeams, type IvAction, type IvState } from "../upstreamUi";
 import { cloneRankingEnvironment } from "../workspace/useRankingScenario";
 
 type RankingPreviewAction =
@@ -22,16 +22,17 @@ export function createRankingPreviewState(
     pokemonIv: iv.clone(),
     parameter: cloneRankingEnvironment(environment),
     box: new PokemonBox(),
+    boxStatus: "ready",
+    boxReloadCount: 0,
+    boxDrawerPosition: { full: false, height: null },
     selectedItemId: -1,
     energyDialogOpen: false,
-    boxItemDialogOpen: false,
-    boxItemDialogKey: "",
-    boxItemDialogIsEdit: false,
     boxExportDialogOpen: false,
     boxImportDialogOpen: false,
     boxDeleteAllDialogOpen: false,
     alertMessage: "",
-    teamMembers: [undefined, undefined, undefined, undefined, undefined],
+    teams: createInitialTeams(),
+    teamIndex: 0,
   };
 }
 

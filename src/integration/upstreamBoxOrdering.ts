@@ -1,8 +1,8 @@
-import type { PokemonBoxItem } from "@upstream/util/PokemonBox";
+import type { PokemonBoxItem } from "@upstream/util/Box/PokemonBox";
 import {
   type BoxSortConfig,
   sortPokemonItems,
-} from "@upstream/util/PokemonBoxSort";
+} from "@upstream/util/Box/PokemonBoxSort";
 import type { StrengthParameter } from "@upstream/util/PokemonStrength";
 import type i18next from "i18next";
 
