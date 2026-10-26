@@ -11,6 +11,7 @@ describe("calculateUpstreamPokemonStrength", () => {
     "Charizard",
     "Foongus",
     "Amoonguss",
+    "Misdreavus",
   ])("projects the official calculation for %s without changing its values", (pokemonName) => {
     const iv = new PokemonIv({ pokemonName, level: 30 });
     const parameter = createStrengthParameter({ level: 0 });

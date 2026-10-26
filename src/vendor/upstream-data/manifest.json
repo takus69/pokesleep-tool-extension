@@ -1,8 +1,8 @@
 {
   "source": "https://github.com/nitoyon/pokesleep-tool",
-  "commit": "8fecd4877a219c6073d9cd930d0441a804e94867",
+  "commit": "6defa356ff27209f04805c277532416eb9730b5e",
   "files": {
-    "pokemon.json": "4642394ae5a847f60a1bf5cb90fb45920907636fc848c2eae62a14dbf19630e8",
+    "pokemon.json": "a80acd0a6d90b117a032b2b29c09870d1f3d5b9a1c8d13a8a67d9c4f7976aa46",
     "event.json": "cf3c7e1cc650f42dfdd651ace77e084380a0bdf75a04b87a6a23f00610b46127",
     "field.json": "1c39eb3e4e92f15756ca4fecd981563340092f365e2d01622a77f19e9d06e391"
   }
