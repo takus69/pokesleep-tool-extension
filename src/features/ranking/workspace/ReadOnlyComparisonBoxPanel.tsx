@@ -1,6 +1,6 @@
 import { ButtonBase, Typography } from "@mui/material";
 import { styled } from "@mui/system";
-import type { PokemonBoxItem } from "@upstream/util/PokemonBox";
+import type { PokemonBoxItem } from "@upstream/util/Box/PokemonBox";
 import { useTranslation } from "react-i18next";
 import { PokemonIcon } from "../upstreamUi";
 
@@ -16,41 +16,45 @@ export default function ReadOnlyComparisonBoxPanel({
   onSelect: (id: number) => void;
 }) {
   const { t } = useTranslation();
-  if (items.length === 0) {
-    return (
-      <Typography color="text.secondary" sx={{ m: "5rem auto 0" }}>
-        {emptyMessage}
-      </Typography>
-    );
-  }
   return (
-    <BoxItems>
-      {items.map((item) => {
-        const selected = item.id === selectedId;
-        return (
-          <BoxItem key={item.id}>
-            <ButtonBase
-              onClick={() => onSelect(item.id)}
-              aria-pressed={selected}
-              className={selected ? "selected" : undefined}
-            >
-              <header>
-                <span className="lv">Lv.</span>
-                {item.iv.level}
-              </header>
-              <PokemonIcon
-                idForm={item.iv.idForm}
-                shiny={item.iv.shiny}
-                size={32}
-              />
-              <footer>
-                {item.nickname || t(`pokemons.${item.iv.pokemonName}`)}
-              </footer>
-            </ButtonBase>
-          </BoxItem>
-        );
-      })}
-    </BoxItems>
+    <>
+      <Typography color="text.secondary" variant="body2" sx={{ m: "0.8rem 0" }}>
+        {t("extension.localBoxOnly")}
+      </Typography>
+      {items.length === 0 ? (
+        <Typography color="text.secondary" sx={{ m: "5rem auto 0" }}>
+          {emptyMessage}
+        </Typography>
+      ) : (
+        <BoxItems>
+          {items.map((item) => {
+            const selected = item.id === selectedId;
+            return (
+              <BoxItem key={item.id}>
+                <ButtonBase
+                  onClick={() => onSelect(item.id)}
+                  aria-pressed={selected}
+                  className={selected ? "selected" : undefined}
+                >
+                  <header>
+                    <span className="lv">Lv.</span>
+                    {item.iv.level}
+                  </header>
+                  <PokemonIcon
+                    idForm={item.iv.idForm}
+                    shiny={item.iv.shiny}
+                    size={32}
+                  />
+                  <footer>
+                    {item.nickname || t(`pokemons.${item.iv.pokemonName}`)}
+                  </footer>
+                </ButtonBase>
+              </BoxItem>
+            );
+          })}
+        </BoxItems>
+      )}
+    </>
   );
 }
 

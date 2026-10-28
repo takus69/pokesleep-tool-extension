@@ -57,6 +57,12 @@ export default defineConfig({
   build: {
     emptyOutDir: true,
     rollupOptions: {
+      treeshake: {
+        // Shared upstream hooks import Auth, but ranking never uses useAuthUser.
+        // Drop that unused branch, including SDK registration side effects.
+        moduleSideEffects: (id) =>
+          !normalizePath(id).endsWith("/util/Firebase/Auth.ts"),
+      },
       input: { content: "src/runtime/chromium/content.ts" },
       output: {
         entryFileNames: "content.js",

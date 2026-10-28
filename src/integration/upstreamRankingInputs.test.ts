@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
-import PokemonBox from "@upstream/util/PokemonBox";
+import { LocalBoxRepository } from "@upstream/util/Box/LocalBoxRepository";
+import { PokemonBoxItem } from "@upstream/util/Box/PokemonBox";
 import PokemonIv from "@upstream/util/PokemonIv";
 import {
   createStrengthParameter,
@@ -40,9 +41,11 @@ describe("loadUpstreamRankingInputs", () => {
 
   it("reads fresh upstream environment and box snapshots without writing", () => {
     saveStrengthParameter(createStrengthParameter({ fieldBonus: 10 }));
-    const firstBox = new PokemonBox();
-    firstBox.add(new PokemonIv({ pokemonName: "Venusaur" }), "first");
-    firstBox.save();
+    const firstItem = new PokemonBoxItem(
+      new PokemonIv({ pokemonName: "Venusaur" }),
+      "first",
+    );
+    localStorage.setItem("PstPokeBox", JSON.stringify([firstItem.serialize()]));
 
     const first = loadUpstreamRankingInputs();
     expect(first.state.parameter.fieldBonus).toBe(10);
@@ -50,9 +53,14 @@ describe("loadUpstreamRankingInputs", () => {
     expect(first.boxSortConfig.sort).toBe("level");
 
     saveStrengthParameter(createStrengthParameter({ fieldBonus: 25 }));
-    const secondBox = new PokemonBox();
-    secondBox.add(new PokemonIv({ pokemonName: "Pikachu" }), "latest");
-    secondBox.save();
+    const secondItem = new PokemonBoxItem(
+      new PokemonIv({ pokemonName: "Pikachu" }),
+      "latest",
+    );
+    localStorage.setItem(
+      "PstPokeBox",
+      JSON.stringify([secondItem.serialize()]),
+    );
     localStorage.setItem(
       "PstPokemonBoxParam",
       JSON.stringify({ sort: "name", descending: false }),
@@ -72,6 +80,34 @@ describe("loadUpstreamRankingInputs", () => {
   it("fails closed for malformed upstream box data", () => {
     localStorage.setItem("PstPokeBox", "{");
     expect(() => loadUpstreamRankingInputs()).toThrow();
+  });
+
+  it("matches the official local box decoder, preserving attributes without writes", async () => {
+    const item = new PokemonBoxItem(
+      new PokemonIv({ pokemonName: "Pikachu" }),
+      "favorite",
+      "f",
+    );
+    const raw = JSON.stringify([item.serialize(), "invalid!", 123]);
+    localStorage.setItem("PstPokeBox", raw);
+    localStorage.setItem(
+      "PstIvTeams",
+      JSON.stringify({ teamIndex: 1, teams: [] }),
+    );
+    const before = { ...localStorage };
+    const official = await new LocalBoxRepository().load();
+    const snapshot = loadUpstreamRankingInputs();
+    expect(snapshot.state.box.items.map((entry) => entry.serialize())).toEqual(
+      official.items.map((entry) => entry.serialize()),
+    );
+    expect(snapshot.state.boxStatus).toBe("ready");
+    expect(snapshot.state.teamIndex).toBe(1);
+    expect({ ...localStorage }).toEqual(before);
+  });
+
+  it("rejects an unknown box container rather than presenting an empty snapshot", () => {
+    localStorage.setItem("PstPokeBox", JSON.stringify({ items: [] }));
+    expect(() => loadUpstreamRankingInputs()).toThrow("must be an array");
   });
 
   it("fingerprints unknown events without ranking-only overrides", () => {

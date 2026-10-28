@@ -78,9 +78,12 @@ describe("ranking detail preview contract with upstream UI", () => {
     expect(storageSnapshot()).toEqual(before);
   });
 
-  it("renders all three pinned upstream detail views without saving", () => {
+  it.each([
+    "Venusaur",
+    "Mismagius",
+  ])("renders all three pinned upstream detail views for %s without saving", (pokemonName) => {
     const before = storageSnapshot();
-    const iv = new PokemonIv({ pokemonName: "Venusaur", level: 30 });
+    const iv = new PokemonIv({ pokemonName, level: 30 });
     const environment = createStrengthParameter({});
     const state = createRankingPreviewState(iv, environment);
     const dispatch = () => {};

@@ -1,14 +1,24 @@
+import { readFileSync } from "node:fs";
+import {
+  getMaxSkillLevel,
+  getSkillSubValue,
+  getSkillValue,
+} from "@upstream/util/MainSkill";
 import PokemonIv from "@upstream/util/PokemonIv";
 import PokemonStrength, {
   createStrengthParameter,
 } from "@upstream/util/PokemonStrength";
 import { beforeEach, describe, expect, it } from "vitest";
+import { createRankingScenarioConfig } from "../features/ranking/application/RankingScenarioState";
+import { calculateRankingScenarioAsync } from "../features/ranking/domain/RankingScenario";
 import eventJson from "../vendor/upstream-data/event.json";
-import pokemonJson from "../vendor/upstream-data/pokemon.json";
+import synchronizedPokemonJson from "../vendor/upstream-data/pokemon.json";
 import {
   applyUpstreamDataPack,
   validateUpstreamDataPack,
 } from "./upstreamDataPack";
+
+const pokemonJson = synchronizedPokemonJson;
 
 describe("upstream data pack", () => {
   let baseline: ReturnType<typeof validateUpstreamDataPack>;
@@ -20,7 +30,7 @@ describe("upstream data pack", () => {
 
   it("accepts and applies the synchronized upstream data", () => {
     expect(baseline.issues).toEqual([]);
-    expect(baseline.pokemon).toHaveLength(pokemonJson.length);
+    expect(baseline.pokemon).toHaveLength(pokemonJson.length - 1);
     expect(baseline.pokemon.some((pokemon) => pokemon.name === "Mewtwo")).toBe(
       true,
     );
@@ -31,6 +41,184 @@ describe("upstream data pack", () => {
       baseline.bonus.find((event) => event.name === "pursue mewtwo 2nd week")
         ?.effects.bigBerry,
     ).toBe("mewtwo2");
+  });
+
+  it("omits the Night Cap identity without warnings and accepts ordinary forms", () => {
+    // Read the pinned source directly: the synced JSON is deliberately allowed
+    // to evolve independently, and announcements may become confirmed later.
+    const pinnedPokemon = JSON.parse(
+      readFileSync("vendor/pokesleep-tool/src/data/pokemon.json", "utf8"),
+    );
+    const pack = validateUpstreamDataPack(pinnedPokemon, eventJson);
+    expect(pack.issues).toEqual([]);
+    expect(pack.pokemon).toHaveLength(pinnedPokemon.length - 1);
+    expect(
+      pack.pokemon.find((pokemon) => pokemon.name === "Mismagius"),
+    ).toMatchObject({
+      skill: "Cooking Advance S (Mystical Fire)",
+      specialty: "Skills",
+      frequency: 2400,
+      ingRate: 14.2,
+      skillRate: 3.6,
+      carryLimit: 17,
+    });
+    expect(
+      pack.pokemon.find((pokemon) => pokemon.name === "Misdreavus"),
+    ).toMatchObject({
+      specialty: "Skills",
+      skill: "Cooking Power-Up S",
+      frequency: 2800,
+      ingRate: 15,
+      skillRate: 4.7,
+      carryLimit: 13,
+      ing1: { name: "potato" },
+      ing2: { name: "coffee" },
+      ing3: { name: "tomato" },
+    });
+    expect(
+      pack.pokemon.some((pokemon) => pokemon.name === "Pikachu (Low Key)"),
+    ).toBe(false);
+    expect(
+      pack.pokemon.some((pokemon) => pokemon.name === "Pikachu (Halloween)"),
+    ).toBe(true);
+    expect(pack.pokemon.some((pokemon) => pokemon.name === "Pikachu")).toBe(
+      true,
+    );
+    expect(
+      pack.pokemon.find((pokemon) => pokemon.name === "Gengar")?.ingRate,
+    ).toBe(16.6);
+    expect(pack.bonus.some((event) => event.name === "halloween 2026")).toBe(
+      true,
+    );
+  });
+
+  it.each([
+    "Misdreavus",
+    "Mismagius",
+  ])("ranks confirmed %s with the official ingredient and skill calculations", async (pokemonName) => {
+    const config = {
+      ...createRankingScenarioConfig("ingredients"),
+      pokemonName,
+    };
+    const parameter = createStrengthParameter({ event: "none", level: 0 });
+    const result = await calculateRankingScenarioAsync(config, parameter);
+    expect(result.entries).toHaveLength(6);
+    expect(result.exclusions).toEqual([]);
+    for (const entry of result.entries) {
+      const official = new PokemonStrength(entry.iv, parameter).calculate();
+      expect(entry.value).toBe(official.ingStrength);
+      expect(entry.value).toBeGreaterThan(0);
+      expect(official.skillCount).toBeGreaterThan(0);
+      expect(official.skillValuePerTrigger).toBe(31);
+      if (pokemonName === "Mismagius")
+        expect(official.skillValuePerTrigger2).toBe(5);
+    }
+  });
+
+  it.each([
+    { id: 26 },
+    { name: "Future Pikachu" },
+    { form: "Halloween" },
+    { specialty: "Future Specialty" },
+    { skill: "Future Skill" },
+    { frequency: 1 },
+  ])("still warns when the auxiliary identity has unknown or changed semantics: %j", (patch) => {
+    const auxiliary = pokemonJson.find(
+      (pokemon) => pokemon.name === "Pikachu (Low Key)",
+    );
+    if (!auxiliary) throw new Error("Night Cap identity fixture is missing");
+    const changed = { ...auxiliary, ...patch };
+    const pack = validateUpstreamDataPack(
+      [
+        ...pokemonJson.filter((pokemon) => pokemon.name !== auxiliary.name),
+        changed,
+      ],
+      eventJson,
+    );
+    expect(pack.pokemon.some((pokemon) => pokemon.name === changed.name)).toBe(
+      false,
+    );
+    expect(pack.issues).toEqual([
+      expect.objectContaining({ kind: "pokemon", name: changed.name }),
+    ]);
+  });
+
+  it("keeps Halloween Pikachu calculable when the Night Cap identity is present", async () => {
+    const parameter = createStrengthParameter({ event: "none", level: 0 });
+    const result = await calculateRankingScenarioAsync(
+      {
+        ...createRankingScenarioConfig("ingredients"),
+        pokemonName: "Pikachu (Halloween)",
+      },
+      parameter,
+    );
+    expect(result.entries.length).toBeGreaterThan(0);
+    expect(result.exclusions).toEqual([]);
+    expect(
+      result.entries.every(
+        (entry) =>
+          entry.iv.pokemonName === "Pikachu (Halloween)" && entry.value > 0,
+      ),
+    ).toBe(true);
+    expect(baseline.issues).toEqual([]);
+  });
+
+  it.each([
+    [1, 7, 1],
+    [2, 10, 2],
+    [3, 12, 2],
+    [4, 17, 3],
+    [5, 22, 3],
+    [6, 27, 4],
+    [7, 31, 5],
+  ])("applies both official Mystical Fire effects at level %s", (level, potSize, chance) => {
+    expect(getSkillValue("Cooking Advance S (Mystical Fire)", level)).toBe(
+      potSize,
+    );
+    expect(getSkillSubValue("Cooking Advance S (Mystical Fire)", level)).toBe(
+      chance,
+    );
+    expect(getMaxSkillLevel("Cooking Advance S (Mystical Fire)")).toBe(7);
+    const iv = new PokemonIv({
+      pokemonName: "Mismagius",
+      level: 60,
+      skillLevel: level,
+    });
+    const parameter = createStrengthParameter({
+      event: "none",
+      level: 0,
+      maxSkillLevel: false,
+    });
+    const official = new PokemonStrength(iv, parameter).calculate();
+    expect(official.skillCount).toBeGreaterThan(0);
+    expect(official.skillValuePerTrigger).toBe(potSize);
+    expect(official.skillValuePerTrigger2).toBe(chance);
+    expect(official.skillValue2).toBe(chance * official.skillCount);
+  });
+
+  it.each([
+    "Cooking Advance S",
+    "Cooking Advance S (Mystical Fire)",
+  ] as const)("finds Mismagius in %s skill rankings at the corrected maximum level", async (skill) => {
+    const parameter = createStrengthParameter({ event: "none", level: 0 });
+    const result = await calculateRankingScenarioAsync(
+      {
+        ...createRankingScenarioConfig("skill"),
+        skill,
+      },
+      parameter,
+    );
+    const entry = result.entries.find(
+      (item) => item.iv.pokemonName === "Mismagius",
+    );
+    expect(entry).toBeDefined();
+    if (!entry) throw new Error("Mismagius is missing from skill rankings");
+    expect(entry.iv.skillLevel).toBe(7);
+    expect(entry.value).toBeGreaterThan(0);
+    expect(entry.value).toBe(
+      new PokemonStrength(entry.iv, parameter).calculate().skillCount,
+    );
+    expect(result.exclusions).toEqual([]);
   });
 
   it("uses upstream big-berry and skill calculations for the new event", () => {

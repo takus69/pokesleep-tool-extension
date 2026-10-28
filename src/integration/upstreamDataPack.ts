@@ -54,6 +54,7 @@ const supportedSkills = new Set([
   "Versatile",
   "Berry Burst (Draco Meteor)",
   "Berry Zone (Psystrike)",
+  "Cooking Advance S (Mystical Fire)",
 ]);
 const supportedForms = new Set([
   undefined,
@@ -192,6 +193,34 @@ function validIngredient(value: unknown, slots: readonly string[]): boolean {
     item !== null &&
     supportedIngredients.has(String(item.name)) &&
     slots.every((slot) => finite(item[slot]) && Number(item[slot]) >= 0)
+  );
+}
+
+/** The official team simulator supplies its own Night Cap stats. This row
+ * exists for its IV/icon identity, not as an ordinary ranking candidate.
+ * Match the known sentinel narrowly so changed or unknown data still warns.
+ */
+function isNightCapIdentity(value: unknown): boolean {
+  const item = object(value);
+  return (
+    item !== null &&
+    item.id === 25 &&
+    item.name === "Pikachu (Low Key)" &&
+    item.form === "Low Key" &&
+    item.skill === "unknown" &&
+    item.type === "electric" &&
+    item.specialty === "Berries" &&
+    item.sleepType === "snoozing" &&
+    item.exp === 600 &&
+    item.evolutionCount === -1 &&
+    item.ancestor === null &&
+    item.evolutionLeft === 0 &&
+    item.isFullyEvolved === true &&
+    item.fp === 0 &&
+    item.frequency === 0 &&
+    item.ingRate === 0 &&
+    item.skillRate === 0 &&
+    item.carryLimit === 0
   );
 }
 
@@ -337,6 +366,7 @@ export function validateUpstreamDataPack(
   const issues: UpstreamDataIssue[] = [];
   const pokemon: PokemonData[] = [];
   for (const value of pokemonJson) {
+    if (isNightCapIdentity(value)) continue;
     const validated = validatePokemon(value);
     if (typeof validated === "string") {
       const item = object(value);

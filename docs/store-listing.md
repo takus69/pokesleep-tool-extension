@@ -123,6 +123,12 @@ Chromeの小型紹介画像と実画面スクリーンショットは必須で�
 
 画像寸法と提出項目は[Chrome Web Storeの画像ガイド](https://developer.chrome.com/docs/webstore/images)、[掲載情報ガイド](https://developer.chrome.com/docs/webstore/cws-dashboard-listing)、[Edge Add-onsの提出手順](https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/publish-extension)を参照。ストアの管理画面に更新があれば、提出時点の表示を優先します。
 
+## 0.3.2の更新説明（提出用）
+
+ムウマ・ムウマージの能力値と、マジカルフレイムの効果・スキルレベル7に対応しました。元ツールの最新データ・計算処理・画面との互換性を更新し、ナイトキャップピカチュウの内部データによる不要な警告を修正しました。
+
+Chrome・Edge両方の動作確認は利用者により完了（2026-10-27）。既存のストア名・権限・独自アイコン・掲載スクリーンショットを継続使用します。公開中のストア版は提出・公開確認が完了するまで0.3.1として案内します。0.3.2の成果物・提出・公開は[Issue #99](https://github.com/takus69/pokesleep-tool-extension/issues/99)で追跡します。
+
 ## 0.3.1の更新説明（提出用）
 
 新しいポケモンの名称やアイコンが正しく表示されない問題を修正しました。ポケモン名と通常色・色違いアイコンを公式元ツールの公開データから自動補完し、通信できない場合は保存済みデータを使用します。元ツールの言語設定が未保存の場合はブラウザの言語を使用します。最新のポケモン・イベント情報と公式計算処理にも対応しました。
