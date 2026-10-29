@@ -1,6 +1,8 @@
 # ストア公開・リリース手順
 
-## 0.3.2配布準備の記録
+## 0.3.2公開の記録
+
+2026-10-30、利用者からChrome Web Store・Microsoft Edge Add-onsで0.3.2が公開済みとの報告を受領し、[Issue #99](https://github.com/takus69/pokesleep-tool-extension/issues/99)を完了としてクローズしました。日付は報告受領日です。ストア版の起動・更新配信の追加確認は未記録です。GitHub Releaseは[v0.3.2](https://github.com/takus69/pokesleep-tool-extension/releases/tag/v0.3.2)です。
 
 2026-10-27、利用者より警告修正後のChrome・Edge両方の動作確認済みと配布版作成の指示を受領しました。受入対象はPR #98の `0f74f72`。以降の変更は受入記録とリリース文書のみで、配布コードは同じです。
 
