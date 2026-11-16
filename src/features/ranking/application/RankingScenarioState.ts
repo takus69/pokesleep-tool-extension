@@ -8,7 +8,7 @@ import {
   VersatileCandidates,
 } from "@upstream/util/MainSkill";
 import Nature from "@upstream/util/Nature";
-import { IngredientTypes } from "@upstream/util/PokemonRp";
+import { IngredientTypes } from "@upstream/util/PokemonIv";
 import SubSkill from "@upstream/util/SubSkill";
 import SubSkillList, {
   type SubSkillListProps,
@@ -121,6 +121,11 @@ export function normalizeRankingScenarioConfig(
   result.nature =
     Nature.allNatures.find((nature) => nature.name === natureName) ??
     result.nature;
+  result.nature = result.nature.withMint(
+    input.nature instanceof Nature
+      ? input.nature.mint
+      : input.natureMint === true,
+  );
   const skills =
     input.subSkills instanceof SubSkillList
       ? input.subSkills.toProps()
@@ -147,6 +152,7 @@ export function serializeRankingScenarioConfig(
   return JSON.stringify({
     ...normalized,
     nature: normalized.nature.name,
+    natureMint: normalized.nature.mint,
     subSkills: Object.fromEntries(
       Object.entries(normalized.subSkills.toProps()).map(([level, skill]) => [
         level,

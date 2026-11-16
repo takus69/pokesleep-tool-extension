@@ -59,6 +59,7 @@ const supportedSkills = new Set([
 const supportedForms = new Set([
   undefined,
   "Halloween",
+  "Halloween2",
   "Holiday",
   "Alola",
   "Paldea",
@@ -109,6 +110,7 @@ const supportedEventEffectKeys = new Set([
   "carryLimitMul",
   "globalCarryLimitAdd",
   "bigBerry",
+  "extraIng",
   "fixedBerries",
   "fixedAreas",
 ]);
@@ -125,7 +127,7 @@ const supportedNumericEventEffects: Record<string, ReadonlySet<number>> = {
   dish: new Set([1, 1.1, 1.25, 1.5]),
   energyFromDish: new Set([0, 5]),
   potSize: new Set([1, 1.6, 2]),
-  carryLimitAdd: new Set([0, 8, 15]),
+  carryLimitAdd: new Set([0, 8, 10, 15]),
   carryLimitMul: new Set([1, 1.5]),
   globalCarryLimitAdd: new Set([0, 8, 15]),
 };
@@ -331,6 +333,13 @@ function validateBonusEvent(
     } else if (key === "fixedAreas") {
       if (!Array.isArray(effect) || !effect.every(Number.isInteger))
         return "invalid fixed areas";
+    } else if (key === "extraIng") {
+      if (
+        effect !== "" &&
+        (typeof effect !== "string" ||
+          !IngredientNames.includes(effect as (typeof IngredientNames)[number]))
+      )
+        return "unsupported extra ingredient";
     } else if (key === "bigBerry") {
       if (!supportedBigBerryEvents.has(String(effect)))
         return "unsupported big berry event";

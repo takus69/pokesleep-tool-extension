@@ -1,3 +1,4 @@
+import Nature from "@upstream/util/Nature";
 import { describe, expect, it } from "vitest";
 import {
   decodeRankingScenarioSettings,
@@ -6,9 +7,34 @@ import {
   type RankingScenarioStorage,
   saveRankingScenarioSettings,
 } from "./RankingScenarioPersistence";
-import { createRankingScenarioSettings } from "./RankingScenarioState";
+import {
+  createRankingScenarioSettings,
+  normalizeRankingScenarioConfig,
+} from "./RankingScenarioState";
 
 describe("ranking scenario persistence", () => {
+  it("preserves mint through form normalization and storage while reading old settings", () => {
+    const settings = createRankingScenarioSettings();
+    settings.configs.ingredient.nature = new Nature("Modest").withMint(true);
+    expect(
+      normalizeRankingScenarioConfig("ingredient", settings.configs.ingredient)
+        .nature.mint,
+    ).toBe(true);
+    const restored = decodeRankingScenarioSettings(
+      encodeRankingScenarioSettings(settings),
+    );
+    expect(restored.configs.ingredient.nature.name).toBe("Modest");
+    expect(restored.configs.ingredient.nature.mint).toBe(true);
+    expect(restored.configs.ingredient.nature.ingredientFindingFactor).toBe(1);
+    for (const natureMint of [undefined, "true", 1, false]) {
+      expect(
+        normalizeRankingScenarioConfig("ingredient", {
+          nature: "Modest",
+          natureMint,
+        }).nature.mint,
+      ).toBe(false);
+    }
+  });
   it("round-trips the version 1 schema", () => {
     const settings = createRankingScenarioSettings();
     settings.purpose = "ingredient";

@@ -1,17 +1,18 @@
 # Third-party notices
 
-本リポジトリは `nitoyon/pokesleep-tool` を固定commitのGit submoduleとして参照し、必要な型、計算部品、データ、React/MUI画面部品を配布用bundleへ含めます。上流READMEにはライセンスがMITと記載されています。固定commitに独立したLICENSEファイルはありません。上流の著作権表示・許諾本文に関する確認状況は [ライセンス監査](docs/license-audit.md) に記載します。
+本リポジトリは `nitoyon/pokesleep-tool` を固定commitのGit submoduleとして参照し、必要な型、計算部品、データ、React/MUI画面部品を配布用bundleへ含めます。上流READMEと独立した `LICENSE.md` にMITライセンスが記載されています。上流の著作権表示・許諾本文に関する確認状況は [ライセンス監査](docs/license-audit.md) に記載します。
 
 - Upstream: https://github.com/nitoyon/pokesleep-tool
-- Pinned commit: `9d4518000258a9353f5e1cb63ee17288f1ad0411`
+- Pinned commit: `810edfaaa2fa4ddb8b3a80f2a0d12b1b065d1975`
 - Upstream license statement: `README.md` の `## License` に `MIT`
-- Separate upstream LICENSE file: 固定commitにはなし
+- Separate upstream LICENSE file: `LICENSE.md`（Copyright (c) 2023-2026 nitoyon）。本文は下記に収録。
 - Imported paths: `src/data`、`src/i18n`、`src/util`、`src/ui/IvCalc`、`src/ui/common`、`src/ui/Resources` の利用部分。上流ファイル自体への変更なし。拡張のbuild設定で未使用の `src/util/Firebase/Auth.ts` の副作用を除去し、認証SDKを配布bundleへ含めない。
 
 上流の `src/ui/Resources` には、次の個別のMITライセンス表示があります。ランキングで利用する元ツール部品はこれらのアイコンを参照するため、制作者の表示を保持します。
 
 - Copyright (c) 2024 ちゃんりわ: `AppleIcon`, `CacaoIcon`, `CoffeeIcon`, `CookingAssistIcon`, `CornIcon`, `EggIcon`, `GingerIcon`, `HerbIcon`, `HoneyIcon`, `HyperCutterIcon`, `IngredientDrawIcon`, `IngredientsIcon`, `LeekIcon`, `MilkIcon`, `MushroomIcon`, `OilIcon`, `PotatoIcon`, `SausageIcon`, `SoyIcon`, `SuperLuckIcon`, `TailIcon`, `TomatoIcon`
 - Copyright (c) 2025 ちゃんりわ: `AvocadoIcon`, `PumpkinIcon`
+- Copyright (c) 2026 ちゃんりわ: `NutsIcon`（上記固定commitの `src/ui/Resources/NutsIcon.tsx`。上流ファイルへの変更なし）
 
 上記のアイコンに適用される許諾本文は次のとおりです。
 
@@ -33,7 +34,7 @@
 > OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 > SOFTWARE.
 
-上流の `DreamShardIcon.tsx` は [UXWing Sparkle Icon](https://uxwing.com/sparkle-icon/) を元にしたとソース内で明記されています。UXWingの[利用条件](https://uxwing.com/license/)はアプリ内での利用を許す一方、素材そのものの再配布などを制限します。上記24件のMITアイコンとは別の出所として扱います。
+上流の `DreamShardIcon.tsx` は [UXWing Sparkle Icon](https://uxwing.com/sparkle-icon/) を元にしたとソース内で明記されています。UXWingの[利用条件](https://uxwing.com/license/)はアプリ内での利用を許す一方、素材そのものの再配布などを制限します。上記25件のMITアイコンとは別の出所として扱います。
 
 配布用bundleに含まれるnpmパッケージの名称、版、ライセンス表記と許諾本文は、ビルド時に生成する `THIRD_PARTY_PACKAGE_LICENSES.md` に収録します。開発専用パッケージは対象外です。
 
@@ -45,10 +46,34 @@
 - Current paths: `src/features/ranking/application`, `src/features/ranking/domain`, `src/features/ranking/ui`, `src/features/ranking/workspace`
 - Material changes: 元ツール上段タブへの統合、計算環境とボックスの参照専用連携、明示的な再計算、実行時データ検証、公式上流APIへの追従
 
-`src/vendor/upstream-data` は `scripts/sync-upstream-data.mjs` が公式元ツールの指定checkoutから取得した非実行JSONのスナップショットです。同期元commitとファイルハッシュは同ディレクトリのmanifestに記録します。元ツールREADMEのMIT表記がデータJSONへ適用される範囲は公開前に確認します。計算コードはViteが自己完結したcontent scriptへbundleし、実行時には取得しません。
+`src/vendor/upstream-data` は `scripts/sync-upstream-data.mjs` が公式元ツールの指定checkoutから取得した非実行JSONのスナップショットです。同期元commitとファイルハッシュは同ディレクトリのmanifestに記録します。公式リポジトリの `LICENSE.md` のMIT本文を収録します。計算コードはViteが自己完結したcontent scriptへbundleし、実行時には取得しません。
 
 PokémonおよびPokémon Sleepは各権利者の商標・著作物であり、本プロジェクトは公式提供物ではありません。
 
 新ポケモン名の自動補完は同じ公式リポジトリの `main/src/i18n/{en,ja,ko,zh-CN,zh-TW}/pokemons.json` を実行時に読み取ります。取得元は固定URLで、固定submoduleや同梱コードのcommitは変更しません。取得時のmainに追従するため、この実行時データには固定commitを割り当てません。変更内容は検証済みポケモン名のプレーンテキスト訳だけを抽出し、同梱翻訳に不足する名称を補うことです。計算データと同じ上流READMEのMIT表記を参照し、JSONをコードとして評価しません。
 
 自動取込アイコンの出所: 上記公式リポジトリの src/ui/IvCalc/PokemonIconData.ts（main）。同梱版は上記固定commit。MIT表記を継承し、図形・配色のみを非実行データとして抽出・検証する。上流ファイルへの変更はない。
+
+## Official upstream MIT license
+
+MIT License
+
+Copyright (c) 2023-2026 nitoyon
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

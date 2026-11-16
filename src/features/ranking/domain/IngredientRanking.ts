@@ -3,8 +3,11 @@ import pokemons, {
   type PokemonData,
 } from "@upstream/data/pokemons";
 import Nature from "@upstream/util/Nature";
-import PokemonIv, { type IngredientSlot } from "@upstream/util/PokemonIv";
-import { type IngredientType, IngredientTypes } from "@upstream/util/PokemonRp";
+import PokemonIv, {
+  type IngredientSlot,
+  type IngredientType,
+  IngredientTypes,
+} from "@upstream/util/PokemonIv";
 import type { StrengthParameter } from "@upstream/util/PokemonStrength";
 import SubSkill from "@upstream/util/SubSkill";
 import SubSkillList from "@upstream/util/SubSkillList";

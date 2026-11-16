@@ -1,5 +1,11 @@
 # ストア公開・リリース手順
 
+## 0.3.3候補の準備（#103）
+
+固定上流は `810edfaaa2fa4ddb8b3a80f2a0d12b1b065d1975`。モンメン・エルフーン、ナッツと新イベントの互換性修正。追加権限なし。提出用更新説明は `docs/store-listing.md`。公開中版は0.3.2のまま。
+
+Computer Useは現在のブラウザURLを確認できず停止したため、Chrome/Edgeのunpacked受入が残る。手順は[準備設計](design/upstream-event-preparation-2026-11.md#手動受入手順)。両ブラウザ受入とPRレビュー後にdevelopへマージし、release PRからmainへ昇格する。タグ・共通ZIPは受入済みmain commitから作成する。作業ブランチのdistはローカル受入用で、提出用ZIPの正本ではない。
+
 ## 0.3.2公開の記録
 
 2026-10-30、利用者からChrome Web Store・Microsoft Edge Add-onsで0.3.2が公開済みとの報告を受領し、[Issue #99](https://github.com/takus69/pokesleep-tool-extension/issues/99)を完了としてクローズしました。日付は報告受領日です。ストア版の起動・更新配信の追加確認は未記録です。GitHub Releaseは[v0.3.2](https://github.com/takus69/pokesleep-tool-extension/releases/tag/v0.3.2)です。

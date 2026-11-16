@@ -243,6 +243,7 @@ describe("ranking shared-storage contract with the pinned upstream tool", () => 
       "dish",
       "dreamShard",
       "energyFromDish",
+      "extraIng",
       "fixedAreas",
       "fixedBerries",
       "globalCarryLimitAdd",
