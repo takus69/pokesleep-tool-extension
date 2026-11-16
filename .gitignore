@@ -1,5 +1,6 @@
 node_modules/
 dist/
+dist-mobile-poc/
 coverage/
 *.zip
 .tmp-*-profile*/

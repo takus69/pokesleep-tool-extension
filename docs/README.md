@@ -15,12 +15,14 @@
 - [上流互換性更新 #95](design/upstream-compatibility-95.md)
 - [2026年11月の新イベント・モンメン系統の取り込み準備](design/upstream-event-preparation-2026-11.md)
 - [機能設計テンプレート](design/feature-design-template.md)
-- [Safari／Android将来対応](platform-roadmap.md)
+- [スマホ対応の実現性と優先順位](platform-roadmap.md)
+- [スマホPoCの設計](design/mobile-poc.md)
 
 ## 開発・公開
 
 - [開発環境構築とブランチ運用](development.md)
 - [テスト手順](testing.md)
+- [スマホPoCの検証・結果記録](testing/mobile-poc.md)
 - [ストア公開・リリース手順](release.md)
 - [ストア掲載情報](store-listing.md)
 
