@@ -17,8 +17,10 @@ import {
   MainSkillNames,
   VersatileCandidates,
 } from "@upstream/util/MainSkill";
-import PokemonIv from "@upstream/util/PokemonIv";
-import { type IngredientType, IngredientTypes } from "@upstream/util/PokemonRp";
+import PokemonIv, {
+  type IngredientType,
+  IngredientTypes,
+} from "@upstream/util/PokemonIv";
 import { useTranslation } from "react-i18next";
 import type { RankingScenarioConfig } from "../domain/RankingScenario";
 import {

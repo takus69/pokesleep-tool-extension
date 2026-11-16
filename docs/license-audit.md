@@ -7,8 +7,8 @@
 | 対象 | 確認できた根拠 | 現在の扱い |
 |---|---|---|
 | 拡張の独自コード・文書 | ルートの `LICENSE` | `takus69` のMITライセンス。元ツールの著作権をこの表示に含めない。 |
-| 公式元ツールのコード・データ・画面部品 | 固定commit `9d4518000258a9353f5e1cb63ee17288f1ad0411` の `README.md` は `## License` に `MIT` と記載 | `vendor/pokesleep-tool` を読み取り専用のsubmoduleとして参照し、必要な部分をbundleへ含める。固定commitに独立したLICENSE本文はない。出典と確認できたライセンス表示を `THIRD_PARTY_NOTICES.md` に記載する。 |
-| 元ツール内の一部アイコン | `vendor/pokesleep-tool/src/ui/Resources` の24ファイルの先頭に、制作者・年とMIT本文を明記 | `THIRD_PARTY_NOTICES.md` に個別表示を収録する。 |
+| 公式元ツールのコード・データ・画面部品 | 固定commit `810edfaaa2fa4ddb8b3a80f2a0d12b1b065d1975` の `README.md` は `## License` に `MIT` と記載 | `vendor/pokesleep-tool` を読み取り専用のsubmoduleとして参照し、必要な部分をbundleへ含める。固定commitの `LICENSE.md` にCopyright (c) 2023-2026 nitoyonとMIT本文がある。配布通知に全文収録する。出典と確認できたライセンス表示を `THIRD_PARTY_NOTICES.md` に記載する。 |
+| 元ツール内の一部アイコン | `vendor/pokesleep-tool/src/ui/Resources` の25ファイルの先頭に、制作者・年とMIT本文を明記 | `THIRD_PARTY_NOTICES.md` に個別表示を収録する。 |
 | 旧forkから移した独自ランキング | 旧fork commit `42b0c4ae34c168ba8d6fbb3329d3426a452beb80` と `THIRD_PARTY_NOTICES.md` | 独自変更部分と上流由来部分の帰属を混同しない。旧forkは実行時の依存ではない。 |
 | bundle内のnpm依存 | ビルドのmodule一覧から40パッケージを特定。インストール済みの版ではMIT 38件、BSD-3-Clause 2件 | `THIRD_PARTY_PACKAGE_LICENSES.md` をビルド時に生成し、各パッケージの許諾ファイルを収録する。ライセンス表記か本文がない場合はビルドを失敗させる。更新時に再監査する。 |
 | UXWing由来アイコン | 上流の `src/ui/Resources/DreamShardIcon.tsx` が [Sparkle Icon](https://uxwing.com/sparkle-icon/) を出所として明記 | [UXWingの利用条件](https://uxwing.com/license/)をMITとは別に扱い、アプリ内での利用と素材そのものの再配布を区別する。 |
