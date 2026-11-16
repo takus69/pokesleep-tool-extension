@@ -35,8 +35,9 @@ export function validateUpstreamPokemonIcons(
   if (typeof value !== "object" || value === null || Array.isArray(value))
     return result;
   const ids = pokemon.flatMap((item) => {
+    // Upstream serializes the form in four bits (including Halloween2).
     const form =
-      Array.from({ length: 12 }, (_, index) => index).find(
+      Array.from({ length: 16 }, (_, index) => index).find(
         (index) => PokemonIv.formToString(index) === (item.form ?? ""),
       ) ?? 0;
     return [item.id, item.id + (form << 12)];

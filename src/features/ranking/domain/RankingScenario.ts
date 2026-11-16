@@ -1,3 +1,4 @@
+import { getEventBonusIfTarget } from "@upstream/data/events";
 import pokemons, {
   type IngredientName,
   type PokemonData,
@@ -9,8 +10,8 @@ import {
   matchMainSkillName,
 } from "@upstream/util/MainSkill";
 import Nature from "@upstream/util/Nature";
+import type { IngredientType } from "@upstream/util/PokemonIv";
 import PokemonIv, { type IngredientSlot } from "@upstream/util/PokemonIv";
-import type { IngredientType } from "@upstream/util/PokemonRp";
 import {
   getCurrentFavoriteBerries,
   type StrengthParameter,
@@ -334,7 +335,15 @@ function* generateCandidates(
           continue;
         if (
           config.purpose === "ingredient" &&
-          !unlockedSlots(iv).some((s) => s.name === config.ingredient)
+          !unlockedSlots(iv).some((s) => s.name === config.ingredient) &&
+          !(
+            environment.period > 0 &&
+            getEventBonusIfTarget(
+              environment.event,
+              environment.customEventBonus,
+              pokemon,
+            ).extraIng === config.ingredient
+          )
         )
           continue;
         if (config.purpose !== "traits") {

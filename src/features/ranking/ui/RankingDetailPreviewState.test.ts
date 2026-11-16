@@ -81,10 +81,14 @@ describe("ranking detail preview contract with upstream UI", () => {
   it.each([
     "Venusaur",
     "Mismagius",
+    "Cottonee",
+    "Whimsicott",
   ])("renders all three pinned upstream detail views for %s without saving", (pokemonName) => {
     const before = storageSnapshot();
     const iv = new PokemonIv({ pokemonName, level: 30 });
-    const environment = createStrengthParameter({});
+    const environment = createStrengthParameter({
+      event: "bountiful banquet week vol1",
+    });
     const state = createRankingPreviewState(iv, environment);
     const dispatch = () => {};
     const views = [

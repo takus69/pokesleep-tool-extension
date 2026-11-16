@@ -2,6 +2,7 @@
 
 import { LocalBoxRepository } from "@upstream/util/Box/LocalBoxRepository";
 import { PokemonBoxItem } from "@upstream/util/Box/PokemonBox";
+import Nature from "@upstream/util/Nature";
 import PokemonIv from "@upstream/util/PokemonIv";
 import {
   createStrengthParameter,
@@ -17,6 +18,27 @@ describe("loadUpstreamRankingInputs", () => {
   beforeEach(() => {
     localStorage.clear();
     window.location.hash = "";
+  });
+
+  it("reads mint, favorite attributes and fractional periods without rewriting storage", () => {
+    const iv = new PokemonIv({
+      pokemonName: "Whimsicott",
+      nature: new Nature("Modest").withMint(true),
+    });
+    const item = new PokemonBoxItem(iv, "favorite").withFavorites(3);
+    localStorage.setItem("PstPokeBox", JSON.stringify([item.serialize()]));
+    localStorage.setItem("PstIvState", JSON.stringify({ iv: iv.serialize() }));
+    saveStrengthParameter(
+      createStrengthParameter({ period: 1.5, fieldBonus: 100 }),
+    );
+    const before = { ...localStorage };
+    const loaded = loadUpstreamRankingInputs(true);
+    expect(loaded.state.pokemonIv.nature.mint).toBe(true);
+    expect(loaded.state.box.items[0]?.iv.nature.mint).toBe(true);
+    expect(loaded.state.box.items[0]?.favorites).toBe(3);
+    expect(loaded.state.parameter.period).toBe(1.5);
+    expect(loaded.state.parameter.fieldBonus).toBe(100);
+    expect({ ...localStorage }).toEqual(before);
   });
 
   it("uses a newer native IV save instead of a stale shared URL hash", () => {
