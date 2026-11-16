@@ -1,12 +1,19 @@
 # ストア公開・リリース手順
 
-## 0.3.3受入・公開準備（#103、#105）
+## 0.3.3公開の記録
 
-固定上流は `810edfaaa2fa4ddb8b3a80f2a0d12b1b065d1975`。モンメン・エルフーン、ナッツと新イベントの互換性修正。追加権限なし。提出用更新説明は `docs/store-listing.md`。公開中版は0.3.2のまま。
+固定上流は `810edfaaa2fa4ddb8b3a80f2a0d12b1b065d1975`。モンメン・エルフーン、ナッツと新イベントの互換性修正。追加権限なし。提出用更新説明は `docs/store-listing.md`。
 
 2026-11-16、利用者よりChrome/Edge両方のunpacked受入とPR #104レビューの確認完了を受領。受入対象は `76f7cdf605df0dd7bdf03864c19e3ecef435ad71`、develop反映は `48f7a7e`。`release:prepare`・308テスト・GitHub CI成功。以降の受入記録は文書のみで、配布コードは同じ。
 
-release PRからmainへ昇格し、受入済みmain commitから注釈付き `v0.3.3` タグと両ストア共通ZIPを作成する。タグcommit、ZIPのSHA-256、GitHub Release、提出・公開結果は [Issue #105](https://github.com/takus69/pokesleep-tool-extension/issues/105) に記録する。
+2026-11-16、利用者より両ストアへの審査提出報告を受領。2026-11-17、Chrome Web Store・Microsoft Edge Add-onsで0.3.3が公開されたとの報告を受領しました。日付は報告受領日です。ストア管理画面・掲載版の独立確認、ストア版の起動・更新配信の追加確認は未記録です。公開結果は [Issue #105](https://github.com/takus69/pokesleep-tool-extension/issues/105) に記録します。
+
+- リリースPR: [#107](https://github.com/takus69/pokesleep-tool-extension/pull/107)
+- 注釈付きタグ: `v0.3.3`、リリースcommit: `f4bc6b02eea9016e19d3a3bcba08e2fcbf68b658`
+- 両ストア共通ZIP: `pokesleep-tool-extension-v0.3.3.zip`（551256 bytes）
+- ZIP SHA-256: `dfa946c6caafb4cebd5a5f87502a01dc637cb2a67d08b197380874d6dd68a410`
+- GitHub Release: [v0.3.3](https://github.com/takus69/pokesleep-tool-extension/releases/tag/v0.3.3)
+- タグcommitからnpm ci/build成功、受入content.jsとのハッシュ一致、ZIP全10ファイル照合、添付後ダウンロードのハッシュ照合済み。
 
 ## 0.3.2公開の記録
 
