@@ -1,10 +1,12 @@
 # ストア公開・リリース手順
 
-## 0.3.3候補の準備（#103）
+## 0.3.3受入・公開準備（#103、#105）
 
 固定上流は `810edfaaa2fa4ddb8b3a80f2a0d12b1b065d1975`。モンメン・エルフーン、ナッツと新イベントの互換性修正。追加権限なし。提出用更新説明は `docs/store-listing.md`。公開中版は0.3.2のまま。
 
-Computer Useは現在のブラウザURLを確認できず停止したため、Chrome/Edgeのunpacked受入が残る。手順は[準備設計](design/upstream-event-preparation-2026-11.md#手動受入手順)。両ブラウザ受入とPRレビュー後にdevelopへマージし、release PRからmainへ昇格する。タグ・共通ZIPは受入済みmain commitから作成する。作業ブランチのdistはローカル受入用で、提出用ZIPの正本ではない。
+2026-11-16、利用者よりChrome/Edge両方のunpacked受入とPR #104レビューの確認完了を受領。受入対象は `76f7cdf605df0dd7bdf03864c19e3ecef435ad71`、develop反映は `48f7a7e`。`release:prepare`・308テスト・GitHub CI成功。以降の受入記録は文書のみで、配布コードは同じ。
+
+release PRからmainへ昇格し、受入済みmain commitから注釈付き `v0.3.3` タグと両ストア共通ZIPを作成する。タグcommit、ZIPのSHA-256、GitHub Release、提出・公開結果は [Issue #105](https://github.com/takus69/pokesleep-tool-extension/issues/105) に記録する。
 
 ## 0.3.2公開の記録
 

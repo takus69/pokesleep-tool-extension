@@ -108,3 +108,7 @@ Chrome/Edge自動受入はComputer Useが現在のブラウザURLを確認でき
 
 追加監査: ランキング条件の正規化・保存でミントが失われるため、既存v1設定へ任意のnatureMint真偽値を追加。Nature入力のミントを維持し、旧設定はfalseとして読み込む。元ツール保存schemaを変更しない。追加契約テストで保存復元と不正フラグを検証する。
 `npm run release:prepare` 最終成功（308テスト、公式commit 810edfaa、型検査・lint・ライセンス・ストア素材・production build）。Chrome/Edge受入とレビューは未完了。
+
+## 受入完了（2026-11-16）
+
+利用者より依頼済みのChrome/Edge両ブラウザ確認とPR #104レビューに対して「OKです。確認しました。」の回答を受領。候補76f7cdf605df0dd7bdf03864c19e3ecef435ad71を受入済みとし、Issue #103へ記録。PR #104はdevelopへマージ済み（48f7a7e）。上記の未完了記載は各時点の経過記録であり、ブラウザ受入待ちは解消した。ストア提出・公開はIssue #105で継続する。
